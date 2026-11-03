@@ -1,0 +1,34 @@
+# generated data
+sources/
+sources_x10/
+out/
+*.seq
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Spark / Hive local artefacts
+spark-warehouse/
+metastore_db/
+derby.log
+*.crc
+
+# notebooks and editors
+.ipynb_checkpoints/
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# secrets
+.env
