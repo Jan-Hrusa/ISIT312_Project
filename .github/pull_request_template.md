@@ -16,3 +16,6 @@
 - [ ] only my area's folders changed (or the shared change is explained above)
 - [ ] no real company data
 - [ ] `log.md` entry added
+- [ ] this PR goes into `integration` (not `main`)
+
+**After creating this PR:** post its link as a comment on the ClickUp task, and send `Task X completed and a PR created` to the WhatsApp group.

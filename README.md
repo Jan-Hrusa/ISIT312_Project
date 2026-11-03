@@ -4,12 +4,13 @@ A data lake for a Czech solar-farm construction company: every invoice, bank sta
 project document lands unchanged in one place, gets one project code, and gives management a daily
 cost-vs-budget overview per project. Group project for ISIT312 Big Data Management (UOWD, Autumn 2026).
 
-- **What we build and why:** [docs/project-description.md](docs/project-description.md)
-- **The company:** [docs/company.md](docs/company.md) (summary only; the interview itself is confidential)
+- **What we build and why, and the company:** the team Google Drive folder (link on the ClickUp guide page):
+  *02 Project description* and *01 Company description*. They live only there.
 - **File formats** (GPC, STA, KPC, ISDOC, ...): [docs/data-formats.md](docs/data-formats.md)
 - **Names everyone builds against** (paths, tables, codes): `docs/contracts.md` (Task 2, from Thu 5 Nov)
 - **Tasks:** ClickUp, space "ISIT312 Project", task "312 project" – read its guide page first
-- **Report, slides, lessons log, screenshots:** the team Google Drive folder (link in ClickUp)
+- **Report, slides, lessons log, screenshots:** the same Drive folder
+- **Rules for AI coding agents:** [AGENTS.md](AGENTS.md)
 
 ## Repository layout
 | Folder | What goes there | Tasks |
@@ -33,16 +34,28 @@ cost-vs-budget overview per project. Group project for ISIT312 Big Data Manageme
 ## Setup
 1. Python 3.11 or 3.12: create a virtual environment `.venv` and install `requirements.txt`.
 2. Big data stack: Docker (`docker/`, from Fri 6 Nov – see `docker/README.md`) or the class BigDataVM.
-3. `pytest` and `ruff check .` must pass before every pull request.
+3. `pytest`, `ruff check .` and `ruff format --check .` must pass before every pull request.
 
 ## How we work
-- **Branches:** one branch per person, named after you (first name, lower case). `main` is the integration branch;
-  only Jan merges into it. Never push to `main` directly.
-- **At the start of every session:** fetch, switch to your branch, rebase it on `origin/main`.
-- **Commits:** `[T<task number>] short message`, e.g. `[T16] parse GPC 075 records`.
-- **Pull requests:** title exactly as in your ClickUp task, `[CU-<task id>] Task N: short name`; fill in the template;
-  add your screenshots; add a 3-line entry to [log.md](log.md).
+| Branch | Purpose | Who merges into it |
+|---|---|---|
+| `main` | Final version only. `integration` is merged into it once, on Mon 23 Nov after the final review, tagged `v1.0` | Jan |
+| `integration` | Default branch; all development is merged here through pull requests | Jan, after approving the PR |
+| `<first name>` (lower case) | Your own branch, created from `integration`; all your work happens here | you push to it |
+
+1. **At the start of every session:** `git fetch origin`, switch to your branch, `git rebase origin/integration`.
+2. **Commits:** `[T<task number>] short message`, e.g. `[T16] parse GPC 075 records`.
+3. **Before the PR:** tests, `ruff check .` and `ruff format --check .` pass; your task's validation steps are done;
+   screenshots taken; a 3-line entry added to [log.md](log.md).
+4. **Pull request** into `integration` (never `main`), titled exactly as in your ClickUp task
+   (`[CU-<task id>] Task N: short name`), with the template filled in.
+5. **Right after creating the PR:**
+   - post the PR link as a **comment on the ClickUp task** you have just done;
+   - send to the **WhatsApp group**: `Task X completed and a PR created` (X = your task number).
+6. **Review:** Jan approves and merges into `integration`, or requests changes - fix them on the same branch and push;
+   the PR updates itself. Never merge your own PR.
+
 - **Due means merged:** open the PR at least a day before the due date.
 - **Shared names** (folders, tables, columns, codes) come from `docs/contracts.md`; propose changes in your PR,
   don't change them alone.
-- **No real company data** anywhere in this repository – all data is synthetic.
+- **No real company data** anywhere in this repository - all data is synthetic.
