@@ -13,9 +13,9 @@ and an HBase catalogue serve Zeppelin dashboards and search. Stack: HDFS, YARN, 
 ## 2. Where the information is
 | What | Where | Note |
 |---|---|---|
-| **Your task** (the spec: parts, files, tests, validation, "done when") | The member's ClickUp task | You can't open ClickUp. Ask the member to paste the full task description before you start. It is the source of truth for the work. |
-| Team rules, shared decisions, timeline | The ClickUp guide page "312 project" | Ask the member to paste the parts you need. |
-| Project description, company description | Team Google Drive folder | Not in the repo on purpose. Ask the member to paste the section you need. |
+| Team rules, shared decisions, architecture, timeline | The ClickUp guide page "312 project" (the main task description) | You can't open ClickUp. Ask the member to paste the whole page before you start. |
+| **Your task** (the spec: parts, files, tests, validation, "done when") | The member's ClickUp task | Ask the member to paste the full task description. It is the source of truth for the work. |
+| Project and company description | Team Google Drive folder: *00 Start here*, *02 Project description*, *01 Company description* | Not in the repo on purpose. Ask the member to paste 00 and 02 (01 when the task touches the company's data). |
 | Shared names: paths, tables, columns, codes | `docs/contracts.md` | Binding. Use these names exactly. |
 | File formats (GPC, STA, KPC, ISDOC, MT940) | `docs/data-formats.md` | Links to the official specs. |
 | Folder layout and who owns what | `README.md` | |
@@ -25,7 +25,14 @@ Never invent requirements. If the task description is missing, unclear or contra
 and ask the member; they ask Jan. Don't guess and don't "improve" the scope.
 
 ## 3. Before you change anything
-1. Read `README.md`, `docs/contracts.md` and the task description in full.
+1. Read, in this order and in full, before you plan anything:
+   1. the ClickUp guide page "312 project" (the main task description);
+   2. then the description of the task you are working on (Task N or N.x);
+   3. then the Drive documents *00 Start here* and *02 Project description* (*01 Company description* when
+      relevant);
+   4. then `README.md` and `docs/contracts.md`.
+
+   If the member hasn't pasted the first three, ask for them; don't start from the task description alone.
 2. Check the branch: `git status` and `git branch --show-current`. Work only on the member's own branch (their first
    name, lower case). If it doesn't exist yet: `git fetch origin` then `git switch -c <name> origin/integration`.
 3. Bring it up to date: `git fetch origin` then `git rebase origin/integration`.
