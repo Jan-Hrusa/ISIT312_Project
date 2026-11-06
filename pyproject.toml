@@ -7,6 +7,10 @@ requires-python = ">=3.11"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = "--import-mode=importlib"
+markers = [
+    "integration: needs a full pipeline run on the generated data; skips with a message when it is missing",
+]
 
 [tool.ruff]
 line-length = 110

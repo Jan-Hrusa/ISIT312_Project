@@ -7,7 +7,7 @@ cost-vs-budget overview per project. Group project for ISIT312 Big Data Manageme
 - **What we build and why, and the company:** the team Google Drive folder (link on the ClickUp guide page):
   *02 Project description* and *01 Company description*. They live only there.
 - **File formats** (GPC, STA, KPC, ISDOC, ...): [docs/data-formats.md](docs/data-formats.md)
-- **Names everyone builds against** (paths, tables, codes): `docs/contracts.md` (Task 2, from Thu 5 Nov)
+- **Names everyone builds against** (paths, tables, codes): [docs/contracts.md](docs/contracts.md)
 - **Tasks:** ClickUp, space "ISIT312 Project", task "312 project" – read its guide page first
 - **Report, slides, lessons log, screenshots:** the same Drive folder
 - **Rules for AI coding agents:** [AGENTS.md](AGENTS.md)
@@ -16,7 +16,7 @@ cost-vs-budget overview per project. Group project for ISIT312 Big Data Manageme
 | Folder | What goes there | Tasks |
 |---|---|---|
 | `docker/` | Docker Compose stack (HDFS, YARN, Hive, Spark, HBase, Zeppelin), `check.sh`, setup guide | 3, 8 |
-| `common/` | Shared helpers: `config.py`, `spark.py`, `projects.py`, `dq.py` – use these, don't write your own | 2 |
+| `common/` | Shared helpers: `config.py`, `schemas.py`, `tables.py`, `spark.py`, `projects.py`, `dq.py` (Task 2), `hdfs.py`, `lake.py` (Task 14.1) – use these, don't write your own | 2, 14.1 |
 | `generators/finance_docs/` | Projects, suppliers, budgets, ISDOC invoices + PDFs, accounting export | 5, 17 |
 | `generators/bank/` | GPC, STA, TXT statements and KPC payment orders | 6 |
 | `generators/media/` | Site photos (EXIF date + GPS), videos, documents, drawings | 7 |
