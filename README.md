@@ -32,9 +32,17 @@ cost-vs-budget overview per project. Group project for ISIT312 Big Data Manageme
 `sources/`, `sources_x10/` and `out/` are generated locally and never committed.
 
 ## Setup
-1. Python 3.11 or 3.12: create a virtual environment `.venv` and install `requirements.txt`.
-2. Big data stack: Docker (`docker/`, from Fri 6 Nov – see `docker/README.md`) or the class BigDataVM.
-3. `pytest`, `ruff check .` and `ruff format --check .` must pass before every pull request.
+Everything runs in Docker: install Docker Desktop (at least 6 GB of memory) and Git (on Windows also Git Bash),
+nothing else. All Python, Spark, tests and tools run in the `client` container (Python 3.10, Spark 3.5.9), which
+sees this repo at `/repo`. Full guide: [docker/README.md](docker/README.md).
+
+1. In `docker/`: `docker compose --profile core up -d` (the first start builds the image, about 15 minutes), then
+   `./check.sh` must print `OK hdfs`, `OK hive`, `OK spark`, `OK metastore`.
+2. Shell in the client: `docker compose exec client bash`.
+3. Before every pull request, in the client: `pytest -m "not integration"` (unit tests, no data needed; `pytest -m
+   integration` after a full pipeline run), `ruff check .` and `ruff format --check .` must pass.
+
+A virtual environment on the laptop is optional, only for your editor's code completion; don't run the code there.
 
 ## How we work
 | Branch | Purpose | Who merges into it |

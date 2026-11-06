@@ -1,0 +1,151 @@
+# ISIT312 data lake stack (Task 3; Task 8 adds the hbase and zeppelin profiles).
+# Run from this folder:  docker compose --profile core up -d      (add --profile yarn for MapReduce/YARN)
+# See README.md here for every command.
+
+name: isit312
+
+# Only namenode builds isit312/stack:1.0; the other stack services use that image (never pulled: it isn't on a
+# registry). Building it in every service would run several identical builds at once.
+x-stack: &stack
+  image: isit312/stack:1.0
+  pull_policy: never
+  volumes:
+    - ./conf:/opt/conf:ro
+  networks: [lake]
+  restart: unless-stopped
+
+x-hive: &hive
+  image: apache/hive:3.1.3
+  platform: linux/amd64
+  networks: [lake]
+  restart: unless-stopped
+
+services:
+  namenode:
+    <<: *stack
+    build:
+      context: ..
+      dockerfile: docker/stack/Dockerfile
+    pull_policy: missing
+    profiles: [core]
+    hostname: namenode
+    # Formats HDFS on the first start only (VERSION exists in the volume afterwards).
+    command: ["bash", "-c", "[ -f /data/nn/current/VERSION ] || hdfs namenode -format -force -nonInteractive; exec hdfs namenode"]
+    environment:
+      HDFS_NAMENODE_OPTS: -Xmx384m
+    volumes:
+      - ./conf:/opt/conf:ro
+      - hdfs_nn:/data/nn
+    ports: ["9870:9870", "8020:8020"]
+    mem_limit: 512m
+
+  datanode:
+    <<: *stack
+    profiles: [core]
+    hostname: datanode
+    command: ["hdfs", "datanode"]
+    environment:
+      HDFS_DATANODE_OPTS: -Xmx384m
+    volumes:
+      - ./conf:/opt/conf:ro
+      - hdfs_dn:/data/dn
+    ports: ["9864:9864"]
+    mem_limit: 512m
+    depends_on: [namenode]
+
+  metastore:
+    <<: *hive
+    profiles: [core]
+    hostname: metastore
+    # The image initialises the schema on every start unless IS_RESUME=true: skip it once the Derby DB exists.
+    entrypoint: ["bash", "-c", "[ -d /opt/hive/data/warehouse/metastore_db ] && export IS_RESUME=true; exec /entrypoint.sh"]
+    environment:
+      SERVICE_NAME: metastore
+      HADOOP_USER_NAME: hadoop # same HDFS identity as every other container (the HDFS superuser)
+      HIVE_CUSTOM_CONF_DIR: /hive_custom_conf
+      SERVICE_OPTS: -Xmx384m
+    volumes:
+      - ./conf:/hive_custom_conf:ro
+      - hive_metastore_db:/opt/hive/data/warehouse
+    ports: ["9083:9083"]
+    mem_limit: 512m
+    depends_on: [namenode]
+
+  hiveserver2:
+    <<: *hive
+    image: isit312/hive:1.0
+    build:
+      context: hive
+      additional_contexts:
+        stack: service:namenode
+    profiles: [core]
+    hostname: hiveserver2
+    environment:
+      SERVICE_NAME: hiveserver2
+      HADOOP_USER_NAME: hadoop # also submits Hive's YARN jobs (staging dir /tmp/hadoop-yarn belongs to hadoop)
+      IS_RESUME: "true"
+      HIVE_CUSTOM_CONF_DIR: /hive_custom_conf
+      SERVICE_OPTS: -Xmx768m
+      # The image's entrypoint adds $TEZ_HOME jars to the classpath; Tez ships Hadoop 2.7 MapReduce jars that break
+      # Hive's MapReduce engine (NoClassDefFoundError org/apache/hadoop/metrics/Updater). We use mr, not Tez.
+      TEZ_HOME: /opt/no-tez
+    volumes:
+      - ./conf:/hive_custom_conf:ro
+      - ..:/repo:ro
+    ports: ["10000:10000", "10002:10002"]
+    mem_limit: 1g
+    depends_on: [metastore, datanode]
+
+  client:
+    <<: *stack
+    profiles: [core]
+    hostname: client
+    command: ["sleep", "infinity"]
+    working_dir: /repo
+    volumes:
+      - ./conf:/opt/conf:ro
+      - ..:/repo
+    ports: ["4040:4040"]
+    mem_limit: 2g
+    depends_on: [namenode, datanode, metastore]
+
+  resourcemanager:
+    <<: *stack
+    profiles: [yarn]
+    hostname: resourcemanager
+    command: ["yarn", "resourcemanager"]
+    environment:
+      YARN_RESOURCEMANAGER_OPTS: -Xmx384m
+    ports: ["8088:8088"]
+    mem_limit: 512m
+
+  nodemanager:
+    <<: *stack
+    profiles: [yarn]
+    hostname: nodemanager
+    command: ["yarn", "nodemanager"]
+    environment:
+      YARN_NODEMANAGER_OPTS: -Xmx256m
+    ports: ["8042:8042"]
+    mem_limit: 2g
+    depends_on: [resourcemanager]
+
+  historyserver:
+    <<: *stack
+    profiles: [yarn]
+    hostname: historyserver
+    command: ["mapred", "historyserver"]
+    environment:
+      MAPRED_HISTORYSERVER_OPTS: -Xmx192m
+    ports: ["19888:19888"]
+    mem_limit: 256m
+    depends_on: [resourcemanager]
+
+networks:
+  lake:
+    name: lake
+
+volumes:
+  hdfs_nn:
+  hdfs_dn:
+  hive_metastore_db:
