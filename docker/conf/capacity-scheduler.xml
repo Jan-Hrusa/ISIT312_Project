@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- YARN CapacityScheduler with one queue. HADOOP_CONF_DIR replaces Hadoop's default config folder, so the
+     ResourceManager needs this file. Application masters (MapReduce 512 MB, Spark about 900 MB with overhead)
+     must fit in the 2 GB NodeManager: the default 10% AM share would keep every job waiting in ACCEPTED. -->
+<configuration>
+  <property>
+    <name>yarn.scheduler.capacity.root.queues</name>
+    <value>default</value>
+  </property>
+  <property>
+    <name>yarn.scheduler.capacity.root.default.capacity</name>
+    <value>100</value>
+  </property>
+  <property>
+    <name>yarn.scheduler.capacity.root.default.maximum-capacity</name>
+    <value>100</value>
+  </property>
+  <property>
+    <name>yarn.scheduler.capacity.maximum-am-resource-percent</name>
+    <value>0.6</value>
+  </property>
+</configuration>

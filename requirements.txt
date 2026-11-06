@@ -1,5 +1,5 @@
 # Spark client - matches Spark 3.5 in the Docker stack
-pyspark>=3.5,<3.6
+pyspark==3.5.9  # exactly the Spark binary in docker/stack/Dockerfile
 pandas>=2.1,<3  # PySpark 3.5 predates pandas 3
 pyarrow>=14
 
@@ -13,6 +13,7 @@ python-docx>=1.1
 
 # HBase (Thrift) and MapReduce (experiment E1)
 happybase>=1.2
+pyhive[hive_pure_sasl]>=0.7  # HiveServer2 from Python (Zeppelin, experiments)
 mrjob>=0.7.4
 
 # checks

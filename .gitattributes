@@ -1,4 +1,6 @@
 * text=auto
+# Everyone adds entries at the top of the shared log: keep both sides instead of a conflict.
+log.md merge=union
 *.sh text eol=lf
 *.py text eol=lf
 *.sql text eol=lf
