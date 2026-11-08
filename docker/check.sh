@@ -29,13 +29,19 @@ run() { # run <name> <function>
   fi
 }
 
-wait_ready() {
-  client hdfs dfsadmin -safemode wait >/dev/null 2>&1 || return 1
+wait_ready() { # right after "up -d" the services are still starting: retry, and keep the last error for the FAIL line
+  local i
+  for i in $(seq 1 30); do # the NameNode refuses connections for its first seconds; safemode wait doesn't retry that
+    client hdfs dfsadmin -safemode wait >"$log.ready" 2>&1 && break
+    [ "$i" = 30 ] && { echo "namenode not reachable within 2.5 minutes: $(grep -m1 -E 'safemode:|Exception|refused' "$log.ready" || grep -v WARN "$log.ready" | tail -n1)"; rm -f "$log.ready"; return 1; }
+    sleep 5
+  done
+  rm -f "$log.ready"
   for _ in $(seq 1 60); do # HiveServer2 needs a minute or two after "up -d"
     beeline "SELECT 1;" | grep -qx 1 && return 0
     sleep 5
   done
-  echo "hiveserver2 did not answer within 5 minutes" >&2
+  echo "hiveserver2 did not answer within 5 minutes"
   return 1
 }
 
