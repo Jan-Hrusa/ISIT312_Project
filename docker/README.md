@@ -8,7 +8,8 @@ Server (profiles `hbase`, `zeppelin`, guide in `SETUP.md`).
 - Docker Desktop with **at least 6 GB of memory** (8 GB for `core` + `yarn`). Where to set it:
   - Windows (WSL 2 backend, the default): Docker Desktop has no memory setting; WSL gets half of the laptop's RAM,
     so 16 GB is enough. With less, create `C:\Users\<you>\.wslconfig` with the two lines `[wsl2]` and
-    `memory=6GB`, run `wsl --shutdown` in PowerShell and start Docker Desktop again.
+    `memory=6GB` (`memory=8GB` if you need the `yarn` profile), run `wsl --shutdown` in PowerShell and start
+    Docker Desktop again.
   - macOS (and Windows with the Hyper-V backend): Docker Desktop → Settings → Resources → Memory.
 - Git; on Windows also Git Bash (for `check.sh`). Clone the repo anywhere.
 - About 10 GB of free disk for the images and volumes (20 GB once you generate the 10× dataset).
@@ -82,7 +83,7 @@ Data lives in the named volumes `hdfs_nn`, `hdfs_dn` and `hive_metastore_db`: `d
 ## Troubleshooting
 | Problem | Fix |
 |---|---|
-| `check.sh: bad interpreter` or `$'\r': command not found` | the file got Windows line endings: `git config core.autocrlf input`, then `git checkout -- docker/check.sh` |
+| `check.sh: bad interpreter` or `$'\r': command not found` | the file got Windows line endings (an editor saved it with CRLF; `.gitattributes` keeps it LF in Git): `git checkout -- docker/check.sh` |
 | `port is already allocated` | another program uses that port; stop it, or change the left side of the port in `docker-compose.yml` locally |
 | HiveServer2 not answering | wait two minutes; then `docker compose logs hiveserver2 --tail 50` |
 | Metastore errors after an interrupted first start | `docker compose --profile core down -v` and start again (deletes the data) |

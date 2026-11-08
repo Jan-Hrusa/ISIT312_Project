@@ -29,15 +29,20 @@ cost-vs-budget overview per project. Group project for ISIT312 Big Data Manageme
 | `tests/` | Tests per area (`tests/<area>/`) | all |
 | `run_pipeline.py` | Runs every step in order (added in Task 21) | 21 |
 
-`sources/`, `sources_x10/` and `out/` are generated locally and never committed.
+`sources/`, `sources_x10/`, `out/` and `out_x10/` are generated locally and never committed.
 
 ## Setup
 Everything runs in Docker: install Docker Desktop (at least 6 GB of memory) and Git (on Windows also Git Bash),
 nothing else. All Python, Spark, tests and tools run in the `client` container (Python 3.10, Spark 3.5.9), which
 sees this repo at `/repo`. Full guide: [docker/README.md](docker/README.md).
 
-1. In `docker/`: `docker compose --profile core up -d` (the first start builds the image, about 15 minutes), then
-   `./check.sh` must print `OK hdfs`, `OK hive`, `OK spark`, `OK metastore`.
+Run every `docker compose` command in the `docker/` folder. Step by step from zero: the Drive document
+*06 First-time setup*.
+
+1. In `docker/`: build the two images once (about 15 minutes) with
+   `docker compose --profile core build --build-arg APACHE_MIRROR=https://dlcdn.apache.org`, start with
+   `docker compose --profile core up -d`, then `./check.sh` must print `OK hdfs`, `OK hive`, `OK spark`,
+   `OK metastore`.
 2. Shell in the client: `docker compose exec client bash`.
 3. Before every pull request, in the client: `pytest -m "not integration"` (unit tests, no data needed; `pytest -m
    integration` after a full pipeline run), `ruff check .` and `ruff format --check .` must pass.
@@ -52,6 +57,7 @@ A virtual environment on the laptop is optional, only for your editor's code com
 | `<first name>` (lower case) | Your own branch, created from `integration`; all your work happens here | you push to it |
 
 1. **At the start of every session:** `git fetch origin`, switch to your branch, `git rebase origin/integration`.
+   After a rebase, push with `git push --force-with-lease` (your own branch only), never `git pull`.
 2. **Commits:** `[T<task number>] short message`, e.g. `[T16] parse GPC 075 records`.
 3. **Before the PR:** tests, `ruff check .` and `ruff format --check .` pass; your task's validation steps are done;
    screenshots taken; a 3-line entry added to [log.md](log.md).

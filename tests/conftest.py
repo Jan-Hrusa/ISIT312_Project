@@ -10,7 +10,8 @@ metastore, so `pytest -m "not integration"` passes with the stack stopped.
 - `sources_tree`: a dated `sources/` tree built from `tests/fixtures/sources/` (see make_sources.py).
 
 Only one Spark session can exist per process, so asking for `spark` after `spark_hive` (or the other way
-round) stops the first one; don't use both in one test.
+round) stops the first one: a test may switch from one to the other, but must not use the first session again
+after asking for the second.
 """
 
 from __future__ import annotations

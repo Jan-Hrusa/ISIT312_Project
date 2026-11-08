@@ -15,7 +15,7 @@ banks Raiffeisenbank (primary, GPC daily), UniCredit, Česká spořitelna, Komer
 | MP4 (and other video) | Video | Binary + metadata | Site inspections, drone footage |
 | TXT | Plain text | Unstructured or ad-hoc structured | Logs, notes, exports |
 | KPC | ABO format **domestic payment orders** (Czech banking standard, originally by Komerční banka) | Fixed-width text, ASCII, CRLF | Exported from accounting software (e.g. Pohoda) and uploaded to internet banking to pay suppliers |
-| GPC | ABO format **bank statement** | Fixed-width text records: 074 statement header, 075 transaction, 078/079 transaction details; file name `YYNNN_<account>_<currency>.GPC` | Downloaded from the bank and imported into accounting |
+| GPC | ABO format **bank statement** | Fixed-width text records: 074 statement header, 075 transaction, 078/079 transaction details; file name `YYNNN_<account>_<currency>.GPC` (in this project always lower-case `.gpc`, `.sta`, `.kpc`: the collection job's file patterns are case-sensitive) | Downloaded from the bank and imported into accounting |
 | STA | **MT940** (SWIFT) bank statement | Tagged text fields (`:20:`, `:25:`, `:28:`, `:60F:` opening balance, `:61:` transaction, `:86:` details, `:62F:` closing balance); Czech banks use CP852/ANSI encoding | Same as GPC, from a bank or service that exports MT940 |
 
 ## Why this matters for the design

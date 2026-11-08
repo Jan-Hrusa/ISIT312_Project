@@ -5,10 +5,11 @@ over any task description**; if they disagree, tell Jan so the task gets fixed. 
 says why (it is a shared file).
 
 The code imports the same values from `common/config.py` (settings, codes, paths) and `common/schemas.py` (table
-columns); `tests/common/test_schemas.py` checks that section 6 below matches `common/schemas.py`. Read values
+columns); `tests/common/test_schemas.py` checks that the columns and partitions in section 6 below match
+`common/schemas.py`. Read values
 through the module (`config.CLEAN_DB`), never by copying them into your code.
 
-Frozen with Task 2 on 5 Nov 2026. Everything runs in the `client` container of the Docker stack (`docker/`, Task 3).
+Frozen with Task 2 on 5 Nov 2026; review fixes 8 Nov (examples, raw-zone fields, write rules). Everything runs in the `client` container of the Docker stack (`docker/`, Task 3).
 
 ## 1. Project code and status
 - Code `FVE-YYYY-NN`: YYYY = offer year (= signing year for signed projects), NN = 01-99 within that year;
@@ -57,12 +58,12 @@ Raiffeisenbank (`RB`) is the primary account: its GPC arrives every day, also on
 ## 3. IDs
 | ID | Rule | Example |
 |---|---|---|
-| `invoice_id` | `<ico>-<number>` | `12345678-2026001` |
-| `tx_id` | `<bank>-<statement date yyyyMMdd>-<line no, 4 digits>` | `RB-20261102-0003` |
-| `order_id` | `<kpc file base name>-<item no, 3 digits>` | `PO_2026-11-03_RB-001` |
+| `invoice_id` | `<ico>-<number>` (number `YYYYNNNNN` per supplier, Task 5) | `12345678-202600001` |
+| `tx_id` | `<bank>-<statement date yyyyMMdd>-<line no, 4 digits>` | `RB-20261002-0003` |
+| `order_id` | `<kpc file base name>-<item no, 3 digits>` | `PO_2026-10-06_RB-001` |
 | `file_id` | first 16 hex characters of the file's SHA-256 | `9f86d081884c7d65` |
 | `issue_id` | random UUID (written by `write_issues`) | |
-| `source_file` | in every clean table: the raw path of the file in HDFS the row came from | |
+| `source_file` | in every clean table: the raw path of the file the row came from, exactly as in `ingest_log.raw_path` (no `hdfs://` scheme) | |
 
 ## 4. Source folders and files
 `sources/` (`config.SOURCES_DIR`; `sources_x10/` for the 10x dataset) stands in for the company mailbox and
@@ -111,8 +112,10 @@ each mtime. Every fixture file needs a date there.
 
 ## 5. Raw zone (HDFS `config.LAKE_RAW` = `/lake/raw`)
 - Path: `<LAKE_RAW>/<source>/<yyyy>/<mm>/<stem>__<ingest UTC yyyyMMddHHmmss>.<ext>`, yyyy/mm from the file's
-  mtime (business month), e.g. `/lake/raw/bank_gpc/2026/11/26001_2101234567_CZK__20261114093000.gpc`
-  (`common.lake.raw_path`).
+  mtime (business month), e.g. `/lake/raw/bank_gpc/2026/01/26001_2101234567_CZK__20261114093000.gpc`
+  (statement 26001 of January 2026, collected on 14 Nov 2026; `common.lake.raw_path`). Raw paths never carry
+  a scheme: strip `hdfs://namenode:8020` from paths Spark reports (e.g. `binaryFiles` keys) before using them
+  as `source_file` or `record_ref`.
 - `docs` and `video` keep the project: `<LAKE_RAW>/docs/<project_code>/<yyyy>/<mm>/...` (the restore demo deletes
   and restores one such folder).
 - Photos: daily SequenceFiles `<LAKE_RAW>/photos/<yyyy>/<mm>/<yyyy-MM-dd>.seq` (key Text = original name, value
@@ -120,7 +123,9 @@ each mtime. Every fixture file needs a date there.
 - Write-once: nothing under `/lake/raw` is overwritten or deleted; an existing target path is an error.
 - De-duplication by (source, original path, SHA-256): an unchanged file at the same path is skipped, a changed one
   gets a new raw file; identical bytes at different paths are all collected.
-- Every collected file (and every packed photo) is one row of `ingest_log` (section 6).
+- Every collected file (and every packed photo) is one row of `ingest_log` (section 6): `run_id` = the run's
+  start in UTC as `yyyyMMddHHmmss`; `original_path` relative to `sources/` with `/` separators (e.g.
+  `mailbox/photos/IMG_20240512_101500_00042.jpg`); `business_date` = UTC date of the mtime.
 - **Parsers take their file list from `common.lake.current_raw_files(spark, source)`** (latest version per
   original path), never by listing raw folders; each parser also accepts `run(spark, inputs=None)` with explicit
   paths for tests.
@@ -146,7 +151,10 @@ each mtime. Every fixture file needs a date there.
 All tables are `EXTERNAL`, ORC, `LOCATION '<LAKE_CLEAN>/<table>'` (`/lake/clean/<table>`), created by
 `common.tables.create_clean_tables(spark)`. Each job recomputes its tables on every run with
 `common.tables.write_table(spark, df, table)`: contract columns in this order, cast to these types, missing column
-= error, extra columns dropped, whole table overwritten. Exceptions: `ingest_log` is append only
+= error, extra columns dropped, whole table overwritten. A value that can't be cast (e.g. a date in another
+format) is an error, not a NULL; a table whose columns differ from this section (created before a contract
+change) is an error: drop it and run `create_clean_tables` again. A job never overwrites a table it reads in
+the same run (Spark refuses): compute the new content from other tables. Exceptions: `ingest_log` is append only
 (`common.lake.append_ingest_log`), `dq_issues` is written per job (`common.dq.write_issues`, section 7).
 
 | Table | Columns | Written by (task) |
@@ -183,7 +191,7 @@ Jobs (`common.dq.JOBS`): `ingest`, `bank`, `finance`, `matching`, `media`.
 | `PARSE_ERROR` | bank, finance | 16, 13 | a file that can't be parsed (`record_ref` = raw path) |
 | `DUPLICATE` | finance | 20 | an invoice sent twice (same supplier and number, another file); the earlier one stays |
 | `MISSING_VS` | finance | 20 | an invoice without a variabilní symbol in the ISDOC and the booking |
-| `NO_PROJECT` | finance | 20 | no project rule matched (`source` `isdoc`), or a booked cost without project (`source` `accounting`) |
+| `NO_PROJECT` | finance | 20 | no project rule matched and the invoice has no booking at all (`source` `isdoc`), or a booked cost without project (`source` `accounting`) |
 | `OVERRUN` | finance | 20 | a category spent more than 115% of its budget line |
 | `UNMATCHED_PAYMENT` | matching | 25.1 | a debit matching no invoice; `detail` names a suggested invoice when one fits |
 | `ORDER_NOT_CLEARED` | matching | 25.1 | a KPC payment order that no bank debit cleared |
@@ -194,7 +202,9 @@ Jobs (`common.dq.JOBS`): `ingest`, `bank`, `finance`, `matching`, `media`.
 ## 8. Warehouse and catalogue
 **Hive warehouse `fve_dw`** (`config.DW_DB`; EXTERNAL ORC at `<LAKE_DW>/<table>`; DDL Task 10, loads Task 26).
 Names as on the ClickUp guide page; the columns are final once Task 10.1 is reviewed (Task 15.1), and this
-section is updated then.
+section is updated then. Types: keys, years, months, days and `quarter` INT; amounts DECIMAL(14,2), `mwp`
+DECIMAL(5,2); `has_battery` BOOLEAN; `construction_start`/`construction_end`/`full_date` DATE; `days_late` INT;
+`cleared` TINYINT; everything else STRING.
 
 | Table | Columns | Partitioned by |
 |---|---|---|

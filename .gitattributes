@@ -14,3 +14,9 @@ docker/** text eol=lf
 *.dwg binary
 *.mp4 binary
 *.seq binary
+# Test fixtures and bank/e-invoice formats: keep the exact bytes (CRLF records, CP852), never convert.
+tests/fixtures/sources/** -text
+*.gpc -text
+*.sta -text
+*.kpc -text
+*.isdoc -text

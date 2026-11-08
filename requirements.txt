@@ -17,5 +17,5 @@ pyhive[hive_pure_sasl]>=0.7  # HiveServer2 from Python (Zeppelin, experiments)
 mrjob>=0.7.4
 
 # checks
-pytest>=8
-ruff>=0.6
+pytest>=8,<10
+ruff==0.17.4  # pinned: `ruff format --check .` must give the same result on every machine

@@ -6,7 +6,8 @@
 
 ## Verify
 - [ ] the named tests from the task pass (`pytest tests/<area>` in the client container)
-- [ ] `ruff check .` passes
+- [ ] all unit tests pass (`pytest -m "not integration"`)
+- [ ] `ruff check .` and `ruff format --check .` pass
 
 ## Validate
 - [ ] the task's validation steps done on the Docker stack
