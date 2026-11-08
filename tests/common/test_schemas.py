@@ -43,9 +43,11 @@ def test_contracts_doc_lists_every_column():
     for table, columns in CLEAN_TABLES.items():
         row = next((line for line in text.splitlines() if line.startswith(f"| `{table}` |")), None)
         assert row is not None, f"docs/contracts.md has no row for {table}"
-        cell = row.split("|")[2].split("; partitioned by")[0]
+        cell, _, partition_cell = row.split("|")[2].partition("; partitioned by")
         listed = re.findall(r"`([a-z0-9_]+)` ([A-Z]+(?:\(\d+,\d+\)|<STRING>)?)", cell)
         assert listed == columns, f"docs/contracts.md row for {table} differs from common/schemas.py"
+        partitions = re.findall(r"`([a-z0-9_]+)` ([A-Z]+)", partition_cell)
+        assert partitions == CLEAN_PARTITIONS.get(table, []), f"partitions of {table} differ"
 
 
 def _invoice_rows(spark):
@@ -105,3 +107,28 @@ def test_write_table_refuses_tables_with_own_writer(clean_db):
         write_table(clean_db, df, "dq_issues")
     with pytest.raises(ValueError, match="unknown table: nope"):
         write_table(clean_db, df, "nope")
+
+
+def test_write_table_rejects_values_that_would_become_null(clean_db):
+    spark = clean_db
+    df = _invoice_rows(spark).drop("issue_date").selectExpr("*", "'31.10.2026' AS issue_date")
+    with pytest.raises(
+        ValueError, match=r"can't be cast to the contract type in invoices: issue_date \(2 rows\)"
+    ):
+        write_table(spark, df, "invoices")
+    assert read_table(spark, "invoices").count() == 0
+
+
+def test_write_table_rejects_a_table_created_before_a_contract_change(clean_db):
+    spark = clean_db
+    name = f"{config.CLEAN_DB}.budget_lines"
+    spark.sql(f"DROP TABLE {name}")
+    spark.sql(
+        f"CREATE TABLE {name} "
+        "(category STRING, project_code STRING, amount DECIMAL(14,2), source_file STRING)"
+    )
+    df = spark.createDataFrame(
+        [("FVE-2026-02", "PANELS", Decimal("1.00"), "x")], column_names("budget_lines")
+    )
+    with pytest.raises(ValueError, match="differs from the contract"):
+        write_table(spark, df, "budget_lines")

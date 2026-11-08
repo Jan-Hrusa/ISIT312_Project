@@ -1,14 +1,3 @@
 # Keep the build context small: the stack image needs only requirements.txt from the repo.
-.git
-.venv
-venv
-sources
-sources_x10
-out
-out_x10
-spark-warehouse
-metastore_db
-**/__pycache__
-**/.pytest_cache
-**/.ruff_cache
-notebooks
+*
+!requirements.txt

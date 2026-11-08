@@ -76,6 +76,8 @@ def active_on(projects: list[Project], day: date) -> list[Project]:
 
 
 def _project(row: dict[str, str]) -> Project:
+    if None in row or None in row.values():
+        raise ValueError("wrong number of fields")
     code = row["project_code"].strip()
     if not config.is_project_code(code):
         raise ValueError(f"bad project_code {code!r}")

@@ -62,16 +62,55 @@ def contract_select(df: DataFrame, table: str) -> DataFrame:
 
 
 def write_table(spark: SparkSession, df: DataFrame, table: str) -> None:
-    """Replace the whole content of a clean table with `df` (jobs recompute their tables on every run)."""
+    """Replace the whole content of a clean table with `df` (jobs recompute their tables on every run).
+
+    Raises ValueError
+    - when a value can't be cast to its contract type (e.g. a date in another format or a number with a
+      decimal comma), instead of writing NULL; columns that already have the contract type are not checked;
+    - when the existing table's columns differ from the contract (a table created before a contract change):
+      drop it and run create_clean_tables again (the tables are EXTERNAL, so the files stay).
+    Never overwrite a table that `df` itself reads: Spark refuses to overwrite a path it is reading, so
+    compute the new content from other tables.
+    """
     if table in _OWN_WRITER:
         raise ValueError(_OWN_WRITER[table])
-    contract_select(df, table).write.insertInto(qualified_name(table), overwrite=True)
+    out = contract_select(df, table)
+    _check_casts(df, table)
+    _check_existing_schema(spark, table)
+    out.write.insertInto(qualified_name(table), overwrite=True)
 
 
 def read_table(spark: SparkSession, table: str) -> DataFrame:
     """A clean table as a DataFrame."""
     _check_table(table)
     return spark.table(qualified_name(table))
+
+
+def _check_casts(df: DataFrame, table: str) -> None:
+    sums = []
+    for name, hive_type in CLEAN_TABLES[table]:
+        if df.schema[name].dataType.simpleString().lower() in (hive_type.lower(), "void"):
+            continue
+        bad = F.col(name).isNotNull() & F.col(name).cast(hive_type).isNull()
+        sums.append(F.sum(F.when(bad, 1).otherwise(0)).alias(name))
+    if not sums:
+        return
+    counts = {name: n for name, n in df.agg(*sums).first().asDict().items() if n}
+    if counts:
+        detail = ", ".join(f"{name} ({n} rows)" for name, n in counts.items())
+        raise ValueError(f"values that can't be cast to the contract type in {table}: {detail}")
+
+
+def _check_existing_schema(spark: SparkSession, table: str) -> None:
+    expected = [(n.lower(), t.lower()) for n, t in CLEAN_TABLES[table] + CLEAN_PARTITIONS.get(table, [])]
+    actual = [
+        (f.name.lower(), f.dataType.simpleString().lower()) for f in spark.table(qualified_name(table)).schema
+    ]
+    if actual != expected:
+        raise ValueError(
+            f"{qualified_name(table)} differs from the contract (created before a contract change?): "
+            "drop it and run common.tables.create_clean_tables (EXTERNAL table: the files stay)"
+        )
 
 
 def _check_table(table: str) -> None:

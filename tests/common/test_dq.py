@@ -19,11 +19,13 @@ def test_issue_types_and_jobs():
 
 def test_write_issues_rejects_unknown_type(clean_db):
     spark = clean_db
+    write_issues(spark, _issues(spark, "DUPLICATE"), "finance")
     with pytest.raises(ValueError, match="unknown issue_type: TYPO"):
         write_issues(spark, _issues(spark, "DUPLICATE", "TYPO"), "finance")
     with pytest.raises(ValueError, match="unknown job: nightly"):
         write_issues(spark, _issues(spark, "DUPLICATE"), "nightly")
-    assert read_table(spark, "dq_issues").count() == 0
+    # Bad input changes nothing: the finance partition written before is still there.
+    assert (_count(spark, "finance"), read_table(spark, "dq_issues").count()) == (1, 1)
 
 
 def test_write_issues_overwrites_only_its_job(clean_db):

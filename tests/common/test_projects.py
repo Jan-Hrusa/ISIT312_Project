@@ -46,3 +46,9 @@ def test_load_projects_names_the_bad_line(tmp_path):
     bad = ROWS[1].replace("FVE-2026-02", "FVE-26-2")
     with pytest.raises(ValueError, match=r"line 3: bad project_code 'FVE-26-2'"):
         load_projects(_csv(tmp_path, [ROWS[0], bad]))
+
+
+def test_load_projects_short_row_names_the_line(tmp_path):
+    short = ",".join(ROWS[1].split(",")[:5])
+    with pytest.raises(ValueError, match="line 3: wrong number of fields"):
+        load_projects(_csv(tmp_path, [ROWS[0], short]))
