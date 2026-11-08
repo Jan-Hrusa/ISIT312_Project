@@ -5,7 +5,11 @@ in the `client` container. Nothing else is installed on your laptop. Task 8 adds
 Server (profiles `hbase`, `zeppelin`, guide in `SETUP.md`).
 
 ## Prerequisites
-- Docker Desktop with **at least 6 GB of memory** (Settings → Resources; 8 GB for `core` + `yarn`).
+- Docker Desktop with **at least 6 GB of memory** (8 GB for `core` + `yarn`). Where to set it:
+  - Windows (WSL 2 backend, the default): Docker Desktop has no memory setting; WSL gets half of the laptop's RAM,
+    so 16 GB is enough. With less, create `C:\Users\<you>\.wslconfig` with the two lines `[wsl2]` and
+    `memory=6GB`, run `wsl --shutdown` in PowerShell and start Docker Desktop again.
+  - macOS (and Windows with the Hyper-V backend): Docker Desktop → Settings → Resources → Memory.
 - Git; on Windows also Git Bash (for `check.sh`). Clone the repo anywhere.
 - About 10 GB of free disk for the images and volumes (20 GB once you generate the 10× dataset).
 
@@ -71,7 +75,8 @@ Data lives in the named volumes `hdfs_nn`, `hdfs_dn` and `hive_metastore_db`: `d
 ## Memory tips
 - `core` needs about 4.5 GB, `yarn` about 3 GB more. Start `yarn` only when you need it, and stop it afterwards
   with `docker compose stop resourcemanager nodemanager historyserver`.
-- If containers restart or a job dies without an error, give Docker Desktop more memory or close other programs.
+- If containers restart or a job dies without an error, give Docker more memory (see Prerequisites) or close other
+  programs.
 - `docker stats` shows what each container uses.
 
 ## Troubleshooting

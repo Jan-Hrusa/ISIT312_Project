@@ -6,6 +6,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-08 - Task 3: Docker memory on Windows (Jan)
+- Merged: docker/README.md Prerequisites say where to set Docker's memory: `.wslconfig` on Windows with WSL 2 (Docker Desktop has no setting there), Settings -> Resources on macOS
+- Checked: docs only; WSL default (50% of RAM) and `.wslconfig` keys from Microsoft's WSL docs
+
 ### 2026-11-08 - Task 3: check.sh waits for the NameNode (Jan)
 - Merged: docker/check.sh retries until the NameNode answers (it refused connections for the first seconds after up -d) and names the real error if it gives up
 - Checked: check.sh straight after down + up -d: 4 OK (2 min); with the namenode stopped: FAIL stack naming UnknownHostException
