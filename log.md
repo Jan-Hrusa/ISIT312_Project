@@ -6,6 +6,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-09 - Task 2: Start-of-session rule (Jan)
+- Merged: AGENTS.md §3 and README: update before any work (also only running or checking): commit, fetch, rebase on origin/integration, `git rebase --abort` on a conflict, rebuild the images after new commits with the same mirror as the first build, fix for branches created without --no-track; docker/README: rebuild row and why the mirror must stay the same
+- Checked: rebuild with the same APACHE_MIRROR fully cached (4 s), a different value rebuilds the stack image (5 min); check.sh core all OK on the rebuilt image; docs only otherwise
+
 ### 2026-11-09 - Task 3: check.sh pipelines without grep -q (Jan)
 - Merged: docker/check.sh: no pipeline ends in `grep -q` any more. With `set -o pipefail`, grep's early exit made the feeding `docker compose exec` fail on the closed pipe, so `FAIL hdfs: WARNING: log4j.properties ...` came up at random although HDFS worked (found by a team member during first setup). Same fix in the HiveServer2 wait, check_hive (breaks once more databases exist) and the YARN detection (would skip the YARN checks silently)
 - Checked: race reproduced on the old pipeline (producer exit 1 in 1 of 15 runs; member saw 255 every run), new pipeline 30 of 30 clean; deterministic demo exit 141 vs 0; check.sh core + yarn all OK

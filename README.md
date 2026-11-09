@@ -56,8 +56,16 @@ A virtual environment on the laptop is optional, only for your editor's code com
 | `integration` | Default branch; all development is merged here through pull requests | Jan, after approving the PR |
 | `<first name>` (lower case) | Your own branch, created from `integration`; all your work happens here | you push to it |
 
-1. **At the start of every session:** `git fetch origin`, switch to your branch, `git rebase origin/integration`.
-   After a rebase, push with `git push --force-with-lease` (your own branch only), never `git pull`.
+Create your branch once: `git fetch origin`, `git switch -c <name> --no-track origin/integration`, then
+`git push -u origin <name>`. If `git status` compares your branch with `origin/integration`, it was created without
+`--no-track`: run `git branch --unset-upstream`, then `git push -u origin <name>`.
+
+1. **At the start of every session, before any work on the project** (also when you only run, test or check
+   something): commit your open work, `git fetch origin`, switch to your branch, `git rebase origin/integration`.
+   If it stops on a conflict, run `git rebase --abort` and ask Jan. If the rebase brought new commits, rebuild the
+   images with the same command you first built them with (Setup step 1; seconds when nothing changed), then
+   `docker compose --profile core up -d`. After a rebase, push with `git push --force-with-lease` (your own branch
+   only), never `git pull`.
 2. **Commits:** `[T<task number>] short message`, e.g. `[T16] parse GPC 075 records`.
 3. **Before the PR:** tests, `ruff check .` and `ruff format --check .` pass; your task's validation steps are done;
    screenshots taken; a 3-line entry added to [log.md](log.md).
