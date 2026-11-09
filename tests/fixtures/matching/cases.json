@@ -1,0 +1,81 @@
+[
+  {
+    "name": "paid on time by one debit, its order cleared",
+    "invoice": {"invoice_id": "12345678-202600001", "project_code": "FVE-2026-03", "supplier_account": "123456789", "supplier_bank_code": "0100", "vs": "202600001", "gross": "242000.00", "issue_date": "2026-09-01", "due_date": "2026-09-15"},
+    "payments": [
+      {"tx_id": "RB-20260914-0002", "bank": "RB", "value_date": "2026-09-14", "amount": "-242000.00", "counterparty_account": "123456789", "counterparty_bank_code": "0100", "vs": "202600001"}
+    ],
+    "orders": [
+      {"order_id": "PO_2026-09-11_RB-001", "order_date": "2026-09-11", "due_date": "2026-09-14", "amount": "242000.00", "vs": "202600001"}
+    ],
+    "other_vs_payments": [],
+    "as_of": "2026-10-31",
+    "expected": {"status": "PAID", "paid_amount": "242000.00", "paid_date": "2026-09-14", "days_to_pay": 13, "days_late": 0, "order_ids": ["PO_2026-09-11_RB-001"], "uncleared_order_ids": [], "tx_ids": ["RB-20260914-0002"], "issues": []}
+  },
+  {
+    "name": "paid 12 days late in two instalments from two banks",
+    "invoice": {"invoice_id": "23456789-202600014", "project_code": "FVE-2025-07", "supplier_account": "2000145399", "supplier_bank_code": "0800", "vs": "202600014", "gross": "85184.50", "issue_date": "2026-08-03", "due_date": "2026-08-17"},
+    "payments": [
+      {"tx_id": "CS-20260831-0011", "bank": "CS", "value_date": "2026-08-29", "amount": "-42592.25", "counterparty_account": "2000145399", "counterparty_bank_code": "0800", "vs": "202600014"},
+      {"tx_id": "RB-20260810-0001", "bank": "RB", "value_date": "2026-08-10", "amount": "-42592.25", "counterparty_account": "2000145399", "counterparty_bank_code": "0800", "vs": "202600014"}
+    ],
+    "orders": [],
+    "other_vs_payments": [],
+    "as_of": "2026-10-31",
+    "expected": {"status": "PAID", "paid_amount": "85184.50", "paid_date": "2026-08-29", "days_to_pay": 26, "days_late": 12, "order_ids": [], "uncleared_order_ids": [], "tx_ids": ["RB-20260810-0001", "CS-20260831-0011"], "issues": []}
+  },
+  {
+    "name": "half paid, past due",
+    "invoice": {"invoice_id": "34567890-202600102", "project_code": "FVE-2026-01", "supplier_account": "19283746", "supplier_bank_code": "2700", "vs": "202600102", "gross": "1210000.00", "issue_date": "2026-09-20", "due_date": "2026-10-04"},
+    "payments": [
+      {"tx_id": "UCB-20260930-0007", "bank": "UCB", "value_date": "2026-10-02", "amount": "-605000.00", "counterparty_account": "19283746", "counterparty_bank_code": "2700", "vs": "202600102"}
+    ],
+    "orders": [],
+    "other_vs_payments": [],
+    "as_of": "2026-10-31",
+    "expected": {"status": "OVERDUE", "paid_amount": "605000.00", "paid_date": null, "days_to_pay": null, "days_late": 27, "order_ids": [], "uncleared_order_ids": [], "tx_ids": ["UCB-20260930-0007"], "issues": []}
+  },
+  {
+    "name": "ordered, not yet due",
+    "invoice": {"invoice_id": "45678901-202600033", "project_code": "FVE-2026-05", "supplier_account": "7700112233", "supplier_bank_code": "5500", "vs": "202600033", "gross": "36300.00", "issue_date": "2026-10-20", "due_date": "2026-11-03"},
+    "payments": [],
+    "orders": [
+      {"order_id": "PO_2026-10-30_RB-004", "order_date": "2026-10-30", "due_date": "2026-11-03", "amount": "36300.00", "vs": "202600033"}
+    ],
+    "other_vs_payments": [],
+    "as_of": "2026-10-31",
+    "expected": {"status": "ORDERED", "paid_amount": "0", "paid_date": null, "days_to_pay": null, "days_late": 0, "order_ids": ["PO_2026-10-30_RB-004"], "uncleared_order_ids": ["PO_2026-10-30_RB-004"], "tx_ids": [], "issues": []}
+  },
+  {
+    "name": "order never cleared, the debit went out with a mistyped VS",
+    "invoice": {"invoice_id": "56789012-202600208", "project_code": "FVE-2026-02", "supplier_account": "5544332211", "supplier_bank_code": "0100", "vs": "202600208", "gross": "18150.00", "issue_date": "2026-09-01", "due_date": "2026-09-30"},
+    "payments": [],
+    "orders": [
+      {"order_id": "PO_2026-09-28_KB-002", "order_date": "2026-09-28", "due_date": "2026-09-30", "amount": "18150.00", "vs": "202600208"}
+    ],
+    "other_vs_payments": [
+      {"tx_id": "KB-20260930-0004", "bank": "KB", "value_date": "2026-09-30", "amount": "-18150.00", "counterparty_account": "5544332211", "counterparty_bank_code": "0100", "vs": "202600280"},
+      {"tx_id": "KB-20260930-0005", "bank": "KB", "value_date": "2026-09-30", "amount": "-9075.00", "counterparty_account": "5544332211", "counterparty_bank_code": "0100", "vs": null}
+    ],
+    "as_of": "2026-10-31",
+    "expected": {"status": "OVERDUE", "paid_amount": "0", "paid_date": null, "days_to_pay": null, "days_late": 31, "order_ids": ["PO_2026-09-28_KB-002"], "uncleared_order_ids": ["PO_2026-09-28_KB-002"], "tx_ids": [], "issues": [
+      ["UNMATCHED_PAYMENT", "bank_gpc", "KB-20260930-0004", "FVE-2026-02", "suggested match: 56789012-202600208 (VS differs)"],
+      ["ORDER_NOT_CLEARED", "kpc", "PO_2026-09-28_KB-002", "FVE-2026-02", "no debit of 18150.00 CZK from 2026-09-29 to 2026-10-05 for invoice 56789012-202600208"]
+    ]}
+  },
+  {
+    "name": "nothing yet, a debit without VS on the STA account fits; a later debit counts only after as_of",
+    "invoice": {"invoice_id": "67890123-202600011", "project_code": null, "supplier_account": "3030303030", "supplier_bank_code": "0800", "vs": "202600011", "gross": "9680.00", "issue_date": "2026-10-01", "due_date": "2026-10-15"},
+    "payments": [
+      {"tx_id": "CS-20261130-0001", "bank": "CS", "value_date": "2026-11-02", "amount": "-9680.00", "counterparty_account": "3030303030", "counterparty_bank_code": "0800", "vs": "202600011"}
+    ],
+    "orders": [],
+    "other_vs_payments": [
+      {"tx_id": "CS-20261031-0009", "bank": "CS", "value_date": "2026-10-08", "amount": "-9680.01", "counterparty_account": "3030303030", "counterparty_bank_code": "0800", "vs": null}
+    ],
+    "as_of": "2026-10-31",
+    "expected": {"status": "OVERDUE", "paid_amount": "0", "paid_date": null, "days_to_pay": null, "days_late": 16, "order_ids": [], "uncleared_order_ids": [], "tx_ids": [], "issues": [
+      ["UNMATCHED_PAYMENT", "bank_sta", "CS-20261031-0009", null, "suggested match: 67890123-202600011 (no VS)"]
+    ]}
+  }
+]
