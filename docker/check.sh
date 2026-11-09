@@ -3,6 +3,8 @@
 #   docker compose --profile core up -d        (and --profile yarn for the YARN checks)
 # Prints one line per check, "OK <name>" or "FAIL <name>: <first error line>", and exits 1 if any check failed.
 set -uo pipefail
+# With pipefail, a pipeline must not end in "grep -q": grep exits at the first match, the command feeding it then
+# fails writing to the closed pipe, and the check fails at random. Use "grep ... >/dev/null", which reads to the end.
 cd "$(dirname "$0")"
 export MSYS_NO_PATHCONV=1 # Git Bash: don't rewrite /lake, /tmp, ... into Windows paths
 
@@ -38,7 +40,7 @@ wait_ready() { # right after "up -d" the services are still starting: retry, and
   done
   rm -f "$log.ready"
   for _ in $(seq 1 60); do # HiveServer2 needs a minute or two after "up -d"
-    beeline "SELECT 1;" | grep -qx 1 && return 0
+    beeline "SELECT 1;" | grep -x 1 >/dev/null && return 0
     sleep 5
   done
   echo "hiveserver2 did not answer within 5 minutes"
@@ -46,11 +48,11 @@ wait_ready() { # right after "up -d" the services are still starting: retry, and
 }
 
 check_hdfs() {
-  client hdfs dfs -mkdir -p /lake/raw /lake/clean /lake/dw && client hdfs dfs -ls /lake | grep -q '/lake/dw$'
+  client hdfs dfs -mkdir -p /lake/raw /lake/clean /lake/dw && client hdfs dfs -ls /lake | grep '/lake/dw$' >/dev/null
 }
 
 check_hive() {
-  beeline "SHOW DATABASES;" | grep -qx default
+  beeline "SHOW DATABASES;" | grep -x default >/dev/null
 }
 
 check_spark() {
@@ -126,7 +128,7 @@ run hdfs check_hdfs
 run hive check_hive
 run spark check_spark
 run metastore check_metastore
-if docker compose ps --status running --services 2>/dev/null | grep -qx resourcemanager; then
+if docker compose ps --status running --services 2>/dev/null | grep -x resourcemanager >/dev/null; then
   run yarn check_yarn
   run hive-yarn check_hive_yarn
 fi
