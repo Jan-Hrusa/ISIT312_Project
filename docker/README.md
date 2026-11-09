@@ -24,12 +24,15 @@ Run these in this `docker/` folder.
 | Check that everything works | `./check.sh` (Git Bash on Windows) |
 | Stop, keep all data | `docker compose --profile core --profile yarn down` |
 | Stop and delete all data (HDFS, metastore) | `docker compose --profile core --profile yarn down -v` |
-| Rebuild the images after a change in `stack/`, `hive/` or `requirements.txt` | `docker compose --profile core build` |
+| Rebuild the images after a change in `stack/`, `hive/` or `requirements.txt` (run it after every rebase that brought new commits) | the command you first built with, e.g. `docker compose --profile core build --build-arg APACHE_MIRROR=https://dlcdn.apache.org` |
 
 The first start builds the images `isit312/stack:1.0` (Hadoop, Spark, Python) and `isit312/hive:1.0` (about 15
 minutes, downloads about 2 GB). The build takes
 Hadoop and Spark from `archive.apache.org`; if that is slow, build with a faster mirror that still has these
 versions: `docker compose --profile core build --build-arg APACHE_MIRROR=https://dlcdn.apache.org`.
+Rebuild with the same mirror every time: a different `APACHE_MIRROR` value invalidates Docker's build cache, so
+Hadoop and Spark are downloaded again (with the same value an unchanged rebuild takes seconds). To see which
+mirror your image used: `docker history --no-trunc isit312/stack:1.0 | grep -o 'APACHE_MIRROR=[^ ]*' | head -1`.
 
 `check.sh` waits until HiveServer2 answers (a minute or two after `up -d`), then prints:
 
