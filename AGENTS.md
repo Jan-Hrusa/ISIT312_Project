@@ -25,8 +25,31 @@ and an HBase catalogue serve Zeppelin dashboards and search. Stack: HDFS, YARN, 
 Never invent requirements. If the task description is missing, unclear or contradicts `docs/contracts.md`, stop
 and ask the member; they ask Jan. Don't guess and don't "improve" the scope.
 
-## 3. Before you change anything
-1. Read, in this order and in full, before you plan anything:
+## 3. Before you start
+Steps 1 and 2 come first in every session, before any other work on the project, also when the member only asks
+you to run, test, check or explain something: an old branch or old images give wrong results.
+
+1. Check the branch: `git status` and `git branch --show-current`. Work only on the member's own branch (their first
+   name, lower case). If it doesn't exist yet: `git fetch origin`, then
+   `git switch -c <name> --no-track origin/integration` (without `--no-track` the branch would track `integration`,
+   so `git status` and a bare `git push` mislead), then `git push -u origin <name>` once. If `git status` compares
+   the branch with `origin/integration` (up to date with, ahead of, behind or diverged from it), it was created
+   without `--no-track`: run `git branch --unset-upstream`, then `git push -u origin <name>`.
+2. Bring it up to date. If `git status` shows uncommitted changes, ask the member whether to commit them first (a
+   rebase refuses to start with them); never stash, reset or discard them. Then `git fetch origin` and
+   `git rebase origin/integration`. If the rebase stops on a conflict, run `git rebase --abort` and tell the member;
+   they ask Jan. If the rebase brought new commits, rebuild the images in `docker/` with the same mirror the images
+   were first built with, then restart:
+   - which mirror: `docker history --no-trunc isit312/stack:1.0 | grep -o 'APACHE_MIRROR=[^ ]*' | head -1` (Drive
+     *06 First-time setup* uses `https://dlcdn.apache.org`);
+   - `docker compose --profile core build --build-arg APACHE_MIRROR=<that mirror>` (add `--profile <x>` for every
+     other profile the member uses). It takes seconds when nothing changed; a different mirror value invalidates
+     Docker's cache and downloads Hadoop and Spark again;
+   - `docker compose --profile core up -d` (same profiles), then `./check.sh`.
+
+Before you change anything:
+
+3. Read, in this order and in full, before you plan anything:
    1. the ClickUp guide page "312 project" (the main task description);
    2. then the description of the task you are working on (Task N or N.x);
    3. then the Drive documents *00 Start here* and *02 Project description* (*01 Company description* when
@@ -34,11 +57,6 @@ and ask the member; they ask Jan. Don't guess and don't "improve" the scope.
    4. then `README.md` and `docs/contracts.md`.
 
    If the member hasn't pasted the first three, ask for them; don't start from the task description alone.
-2. Check the branch: `git status` and `git branch --show-current`. Work only on the member's own branch (their first
-   name, lower case). If it doesn't exist yet: `git fetch origin`, then
-   `git switch -c <name> --no-track origin/integration` (without `--no-track` the branch would track `integration`,
-   so `git status` and a bare `git push` mislead), then `git push -u origin <name>` once.
-3. Bring it up to date: `git fetch origin` then `git rebase origin/integration`.
 4. Read the existing files you will touch, their callers and their tests.
 5. For anything bigger than a small fix, tell the member your plan in a few lines first.
 
