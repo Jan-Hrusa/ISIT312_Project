@@ -6,6 +6,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-09 - Task 2: AGENTS.md git and environment rules (Jan)
+- Merged: AGENTS.md: new branches with --no-track then push -u; docker compose runs in docker/; scripts run as modules; out_x10/ never committed, fixtures committed
+- Checked: docs only; no code changed
+
 ### 2026-11-08 - Task 2: Review fixes before the build starts (Jan)
 - Merged: .gitignore anchored (tests/fixtures/sources/ was ignored) + out_x10/; fixture bytes kept (-text); get_spark(hive=False) in-memory; write_table refuses NULL-producing casts and drifted tables; load_projects names short rows; contracts examples, raw-zone fields, NO_PROJECT rule, warehouse types; README, PR template, docker/README, data-formats; ruff pinned
 - Checked: image rebuilt; check.sh core + yarn 6 x OK; pytest 24 passed; ruff check and format clean

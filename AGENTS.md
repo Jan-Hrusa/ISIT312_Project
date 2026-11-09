@@ -35,24 +35,30 @@ and ask the member; they ask Jan. Don't guess and don't "improve" the scope.
 
    If the member hasn't pasted the first three, ask for them; don't start from the task description alone.
 2. Check the branch: `git status` and `git branch --show-current`. Work only on the member's own branch (their first
-   name, lower case). If it doesn't exist yet: `git fetch origin` then `git switch -c <name> origin/integration`.
+   name, lower case). If it doesn't exist yet: `git fetch origin`, then
+   `git switch -c <name> --no-track origin/integration` (without `--no-track` the branch would track `integration`,
+   so `git status` and a bare `git push` mislead), then `git push -u origin <name>` once.
 3. Bring it up to date: `git fetch origin` then `git rebase origin/integration`.
 4. Read the existing files you will touch, their callers and their tests.
 5. For anything bigger than a small fix, tell the member your plan in a few lines first.
 
 ## 4. Environment and commands
 Everything runs in the Docker stack (`docker/README.md`); the member's laptop has only Docker Desktop and Git.
+- Run every `docker compose` command in the `docker/` folder (from elsewhere: add `-f docker/docker-compose.yml`).
 - Start it in `docker/`: `docker compose --profile core up -d` (add `--profile yarn` for MapReduce and Spark or
   Hive on YARN), then `./check.sh` must print only `OK` lines.
 - Run every project command in the `client` container (Python 3.10, Spark 3.5.9, the repo at `/repo`):
   `docker compose exec client <command>`, or open a shell there with `docker compose exec client bash`. Don't run
   project code on the host; a host virtual environment is only for editor completion.
+- Run scripts as modules (`python -m generators.bank`, `python -m benchmarks.e1.run_e1`), never as file paths:
+  with a file path `import common` fails.
 - Tests: `pytest -m "not integration"` (unit tests: the fixtures in `tests/conftest.py` never reach the stack's
   services), `pytest tests/<area>` (yours), `pytest -m integration` after a full pipeline run. Lint: `ruff check .`
   Format: `ruff format .` (check only: `ruff format --check .`).
 - Hive: `docker compose exec hiveserver2 beeline -u jdbc:hive2://localhost:10000 -n hive`. HDFS: `hdfs dfs ...` in
   the client. Validation steps run on the stack.
-- Generated data goes to `sources/`, `sources_x10/` and `out/`; these are git-ignored and never committed.
+- Generated data goes to `sources/`, `sources_x10/`, `out/` and `out_x10/`; these are git-ignored and never
+  committed. Test fixtures in `tests/fixtures/sources/` are committed.
 
 ## 5. Coding rules
 - **Stay in your area.** Change only the folders your task names (see the README table). A change in a shared file
