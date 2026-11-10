@@ -1,7 +1,7 @@
 # Management dashboard design — Task 11
 
 **Owner:** Maysoon
-**Status:** Draft for review; Task 11 defines the management requirements that Task 10.1 should support
+**Status:** Reviewed by Jan (Task 15.1, 10 Nov); Task 11 defines the management requirements that Task 10.1 should support
 **Scope:** Management cost and budget dashboard, views V1–V5
 
 ## 1. Purpose and conventions
@@ -124,8 +124,8 @@ Include a **TOTAL** row. Show categories over budget first, ordered by highest p
 - Filter to the selected project and category.
 - Aggregate gross invoiced amount by `invoice_id` and supplier from `fact_invoice_line`.
 - Aggregate matched payments by `invoice_id` from `fact_payment` separately; do not join raw payment rows to invoice-line rows.
-- **Payment-allocation gap:** `fact_payment` records payment at invoice level, while this view is filtered to one cost category. If an invoice contains lines from more than one category, the contract does not specify how its payment is divided between those categories. In that case, category-level `paid` and `open` cannot be calculated reliably from the listed fields alone. Task 10.1 must establish whether invoices are guaranteed to contain only one category or define an approved allocation rule (for example, proportional allocation by category gross amount). Do not silently assign the full invoice payment to every category. Raise the decision with the Task 10.1 owner and Jan before implementing V3.
-- Once the allocation rule is confirmed, sum the category-attributed invoice amounts, paid amounts and `gross − paid` open amounts by supplier.
+- **One project and one category per invoice:** every invoice has exactly one project and one cost category (Task 20.1: the category comes from the booking, else from the supplier's category, and the invoice's lines inherit both; `docs/contracts.md` sections 6 and 8). A payment matched to an invoice therefore belongs entirely to that invoice's project and category, so no allocation rule is needed.
+- Sum invoiced (gross), paid and open (`gross − paid`) per invoice, then by supplier.
 - Selecting a supplier opens V4.
 
 Here **invoiced** is gross, so `invoiced = paid + open` can be reconciled. This differs intentionally from V1/V2 **spent**, which is net.
@@ -151,37 +151,38 @@ Here **invoiced** is gross, so `invoiced = paid + open` can be reconciled. This 
 - Group invoice lines by `invoice_id`; sum `amount_gross` to invoice gross.
 - The warehouse contract contains `invoice_id` but does not list a separate invoice-number column. Under the contract's invoice ID format (`<ico>-<number>`), display the portion after the first hyphen as the invoice number; retain `invoice_id` as the unique invoice identifier.
 - Use the issue-date and due-date keys to look up `dim_date.full_date`.
-- Display the invoice-level payment status and days late. These fields are present on `fact_invoice_line`; confirm in Task 10.1 whether the ETL repeats the invoice-level values consistently across all lines. If not, the warehouse design must define a deterministic invoice-level derivation before this view is implemented.
+- Display payment status and days late. They are the invoice's values from the matching job (`invoice_status`), repeated on every line of the invoice (`docs/contracts.md` section 8), so any line gives them (e.g. `MAX(payment_status)` in the invoice grouping).
 - Sort by due date, with overdue/unpaid items surfaced first.
 
 **Query deliverable:** `v4_supplier_invoices.sql` (Task 30.1).
 
 ## 6. V5 — Across-project analysis
 
-| Analysis | Display / grain | Warehouse sources and columns |
-|---|---|---|
-| Cost per MWp by project and signed year | Project, signed year, net spend, MWp, cost per MWp | `dim_project`: `project_key`, `project_code`, `name`, `mwp`, `signed_year`; `fact_invoice_line`: `project_key`, `amount_net` |
-| Categories most often over budget | Category, number of projects over budget, optionally average overrun % | `dim_cost_category`: `category_key`, `category_code`, `category_name`; `fact_budget_line`: `project_key`, `category_key`, `budget_amount`; `fact_invoice_line`: `project_key`, `category_key`, `amount_net` |
-| Spending curve for one project | Date, daily spend and cumulative net spend | `dim_project`: `project_key`, `project_code`; `dim_date`: `date_key`, `full_date`; `fact_invoice_line`: `project_key`, `issue_date_key`, `amount_net` |
-| Spend by category group × year | Year, category group, net spend | `dim_date`: `date_key`, `year`; `dim_cost_category`: `category_key`, `group_name`; `fact_invoice_line`: `issue_date_key`, `category_key`, `amount_net` |
-| Month-on-month change | Month, net spend, previous-month spend, absolute and percentage change | `dim_date`: `date_key`, `year`, `month`, `month_name`; `fact_invoice_line`: `issue_date_key`, `amount_net` |
+| Analysis | Display / grain | Warehouse sources and columns | Query file (Task 22) |
+|---|---|---|---|
+| Cost per MWp by project and signed year | COMPLETED projects: project, signed year, net spend, MWp, cost per MWp; also per signed year | `dim_project`: `project_key`, `project_code`, `name`, `mwp`, `signed_year`, `status`; `fact_invoice_line`: `project_key`, `amount_net` | `q5_cost_per_mwp.sql` |
+| Categories most often over budget | COMPLETED projects: category, number of projects over budget, average overrun %, rank | `dim_project`: `project_key`, `status`; `dim_cost_category`: `category_key`, `category_code`, `category_name`; `fact_budget_line`: `project_key`, `category_key`, `budget_amount`; `fact_invoice_line`: `project_key`, `category_key`, `amount_net` | `q4_overrun_rank.sql` |
+| Spending curve of a project | Per project and month: net spend and cumulative net spend | `dim_project`: `project_key`, `project_code`; `dim_date`: `date_key`, `year`, `month`; `fact_invoice_line`: `project_key`, `issue_date_key`, `amount_net` | `q3_cumulative_spend.sql` |
+| Spend by category group × year | Category group, year, net spend, with subtotals and grand total (`CUBE`) | `dim_date`: `date_key`, `year`; `dim_cost_category`: `category_key`, `group_name`; `fact_invoice_line`: `issue_date_key`, `category_key`, `amount_net` | `q2_category_by_year.sql` |
+| Month-on-month change | Per project and month: net spend, previous month's spend, absolute and percentage change | `dim_project`: `project_key`, `project_code`; `dim_date`: `date_key`, `year`, `month`, `month_name`; `fact_invoice_line`: `project_key`, `issue_date_key`, `amount_net` | `q6_month_on_month.sql` |
 
 **Calculation notes:**
 
-- Cost per MWp = project net spend / `dim_project.mwp`; guard against zero or NULL MWp.
-- “Most often over budget” counts projects for which category spend exceeds category budget; aggregate each fact to project/category first.
-- Spending curve uses invoice issue date (`issue_date_key`) and a running sum ordered by `dim_date.full_date`.
+- Cost per MWp = project net spend / `dim_project.mwp`; guard against zero or NULL MWp. COMPLETED projects only: an ACTIVE project is still spending, so its cost per MWp is not comparable.
+- “Most often over budget” counts COMPLETED projects for which category spend exceeds category budget; aggregate each fact to project/category first; rank by number of projects, then average overrun %.
+- Spending curve uses the invoice issue month (`issue_date_key` → `dim_date.year`, `month`) and a running sum per project ordered by `year * 100 + month` (never by `month` alone: projects cross year boundaries).
 - Category-group annual spend uses the invoice issue year and `dim_cost_category.group_name`.
-- Month-on-month change is portfolio-wide by default, comparing each month with the immediately preceding calendar month, including months with zero spend. If dashboard filters are provided, the same calculation may be scoped to the selected project(s). Use a complete month series so a missing month is not mistaken for the previous month.
+- Month-on-month change is per project: `LAG` of the monthly spend ordered by `year * 100 + month`; the first month's previous value is NULL.
+- Note for Task 22: `LAG` returns the previous month *with invoices*. If a project has a month without invoices, the comparison skips it. Either fill each project's month series from `dim_date` (first to last invoice month, spend 0) before `LAG`, or label the column “previous month with spend”.
 - The phrase “signed year” maps to `dim_project.signed_year`, not invoice issue year.
 
-**Query deliverables:** Task 22 queries `q2`–`q6`; exact filenames should follow the Task 22 task description.
+**Query deliverables:** Task 22 queries `q2`–`q6`, as named in the table.
 
 ## 7. Screen flow and labels
 
 `V1 Project list → V2 Project detail → V3 Category suppliers → V4 Supplier invoices`.
 
-V5 is a separate analysis area reachable from the dashboard navigation. Use Czech labels with English in brackets, for example:
+V5 is a separate analysis area reachable from the dashboard navigation. The mock-up shows the layout; the dashboard itself is a Zeppelin note (Task 30.1) whose filters are the note forms project, category and supplier, so the mock-up's region filter and search box are not built. Use Czech labels with English in brackets, for example:
 
 - Projekty (projects)
 - Rozpočet (budget)
@@ -197,18 +198,16 @@ V5 is a separate analysis area reachable from the dashboard navigation. Use Czec
 
 The design maps to the warehouse contract in `docs/contracts.md` §8. Task 11 is the management-requirements baseline; Task 10.1 should support these views. Before implementation, the Task 10.1 owner (Gokulsanjay) should compare the reviewed warehouse design with these requirements, confirm the listed fields and grains where present, and identify any gaps, especially:
 
-1. `fact_invoice_line.payment_status` and `days_late` at invoice-level consistency across line rows.
-2. `fact_payment.invoice_id` populated for matched payments and payment amounts positive for paid-out debits.
-3. The intended date semantics for V5 spending analyses (invoice issue date, as designed here).
-4. The `dim_project.signed_year` source and handling of projects without a signed date.
-5. The V3 payment-allocation rule when one invoice contains multiple cost categories. The current contract links payments to invoices, not directly to invoice categories.
+1. `fact_payment.invoice_id` populated for matched payments and payment amounts positive for paid-out debits.
+2. The intended date semantics for V5 spending analyses (invoice issue date, as designed here).
+3. The `dim_project.signed_year` source and handling of projects without a signed date.
 
-No changes to shared contracts are proposed by this Task 11 design. Any disagreement with §8 of the contract must be raised with Jan rather than silently changing names.
+Settled in the review (Task 15.1, 10 Nov), now in `docs/contracts.md` sections 6 and 8: every invoice has one project and one category, so V3 needs no payment-allocation rule; `payment_status` and `days_late` are the same on every line of an invoice. Any other disagreement with §8 of the contract must be raised with Jan rather than silently changing names.
 
 ## 9. Acceptance checklist
 
 - [ ] V1 and V2 mock-up reviewed for layout and labels.
 - [ ] Every view’s warehouse tables, columns and required grains compared by Gokulsanjay against the reviewed Task 10.1 design; gaps are recorded for resolution rather than treated as a reason to reverse the Task 11 requirements.
-- [ ] Jan reviews the design and mock-up (Task 15.1).
-- [ ] `docs/dashboard-design.md` and `docs/dashboard-mockup.png` included in the Task 11 PR.
-- [ ] Three-line Task 11 entry added to `log.md` with actual checks performed.
+- [x] Jan reviews the design and mock-up (Task 15.1).
+- [x] `docs/dashboard-design.md` and `docs/dashboard-mockup.png` included in the Task 11 PR.
+- [x] Three-line Task 11 entry added to `log.md` with actual checks performed.

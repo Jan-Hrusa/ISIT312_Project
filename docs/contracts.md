@@ -9,7 +9,7 @@ columns); `tests/common/test_schemas.py` checks that the columns and partitions 
 `common/schemas.py`. Read values
 through the module (`config.CLEAN_DB`), never by copying them into your code.
 
-Frozen with Task 2 on 5 Nov 2026; review fixes 8 Nov (examples, raw-zone fields, write rules). Everything runs in the `client` container of the Docker stack (`docker/`, Task 3).
+Frozen with Task 2 on 5 Nov 2026; review fixes 8 Nov (examples, raw-zone fields, write rules); 10 Nov one project and category per invoice, invoice-level payment status (Task 11 review). Everything runs in the `client` container of the Docker stack (`docker/`, Task 3).
 
 ## 1. Project code and status
 - Code `FVE-YYYY-NN`: YYYY = offer year (= signing year for signed projects), NN = 01-99 within that year;
@@ -178,6 +178,9 @@ Value sets: `invoices.project_rule` `BOOKED` / `SINGLE_ACTIVE` / `NONE` (Task 20
 upper case (Task 9); `media_files.kind` `PHOTO` / `VIDEO`; `documents.doc_type` and `version` from the file name
 (Task 19).
 
+One project and one category per invoice: `invoices.category` comes from the booking, else from the supplier's
+category, and every `invoice_lines` row carries its invoice's `project_code` and `category` (Task 20.1).
+
 ## 7. Data-quality issues (`dq_issues`)
 `common.dq.write_issues(spark, df, job)`: df has `issue_type, source, record_ref, project_code, detail`
 (`common.dq.issue_rows` builds one from Python rows); it adds `issue_id` and `detected_at`, then replaces
@@ -220,6 +223,10 @@ DECIMAL(5,2); `has_battery` BOOLEAN; `construction_start`/`construction_end`/`fu
 
 Surrogate keys `ROW_NUMBER() OVER (ORDER BY <natural key>)`; key `-1` = the `UNKNOWN` row of `dim_project` and
 `dim_supplier`; `dim_date` covers 2016-01-01 to 2026-12-31; `fact_payment` holds debits only.
+`fact_invoice_line.payment_status` and `days_late` are the invoice's `invoice_status` values, the same on every
+line of an invoice. `fact_payment.invoice_id` is NULL for a debit matching no invoice. As an invoice has one
+project and one category (section 6), a payment matched to it belongs to that project and category; no
+allocation across categories is needed.
 
 **HBase `media_catalog`** (`config.HBASE_TABLE`, Thrift at `config.HBASE_HOST:HBASE_PORT`; design Task 12, load
 Task 19): row key `<project_code>#<KIND>#<yyyyMMddHHmmss>#<file_id>`, KIND `PHOTO`, `VIDEO`, `DOC`, `DRAWING`;
