@@ -5,8 +5,13 @@ One entry per merged task (or part with its own checkpoint), newest first:
     ### <date> - Task N: short name (your name)
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
+
+### 2026-11-10 - Task 11: Review fixes to the dashboard design (Jan)
+- Merged: docs/dashboard-design.md: V3 needs no payment-allocation rule (one project and one category per invoice), V4 takes payment status from any line, V5 follows Task 22 (query file per row, monthly per project, q4/q5 on COMPLETED projects, note on months without invoices), the mock-up's region filter and search are not built; docs/contracts.md sections 6 and 8 state the one-project-one-category rule and the invoice-level payment status
+- Checked: docs only; every warehouse column named in dashboard-design.md exists in contracts section 8 (script)
+
 ### 2026-11-10 - Task 11: Management dashboard design (Maysoon)
-- Merged: Pending PR review and integration merge; deliverables are docs/dashboard-design.md (V1–V5 management dashboard requirements, calculations, warehouse mappings and review notes) and docs/dashboard-mockup.png (V1 project list and V2 project detail mockup)
+- Merged: docs/dashboard-design.md (views V1–V5: columns, calculations, traffic light, warehouse mappings) and docs/dashboard-mockup.png (V1 project list and V2 project detail)
 - Checked: git diff --cached --check passed for both deliverables; documentation-only task, no code tests required
 ### 2026-11-09 - Task 9: Payment matching rules and tests (Mudabbir)
 - Merged: processing/matching/rules.py (Invoice, Payment, Order, MatchResult, match_invoice: PAID / PARTLY_PAID / ORDERED / UNPAID / OVERDUE, order clearing, UNMATCHED_PAYMENT and ORDER_NOT_CLEARED issues); 14 named tests; 6 hand-made cases in tests/fixtures/matching/cases.json
