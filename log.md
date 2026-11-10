@@ -6,6 +6,11 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-10 - Task 10.1: Warehouse conceptual and logical design (Gokulsanjay)
+- Merged: Pending review; prepared conceptual.uxf, conceptual.pdf, logical.uxf, logical.pdf, and warehouse/design/README.md.
+- Checked: Reviewed the four fact tables, five dimensions, keys, data types, hierarchies, and date relationships.
+
+
 ### 2026-11-10 - Task 11: Review fixes to the dashboard design (Jan)
 - Merged: docs/dashboard-design.md: V3 needs no payment-allocation rule (one project and one category per invoice), V4 takes payment status from any line, V5 follows Task 22 (query file per row, monthly per project, q4/q5 on COMPLETED projects, note on months without invoices), the mock-up's region filter and search are not built; docs/contracts.md sections 6 and 8 state the one-project-one-category rule and the invoice-level payment status
 - Checked: docs only; every warehouse column named in dashboard-design.md exists in contracts section 8 (script)
