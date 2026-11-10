@@ -5,7 +5,9 @@ One entry per merged task (or part with its own checkpoint), newest first:
     ### <date> - Task N: short name (your name)
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
-
+### 2026-11-10 - Task 11: Management dashboard design (Maysoon)
+- Merged: Pending PR review and integration merge; deliverables are docs/dashboard-design.md (V1–V5 management dashboard requirements, calculations, warehouse mappings and review notes) and docs/dashboard-mockup.png (V1 project list and V2 project detail mockup)
+- Checked: git diff --cached --check passed for both deliverables; documentation-only task, no code tests required
 ### 2026-11-09 - Task 9: Payment matching rules and tests (Mudabbir)
 - Merged: processing/matching/rules.py (Invoice, Payment, Order, MatchResult, match_invoice: PAID / PARTLY_PAID / ORDERED / UNPAID / OVERDUE, order clearing, UNMATCHED_PAYMENT and ORDER_NOT_CLEARED issues); 14 named tests; 6 hand-made cases in tests/fixtures/matching/cases.json
 - Checked: pytest tests/processing 19 passed; pytest -m "not integration" 43 passed; ruff check and format clean
