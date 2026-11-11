@@ -19,6 +19,18 @@ from generators.finance_docs.util import CATEGORIES, DATA_END
 
 SEED = config.SEED
 NS = {"i": "http://isdoc.cz/namespace/2013"}
+# children of InvoiceLine in the order of the ISDOC 6.0.2 schema (the optional ones the generator writes)
+ISDOC_LINE_ORDER = [
+    "ID",
+    "InvoicedQuantity",
+    "LineExtensionAmount",
+    "LineExtensionAmountTaxInclusive",
+    "LineExtensionTaxAmount",
+    "UnitPrice",
+    "UnitPriceTaxInclusive",
+    "ClassifiedTaxCategory",
+    "Item",
+]
 
 
 @pytest.fixture(scope="module")
@@ -170,7 +182,9 @@ def test_isdoc_parses_and_totals_match_lines(run_dirs):
     for f in files:
         root = etree.parse(str(f)).getroot()
         nets = [float(x.text) for x in root.findall(".//i:InvoiceLine/i:LineExtensionAmount", NS)]
-        vats = [float(x.text) for x in root.findall(".//i:InvoiceLine/i:LineExtensionAmountTax", NS)]
+        vats = [float(x.text) for x in root.findall(".//i:InvoiceLine/i:LineExtensionTaxAmount", NS)]
+        for line in root.findall(".//i:InvoiceLine", NS):
+            assert [etree.QName(c).localname for c in line] == ISDOC_LINE_ORDER
         net = float(root.find("i:LegalMonetaryTotal/i:TaxExclusiveAmount", NS).text)
         gross = float(root.find("i:LegalMonetaryTotal/i:TaxInclusiveAmount", NS).text)
         pay = float(root.find("i:LegalMonetaryTotal/i:PayableAmount", NS).text)

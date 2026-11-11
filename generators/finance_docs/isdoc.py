@@ -2,7 +2,7 @@
 
 from lxml import etree
 
-from generators.finance_docs.util import money
+from generators.finance_docs.util import money, q2
 
 NS = "http://isdoc.cz/namespace/2013"
 CUSTOMER_NAME = "Stavitel FVE s.r.o."  # synthetic buyer, not the real company
@@ -45,10 +45,12 @@ def to_xml(inv) -> bytes:
         el = _add(lines, "InvoiceLine")
         _add(el, "ID", i)
         _add(el, "InvoicedQuantity", _qty(ln.quantity), unitCode="C62")
+        # element names and order as in the ISDOC 6.0.2 schema (InvoiceLineType)
         _add(el, "LineExtensionAmount", money(ln.net))
-        _add(el, "LineExtensionAmountTax", money(ln.vat))
         _add(el, "LineExtensionAmountTaxInclusive", money(ln.net + ln.vat))
+        _add(el, "LineExtensionTaxAmount", money(ln.vat))
         _add(el, "UnitPrice", money(ln.unit_price))
+        _add(el, "UnitPriceTaxInclusive", money(q2(ln.unit_price * (100 + ln.vat_rate) / 100)))
         cat = _add(el, "ClassifiedTaxCategory")
         _add(cat, "Percent", _qty(ln.vat_rate))
         _add(cat, "VATCalculationMethod", 0)
