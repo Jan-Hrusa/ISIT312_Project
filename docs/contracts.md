@@ -204,10 +204,11 @@ Jobs (`common.dq.JOBS`): `ingest`, `bank`, `finance`, `matching`, `media`.
 
 ## 8. Warehouse and catalogue
 **Hive warehouse `fve_dw`** (`config.DW_DB`; EXTERNAL ORC at `<LAKE_DW>/<table>`; DDL Task 10, loads Task 26).
-Names as on the ClickUp guide page; the columns are final once Task 10.1 is reviewed (Task 15.1), and this
-section is updated then. Types: keys, years, months, days and `quarter` INT; amounts DECIMAL(14,2), `mwp`
-DECIMAL(5,2); `has_battery` BOOLEAN; `construction_start`/`construction_end`/`full_date` DATE; `days_late` INT;
-`cleared` TINYINT; everything else STRING.
+Names as on the ClickUp guide page; the columns below are final (Task 10.1 design in `warehouse/design/`,
+reviewed in Task 15.1 on 11 Nov). Types: keys, years, months, days, `quarter` and `line_no` INT; amounts
+DECIMAL(14,2), `mwp` DECIMAL(5,2); `has_battery` BOOLEAN; `construction_start`/`construction_end`/`full_date`
+DATE; `days_late` INT; `cleared` TINYINT; everything else STRING. `iso_week` is the ISO week-year and week as
+`YYYY-Www` (e.g. `2026-W45`, the same form as the Money S3 export week).
 
 | Table | Columns | Partitioned by |
 |---|---|---|
@@ -224,9 +225,11 @@ DECIMAL(5,2); `has_battery` BOOLEAN; `construction_start`/`construction_end`/`fu
 Surrogate keys `ROW_NUMBER() OVER (ORDER BY <natural key>)`; key `-1` = the `UNKNOWN` row of `dim_project` and
 `dim_supplier`; `dim_date` covers 2016-01-01 to 2026-12-31; `fact_payment` holds debits only.
 `fact_invoice_line.payment_status` and `days_late` are the invoice's `invoice_status` values, the same on every
-line of an invoice. `fact_payment.invoice_id` is NULL for a debit matching no invoice. As an invoice has one
-project and one category (section 6), a payment matched to it belongs to that project and category; no
-allocation across categories is needed.
+line of an invoice. `fact_payment.invoice_id` is NULL for a debit matching no invoice.
+`fact_payment_order.cleared` is 1 for a matched order a bank debit cleared, 0 for one no debit cleared (the
+`ORDER_NOT_CLEARED` orders) and NULL for an order matching no invoice. As an invoice has one project and one
+category (section 6), a payment matched to it belongs to that project and category; no allocation across
+categories is needed.
 
 **HBase `media_catalog`** (`config.HBASE_TABLE`, Thrift at `config.HBASE_HOST:HBASE_PORT`; design Task 12, load
 Task 19): row key `<project_code>#<KIND>#<yyyyMMddHHmmss>#<file_id>`, KIND `PHOTO`, `VIDEO`, `DOC`, `DRAWING`;

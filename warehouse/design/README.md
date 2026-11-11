@@ -1,202 +1,121 @@
-# **Data Warehouse Design — Task 10.1**
+# Data Warehouse Design — Task 10.1
 
+## Overview
 
+This directory contains the conceptual and logical data warehouse designs for the ISIT312 solar-farm construction
+data lake project. The warehouse uses a fact constellation consisting of four fact tables and five shared dimension
+tables. Its purpose is to support project budget monitoring, supplier spending analysis, invoice tracking, and
+payment reconciliation.
 
-### Overview
+The designs follow the warehouse requirements in `docs/contracts.md` section 8 and the reporting requirements in
+`docs/dashboard-design.md`.
 
+## Fact tables
 
+### 1. fact_budget_line
 
-This directory contains the conceptual and logical data warehouse designs for the ISIT312 solar-farm construction data lake project. The warehouse uses a fact constellation consisting of four fact tables and five shared dimension tables. Its purpose is to support project budget monitoring, supplier spending analysis, invoice tracking, and payment reconciliation.
+- Grain: one budget record per project and cost category.
+- Measure: `budget_amount`.
 
+This fact stores the budget allocated to each cost category within a project. It uses the project and cost-category
+dimensions, together with a date reference representing the project's signing date. It answers dashboard views V1
+(budget per project and the traffic light), V2 (budget versus actual by category) and V5 (categories most often over
+budget).
 
+### 2. fact_invoice_line
 
-The designs follow the warehouse requirements in `docs/contracts.md` Section 8 and the reporting requirements in `docs/dashboard-design.md`.
+- Grain: one invoice line.
+- Measures: `amount_net`, `vat_amount`, `amount_gross`.
+- Degenerate attributes: `invoice_id`, `line_no`, `payment_status`, `days_late`.
 
+This fact records invoice-line expenditure, including its project, supplier, cost category, issue date, due date,
+payment status, and lateness. It answers every dashboard view: spent per project (V1), actual cost per category (V2),
+invoiced amounts per supplier (V3), the invoice list with payment status and days late (V4), and the across-project
+analyses (V5).
 
+### 3. fact_payment
 
-### Fact Tables
+- Grain: one bank debit representing a supplier payment.
+- Measures: `amount` (positive = paid out), `days_late`.
+- Degenerate attributes: `tx_id`, `invoice_id`.
 
+This fact records supplier payments from bank statements. It links payments to projects, suppliers, bank accounts,
+and value dates. The `invoice_id` attribute is NULL when a payment cannot be matched to an invoice. It answers V3:
+the paid and open amounts per supplier come from the matched payments, summed by `invoice_id` before they are
+compared with the invoices.
 
+### 4. fact_payment_order
 
-###### 1\. fact\_budget\_line
+- Grain: one KPC payment-order item.
+- Measures: `amount`, `cleared` (1 or 0; NULL when the order matches no invoice).
+- Degenerate attributes: `order_id`, `invoice_id`.
 
+This fact records payment instructions and whether they have cleared. It connects each payment-order item to its
+project, supplier, bank account, order date, and due date. No dashboard view uses it: it supports the analysis of
+outstanding payment instructions (`cleared = 0` are the orders no bank debit cleared, the `ORDER_NOT_CLEARED`
+cases) and payment reconciliation.
 
+## Shared dimensions and hierarchies
 
-Grain: One budget record per project and cost category.
+| Dimension | Attributes | Hierarchy | Used by |
+|---|---|---|---|
+| `dim_project` | `project_code`, `name`, `town`, `region`, `mwp`, `has_battery`, `contract_value`, `status`, `signed_year`, `construction_start`, `construction_end` | project → region | all four facts |
+| `dim_supplier` | `ico`, `name`, `main_category` | supplier → category | invoice line, payment, payment order |
+| `dim_cost_category` | `category_code`, `category_name`, `group_name` | category → group | budget line, invoice line |
+| `dim_date` | `full_date`, `day`, `month`, `month_name`, `quarter`, `year`, `iso_week` (`YYYY-Www`, e.g. `2026-W45`) | day → month → quarter → year | all four facts |
+| `dim_bank_account` | `bank`, `bank_name`, `account`, `bank_code`, `currency` | account → bank | payment, payment order |
 
+The date dimension is reused in different roles: invoice issue date and due date, payment value date, payment-order
+date and due date, and project signing date.
 
+Unknown project and supplier records use surrogate key `-1` to preserve facts whose corresponding dimension members
+cannot be identified.
 
-Measure: `budget\_amount`.
-
-
-
-This fact stores the budget allocated to each cost category within a project. It uses the project and cost-category dimensions, together with a date reference representing the project's signing date. It supports dashboard View 2, which compares planned budgets against actual invoiced costs by category.
-
-
-
-###### 2\. fact\_invoice\_line
-
-
-
-Grain: One invoice line.
-
-
-
-Measures: `amount\_net`, `vat\_amount`, and `amount\_gross`.
-
-
-
-This fact records invoice-line expenditure, including its project, supplier, cost category, issue date, due date, payment status, and lateness. It supports budget-versus-actual reporting, supplier expenditure analysis, invoice drill-down, and comparisons across projects.
-
-
-
-###### 3\. fact\_payment
-
-
-
-Grain: One bank debit representing a supplier payment.
-
-
-
-Measures: `amount` and `days\_late`.
-
-
-
-This fact records supplier payments from bank statements. It links payments to projects, suppliers, bank accounts, and value dates. The `invoice\_id` attribute may be NULL when a payment cannot be matched to an invoice. It supports payment tracking and reconciliation analysis.
-
-
-
-###### 4\. fact\_payment\_order
-
-
-
-Grain: One KPC payment-order item.
-
-
-
-Measures: `amount` and `cleared` (0 or 1).
-
-
-
-This fact records payment instructions and whether they have cleared. It connects each payment-order item to its project, supplier, bank account, order date, and due date. It supports analysis of outstanding payment instructions and payment reconciliation.
-
-
-
-###### Shared Dimensions
-
-
-
-The warehouse contains five shared dimensions:
-
-
-
-\- `dim\_project` — Project details and project-to-region analysis.
-
-\- `dim\_supplier` — Supplier details and supplier-category analysis.
-
-\- `dim\_cost\_category` — Cost categories and their higher-level groups.
-
-\- `dim\_date` — Calendar analysis by day, month, quarter, and year.
-
-\- `dim\_bank\_account` — Bank account and bank-level analysis.
-
-
-
-The date dimension is reused in different roles, including invoice issue date, invoice due date, payment value date, payment-order date, and project signing date.
-
-
-
-Unknown project and supplier records use surrogate key `-1` to preserve facts whose corresponding dimension members cannot be identified.
-
-
-
-###### Dashboard Support
-
-
+## Dashboard support
 
 The warehouse supports the five dashboard views described in `docs/dashboard-design.md`:
 
-
-
-| View | Purpose | Main Warehouse Tables |
-
+| View | Purpose | Main warehouse tables |
 |---|---|---|
+| V1 | Project list | `dim_project`, `fact_budget_line`, `fact_invoice_line`, `dim_cost_category` (category-level traffic light) |
+| V2 | Budget versus actual by category | `fact_budget_line`, `fact_invoice_line`, `dim_project`, `dim_cost_category` |
+| V3 | Cost category to suppliers | `fact_invoice_line`, `fact_payment`, `dim_project`, `dim_cost_category`, `dim_supplier` |
+| V4 | Supplier to invoices | `fact_invoice_line`, `dim_project`, `dim_supplier`, `dim_date` |
+| V5 | Across-project analysis | `fact_budget_line`, `fact_invoice_line`, `dim_project`, `dim_cost_category`, `dim_date` |
 
-| V1 | Project list | `dim\_project` |
-
-| V2 | Budget versus actual by category | `fact\_budget\_line`, `fact\_invoice\_line`, `dim\_project`, `dim\_cost\_category` |
-
-| V3 | Cost category to suppliers | `fact\_invoice\_line`, `dim\_cost\_category`, `dim\_supplier` |
-
-| V4 | Supplier to invoices | `fact\_invoice\_line`, `dim\_supplier` |
-
-| V5 | Across-project analysis | `fact\_budget\_line`, `fact\_invoice\_line`, `dim\_project`, `dim\_date` |
-
-
-
-Actual spending is calculated using `fact\_invoice\_line.amount\_net`. Budget and actual expenditure can be compared through their shared project and cost-category dimensions. This is a drill-across operation, with each fact aggregated to a common grain before comparison.
-
-
+Actual spending is calculated using `fact_invoice_line.amount_net`. Budget and actual expenditure can be compared
+through their shared project and cost-category dimensions. This is a drill-across operation, with each fact
+aggregated to a common grain before comparison.
 
 Invoice issue dates are used for invoice spending trends.
 
+## Planned physical storage
 
-
-###### Planned Physical Storage
-
-
-
-The Hive warehouse database is `fve\_dw`. The planned storage format is external ORC tables under `/lake/dw/<table>`.
-
-
+The Hive warehouse database is `fve_dw`. The planned storage format is external ORC tables under `/lake/dw/<table>`.
 
 The planned fact-table partitions are:
 
-
-
-| Fact Table | Partition Columns |
-
+| Fact table | Partition columns |
 |---|---|
-
-| `fact\_budget\_line` | `signed\_year` |
-
-| `fact\_invoice\_line` | `issue\_year` |
-
-| `fact\_payment` | `pay\_year`, `pay\_month` |
-
-| `fact\_payment\_order` | `order\_year` |
-
-
+| `fact_budget_line` | `signed_year` |
+| `fact_invoice_line` | `issue_year` |
+| `fact_payment` | `pay_year`, `pay_month` |
+| `fact_payment_order` | `order_year` |
 
 The date dimension covers 2016-01-01 through 2026-12-31.
 
+## Design files
 
+- `conceptual.uxf` — editable UMLet conceptual diagram.
+- `conceptual.pdf` — exported conceptual diagram.
+- `logical.uxf` — editable UMLet logical diagram with keys and data types.
+- `logical.pdf` — exported logical diagram.
 
-###### Design Files
+The conceptual model describes the fact constellation, measures, dimensions, and analytical hierarchies. The logical
+model adds primary keys, foreign keys, data types, and role-playing date relationships.
 
+## References
 
-
-\- `conceptual.uxf` — Editable UMLet conceptual diagram.
-
-\- `conceptual.pdf` — Exported conceptual diagram.
-
-\- `logical.uxf` — Editable UMLet logical diagram with keys and data types.
-
-\- `logical.pdf` — Exported logical diagram.
-
-
-
-The conceptual model describes the fact constellation, measures, dimensions, and analytical hierarchies. The logical model adds primary keys, foreign keys, data types, and role-playing date relationships.
-
-
-
-#### References
-
-
-
-\- `docs/contracts.md` — Data contracts and warehouse schema requirements.
-
-\- `docs/dashboard-design.md` — Dashboard views and reporting requirements.
-
-\- `02 Project description.pdf` — Section 5.4, Data Warehouse Design.
-
+- `docs/contracts.md` — data contracts and warehouse schema requirements.
+- `docs/dashboard-design.md` — dashboard views and reporting requirements.
+- Drive document *02 Project description* — section 5.4, data warehouse design.
