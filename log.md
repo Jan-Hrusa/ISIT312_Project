@@ -14,6 +14,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
 - Merged: warehouse/design/: conceptual and logical UMLet designs (conceptual.uxf, conceptual.pdf, logical.uxf, logical.pdf) and README.md (grains, measures, dimensions, dashboard views)
 - Checked: Reviewed the four fact tables, five dimensions, keys, data types, hierarchies, and date relationships.
 
+### 2026-11-11 - Task 5: Finance sample set and full generator (Jayden)
+- Merged: generators/finance_docs (master, budgets, plan, isdoc, pdf_invoice, money_export, ledger, util, __main__): projects, suppliers, budgets, ISDOC + PDF invoices, weekly accounting export and invoice_ledger.csv from one seeded rng; tests/generators/test_finance_docs.py
+- Checked: pytest tests/generators passed; ruff check and ruff format --check clean; scale 1 run gives 95 projects, 35 suppliers, 83 budgets, 4655 invoices (466 PDF only), 559 export files; ISDOC, PDF and budget compared in Screenshots/finance/
+  
 ### 2026-11-10 - Task 11: Review fixes to the dashboard design (Jan)
 - Merged: docs/dashboard-design.md: V3 needs no payment-allocation rule (one project and one category per invoice), V4 takes payment status from any line, V5 follows Task 22 (query file per row, monthly per project, q4/q5 on COMPLETED projects, note on months without invoices), the mock-up's region filter and search are not built; docs/contracts.md sections 6 and 8 state the one-project-one-category rule and the invoice-level payment status
 - Checked: docs only; every warehouse column named in dashboard-design.md exists in contracts section 8 (script)
