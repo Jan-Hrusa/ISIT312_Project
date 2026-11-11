@@ -155,7 +155,7 @@ month: INT
 month_name: STRING
 quarter: INT
 year: INT
-iso_week: INT</panel_attributes>
+iso_week: STRING</panel_attributes>
     <additional_attributes/>
   </element>
   <element>
@@ -347,19 +347,6 @@ r1=Order date</panel_attributes>
 m1=1
 m2=N</panel_attributes>
     <additional_attributes>230.0;160.0;10.0;160.0;10.0;10.0</additional_attributes>
-  </element>
-  <element>
-    <id>Relation</id>
-    <coordinates>
-      <x>880</x>
-      <y>500</y>
-      <w>180</w>
-      <h>110</h>
-    </coordinates>
-    <panel_attributes>lt=-
-m1=1
-m2=N</panel_attributes>
-    <additional_attributes>160.0;90.0;160.0;90.0</additional_attributes>
   </element>
   <element>
     <id>Relation</id>

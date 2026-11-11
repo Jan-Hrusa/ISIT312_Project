@@ -6,10 +6,13 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
-### 2026-11-10 - Task 10.1: Warehouse conceptual and logical design (Gokulsanjay)
-- Merged: Pending review; prepared conceptual.uxf, conceptual.pdf, logical.uxf, logical.pdf, and warehouse/design/README.md.
-- Checked: Reviewed the four fact tables, five dimensions, keys, data types, hierarchies, and date relationships.
+### 2026-11-11 - Task 10.1: Review fixes to the warehouse design (Jan)
+- Merged: warehouse/design/logical.uxf and logical.pdf: dim_date.iso_week STRING as in the contract, stray connector removed; README.md renders on GitHub and lists the hierarchies, the dashboard views each fact answers and all tables per view (V1 and V3 were incomplete); docs/contracts.md section 8: columns final, line_no INT, iso_week format YYYY-Www, the rule for fact_payment_order.cleared (from Task 26)
+- Checked: docs only; every logical.uxf column and type matches contracts section 8 (script); README tables per view match docs/dashboard-design.md; README rendered with the GitHub Markdown API; logical.pdf re-exported with UMLet 15.1
 
+### 2026-11-10 - Task 10.1: Warehouse conceptual and logical design (Gokulsanjay)
+- Merged: warehouse/design/: conceptual and logical UMLet designs (conceptual.uxf, conceptual.pdf, logical.uxf, logical.pdf) and README.md (grains, measures, dimensions, dashboard views)
+- Checked: Reviewed the four fact tables, five dimensions, keys, data types, hierarchies, and date relationships.
 
 ### 2026-11-10 - Task 11: Review fixes to the dashboard design (Jan)
 - Merged: docs/dashboard-design.md: V3 needs no payment-allocation rule (one project and one category per invoice), V4 takes payment status from any line, V5 follows Task 22 (query file per row, monthly per project, q4/q5 on COMPLETED projects, note on months without invoices), the mock-up's region filter and search are not built; docs/contracts.md sections 6 and 8 state the one-project-one-category rule and the invoice-level payment status
