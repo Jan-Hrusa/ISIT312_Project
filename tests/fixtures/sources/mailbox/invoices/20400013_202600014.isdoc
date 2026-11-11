@@ -35,9 +35,10 @@
       <ID>1</ID>
       <InvoicedQuantity unitCode="C62">10</InvoicedQuantity>
       <LineExtensionAmount>120000.00</LineExtensionAmount>
-      <LineExtensionAmountTax>25200.00</LineExtensionAmountTax>
       <LineExtensionAmountTaxInclusive>145200.00</LineExtensionAmountTaxInclusive>
+      <LineExtensionTaxAmount>25200.00</LineExtensionTaxAmount>
       <UnitPrice>12000.00</UnitPrice>
+      <UnitPriceTaxInclusive>14520.00</UnitPriceTaxInclusive>
       <ClassifiedTaxCategory>
         <Percent>21</Percent>
         <VATCalculationMethod>0</VATCalculationMethod>

@@ -6,10 +6,14 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-12 - Task 5.1: Review fixes to the finance sample set (Jan)
+- Merged: the three ISDOC fixtures regenerated with the merged generator (isdoc.to_xml) from their own values, so their invoice lines carry the ISDOC 6.0.2 elements of PR #16 (LineExtensionTaxAmount, UnitPriceTaxInclusive, schema order); test_finance_fixtures_match_readme also checks that the line VAT adds up to the invoice VAT; whitespace line in log.md removed
+- Checked: pytest -m "not integration" passed; ruff check and format clean; only those line elements differ from the merged fixtures, totals unchanged
+
 ### 2026-11-11 - Task 5.1: Finance sample set (Jayden)
 - Merged: tests/fixtures/sources/ finance sample set (3 projects, 5 suppliers, FVE-2026-02 budget with all 10 categories, 3 ISDOC + PDF invoices with 1, 3 and 5 lines and 1 PDF-only, money_export_2026-W20.csv), tests/fixtures/out/ledger/invoice_ledger.csv, tests/fixtures/mtimes_finance.csv, tests/fixtures/finance/README.md with the expected values
 - Checked: test_finance_fixtures_match_readme passes; pytest tests/generators passed; ruff check and format clean; invoice totals checked by hand against the README
-  
+
 ### 2026-11-11 - Task 5: Review fixes to the finance generator (Jan)
 - Merged: generators/finance_docs/isdoc.py: invoice-line elements named and ordered as in the ISDOC 6.0.2 schema (LineExtensionTaxAmount instead of LineExtensionAmountTax, new UnitPriceTaxInclusive); test_isdoc_parses_and_totals_match_lines checks the names and their order; log.md entries in date order
 - Checked: pytest -m "not integration" passed; ruff check and format clean; generator run at scale 1 twice, same bytes
