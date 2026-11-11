@@ -35,9 +35,10 @@
       <ID>1</ID>
       <InvoicedQuantity unitCode="C62">100</InvoicedQuantity>
       <LineExtensionAmount>12000.00</LineExtensionAmount>
-      <LineExtensionAmountTax>2520.00</LineExtensionAmountTax>
       <LineExtensionAmountTaxInclusive>14520.00</LineExtensionAmountTaxInclusive>
+      <LineExtensionTaxAmount>2520.00</LineExtensionTaxAmount>
       <UnitPrice>120.00</UnitPrice>
+      <UnitPriceTaxInclusive>145.20</UnitPriceTaxInclusive>
       <ClassifiedTaxCategory>
         <Percent>21</Percent>
         <VATCalculationMethod>0</VATCalculationMethod>
@@ -50,9 +51,10 @@
       <ID>2</ID>
       <InvoicedQuantity unitCode="C62">50</InvoicedQuantity>
       <LineExtensionAmount>4000.00</LineExtensionAmount>
-      <LineExtensionAmountTax>840.00</LineExtensionAmountTax>
       <LineExtensionAmountTaxInclusive>4840.00</LineExtensionAmountTaxInclusive>
+      <LineExtensionTaxAmount>840.00</LineExtensionTaxAmount>
       <UnitPrice>80.00</UnitPrice>
+      <UnitPriceTaxInclusive>96.80</UnitPriceTaxInclusive>
       <ClassifiedTaxCategory>
         <Percent>21</Percent>
         <VATCalculationMethod>0</VATCalculationMethod>
@@ -65,9 +67,10 @@
       <ID>3</ID>
       <InvoicedQuantity unitCode="C62">1</InvoicedQuantity>
       <LineExtensionAmount>4000.00</LineExtensionAmount>
-      <LineExtensionAmountTax>840.00</LineExtensionAmountTax>
       <LineExtensionAmountTaxInclusive>4840.00</LineExtensionAmountTaxInclusive>
+      <LineExtensionTaxAmount>840.00</LineExtensionTaxAmount>
       <UnitPrice>4000.00</UnitPrice>
+      <UnitPriceTaxInclusive>4840.00</UnitPriceTaxInclusive>
       <ClassifiedTaxCategory>
         <Percent>21</Percent>
         <VATCalculationMethod>0</VATCalculationMethod>
@@ -80,9 +83,10 @@
       <ID>4</ID>
       <InvoicedQuantity unitCode="C62">30</InvoicedQuantity>
       <LineExtensionAmount>4500.00</LineExtensionAmount>
-      <LineExtensionAmountTax>945.00</LineExtensionAmountTax>
       <LineExtensionAmountTaxInclusive>5445.00</LineExtensionAmountTaxInclusive>
+      <LineExtensionTaxAmount>945.00</LineExtensionTaxAmount>
       <UnitPrice>150.00</UnitPrice>
+      <UnitPriceTaxInclusive>181.50</UnitPriceTaxInclusive>
       <ClassifiedTaxCategory>
         <Percent>21</Percent>
         <VATCalculationMethod>0</VATCalculationMethod>
@@ -95,9 +99,10 @@
       <ID>5</ID>
       <InvoicedQuantity unitCode="C62">2</InvoicedQuantity>
       <LineExtensionAmount>2500.00</LineExtensionAmount>
-      <LineExtensionAmountTax>525.00</LineExtensionAmountTax>
       <LineExtensionAmountTaxInclusive>3025.00</LineExtensionAmountTaxInclusive>
+      <LineExtensionTaxAmount>525.00</LineExtensionTaxAmount>
       <UnitPrice>1250.00</UnitPrice>
+      <UnitPriceTaxInclusive>1512.50</UnitPriceTaxInclusive>
       <ClassifiedTaxCategory>
         <Percent>21</Percent>
         <VATCalculationMethod>0</VATCalculationMethod>

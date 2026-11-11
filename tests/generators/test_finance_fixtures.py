@@ -89,6 +89,8 @@ def check_invoices():
         lines = root.findall(".//i:InvoiceLine", NS)
         assert len(lines) == int(e["lines"])
         assert sum(Decimal(x.find("i:LineExtensionAmount", NS).text) for x in lines) == net
+        # ISDOC 6.0.2 name (PR #16); the old LineExtensionAmountTax would make find() return None
+        assert sum(Decimal(x.find("i:LineExtensionTaxAmount", NS).text) for x in lines) == vat
         assert Decimal(text("i:LegalMonetaryTotal/i:TaxExclusiveAmount")) == net
         assert Decimal(text("i:TaxTotal/i:TaxAmount")) == vat
         assert Decimal(text("i:LegalMonetaryTotal/i:TaxInclusiveAmount")) == gross
