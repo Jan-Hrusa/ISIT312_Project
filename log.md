@@ -6,6 +6,14 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-11 - Task 5: Review fixes to the finance generator (Jan)
+- Merged: generators/finance_docs/isdoc.py: invoice-line elements named and ordered as in the ISDOC 6.0.2 schema (LineExtensionTaxAmount instead of LineExtensionAmountTax, new UnitPriceTaxInclusive); test_isdoc_parses_and_totals_match_lines checks the names and their order; log.md entries in date order
+- Checked: pytest -m "not integration" passed; ruff check and format clean; generator run at scale 1 twice, same bytes
+
+### 2026-11-11 - Task 5: Finance sample set and full generator (Jayden)
+- Merged: generators/finance_docs (master, budgets, plan, isdoc, pdf_invoice, money_export, ledger, util, __main__): projects, suppliers, budgets, ISDOC + PDF invoices, weekly accounting export and invoice_ledger.csv from one seeded rng; tests/generators/test_finance_docs.py
+- Checked: pytest tests/generators passed; ruff check and ruff format --check clean; scale 1 run gives 95 projects, 35 suppliers, 83 budgets, 4655 invoices (466 PDF only), 559 export files; ISDOC, PDF and budget compared in Screenshots/finance/
+
 ### 2026-11-11 - Task 10.1: Review fixes to the warehouse design (Jan)
 - Merged: warehouse/design/logical.uxf and logical.pdf: dim_date.iso_week STRING as in the contract, stray connector removed; README.md renders on GitHub and lists the hierarchies, the dashboard views each fact answers and all tables per view (V1 and V3 were incomplete); docs/contracts.md section 8: columns final, line_no INT, iso_week format YYYY-Www, the rule for fact_payment_order.cleared (from Task 26)
 - Checked: docs only; every logical.uxf column and type matches contracts section 8 (script); README tables per view match docs/dashboard-design.md; README rendered with the GitHub Markdown API; logical.pdf re-exported with UMLet 15.1
@@ -14,10 +22,6 @@ One entry per merged task (or part with its own checkpoint), newest first:
 - Merged: warehouse/design/: conceptual and logical UMLet designs (conceptual.uxf, conceptual.pdf, logical.uxf, logical.pdf) and README.md (grains, measures, dimensions, dashboard views)
 - Checked: Reviewed the four fact tables, five dimensions, keys, data types, hierarchies, and date relationships.
 
-### 2026-11-11 - Task 5: Finance sample set and full generator (Jayden)
-- Merged: generators/finance_docs (master, budgets, plan, isdoc, pdf_invoice, money_export, ledger, util, __main__): projects, suppliers, budgets, ISDOC + PDF invoices, weekly accounting export and invoice_ledger.csv from one seeded rng; tests/generators/test_finance_docs.py
-- Checked: pytest tests/generators passed; ruff check and ruff format --check clean; scale 1 run gives 95 projects, 35 suppliers, 83 budgets, 4655 invoices (466 PDF only), 559 export files; ISDOC, PDF and budget compared in Screenshots/finance/
-  
 ### 2026-11-10 - Task 11: Review fixes to the dashboard design (Jan)
 - Merged: docs/dashboard-design.md: V3 needs no payment-allocation rule (one project and one category per invoice), V4 takes payment status from any line, V5 follows Task 22 (query file per row, monthly per project, q4/q5 on COMPLETED projects, note on months without invoices), the mock-up's region filter and search are not built; docs/contracts.md sections 6 and 8 state the one-project-one-category rule and the invoice-level payment status
 - Checked: docs only; every warehouse column named in dashboard-design.md exists in contracts section 8 (script)
