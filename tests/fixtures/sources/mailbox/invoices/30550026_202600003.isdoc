@@ -1,0 +1,108 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Invoice xmlns="http://isdoc.cz/namespace/2013" version="6.0.2">
+  <DocumentType>1</DocumentType>
+  <ID>202600003</ID>
+  <UUID>00000000-0000-4000-8000-000000000002</UUID>
+  <IssuingSystem>Synthetic finance generator</IssuingSystem>
+  <IssueDate>2026-05-06</IssueDate>
+  <TaxPointDate>2026-05-06</TaxPointDate>
+  <VATApplicable>true</VATApplicable>
+  <LocalCurrencyCode>CZK</LocalCurrencyCode>
+  <CurrRate>1</CurrRate>
+  <RefCurrRate>1</RefCurrRate>
+  <AccountingSupplierParty>
+    <Party>
+      <PartyIdentification>
+        <ID>30550026</ID>
+      </PartyIdentification>
+      <PartyName>
+        <Name>Konstrukce Dvorak a.s.</Name>
+      </PartyName>
+    </Party>
+  </AccountingSupplierParty>
+  <AccountingCustomerParty>
+    <Party>
+      <PartyIdentification>
+        <ID>27000009</ID>
+      </PartyIdentification>
+      <PartyName>
+        <Name>Stavitel FVE s.r.o.</Name>
+      </PartyName>
+    </Party>
+  </AccountingCustomerParty>
+  <InvoiceLines>
+    <InvoiceLine>
+      <ID>1</ID>
+      <InvoicedQuantity unitCode="C62">8</InvoicedQuantity>
+      <LineExtensionAmount>25000.00</LineExtensionAmount>
+      <LineExtensionAmountTax>5250.00</LineExtensionAmountTax>
+      <LineExtensionAmountTaxInclusive>30250.00</LineExtensionAmountTaxInclusive>
+      <UnitPrice>3125.00</UnitPrice>
+      <ClassifiedTaxCategory>
+        <Percent>21</Percent>
+        <VATCalculationMethod>0</VATCalculationMethod>
+      </ClassifiedTaxCategory>
+      <Item>
+        <Description>Hlinikova konstrukce pro panely</Description>
+      </Item>
+    </InvoiceLine>
+    <InvoiceLine>
+      <ID>2</ID>
+      <InvoicedQuantity unitCode="C62">40</InvoicedQuantity>
+      <LineExtensionAmount>10000.00</LineExtensionAmount>
+      <LineExtensionAmountTax>2100.00</LineExtensionAmountTax>
+      <LineExtensionAmountTaxInclusive>12100.00</LineExtensionAmountTaxInclusive>
+      <UnitPrice>250.00</UnitPrice>
+      <ClassifiedTaxCategory>
+        <Percent>21</Percent>
+        <VATCalculationMethod>0</VATCalculationMethod>
+      </ClassifiedTaxCategory>
+      <Item>
+        <Description>Zemni sroub 1500 mm</Description>
+      </Item>
+    </InvoiceLine>
+    <InvoiceLine>
+      <ID>3</ID>
+      <InvoicedQuantity unitCode="C62">1</InvoicedQuantity>
+      <LineExtensionAmount>5000.00</LineExtensionAmount>
+      <LineExtensionAmountTax>1050.00</LineExtensionAmountTax>
+      <LineExtensionAmountTaxInclusive>6050.00</LineExtensionAmountTaxInclusive>
+      <UnitPrice>5000.00</UnitPrice>
+      <ClassifiedTaxCategory>
+        <Percent>21</Percent>
+        <VATCalculationMethod>0</VATCalculationMethod>
+      </ClassifiedTaxCategory>
+      <Item>
+        <Description>Montazni sada ocelova</Description>
+      </Item>
+    </InvoiceLine>
+  </InvoiceLines>
+  <TaxTotal>
+    <TaxSubTotal>
+      <TaxableAmount>40000.00</TaxableAmount>
+      <TaxAmount>8400.00</TaxAmount>
+      <TaxInclusiveAmount>48400.00</TaxInclusiveAmount>
+      <TaxCategory>
+        <Percent>21</Percent>
+      </TaxCategory>
+    </TaxSubTotal>
+    <TaxAmount>8400.00</TaxAmount>
+  </TaxTotal>
+  <LegalMonetaryTotal>
+    <TaxExclusiveAmount>40000.00</TaxExclusiveAmount>
+    <TaxInclusiveAmount>48400.00</TaxInclusiveAmount>
+    <PayableAmount>48400.00</PayableAmount>
+  </LegalMonetaryTotal>
+  <PaymentMeans>
+    <Payment>
+      <PaidAmount>48400.00</PaidAmount>
+      <PaymentMeansCode>42</PaymentMeansCode>
+      <Details>
+        <PaymentDueDate>2026-05-27</PaymentDueDate>
+        <ID>2876543</ID>
+        <BankCode>0100</BankCode>
+        <VariableSymbol>202600003</VariableSymbol>
+      </Details>
+    </Payment>
+  </PaymentMeans>
+</Invoice>
