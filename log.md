@@ -6,6 +6,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-11 - Task 5.1: Finance sample set (Jayden)
+- Merged: tests/fixtures/sources/ finance sample set (3 projects, 5 suppliers, FVE-2026-02 budget with all 10 categories, 3 ISDOC + PDF invoices with 1, 3 and 5 lines and 1 PDF-only, money_export_2026-W20.csv), tests/fixtures/out/ledger/invoice_ledger.csv, tests/fixtures/mtimes_finance.csv, tests/fixtures/finance/README.md with the expected values
+- Checked: test_finance_fixtures_match_readme passes; pytest tests/generators passed; ruff check and format clean; invoice totals checked by hand against the README
+  
 ### 2026-11-11 - Task 5: Review fixes to the finance generator (Jan)
 - Merged: generators/finance_docs/isdoc.py: invoice-line elements named and ordered as in the ISDOC 6.0.2 schema (LineExtensionTaxAmount instead of LineExtensionAmountTax, new UnitPriceTaxInclusive); test_isdoc_parses_and_totals_match_lines checks the names and their order; log.md entries in date order
 - Checked: pytest -m "not integration" passed; ruff check and format clean; generator run at scale 1 twice, same bytes
