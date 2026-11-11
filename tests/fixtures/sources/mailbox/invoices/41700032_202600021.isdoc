@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Invoice xmlns="http://isdoc.cz/namespace/2013" version="6.0.2">
+  <DocumentType>1</DocumentType>
+  <ID>202600021</ID>
+  <UUID>00000000-0000-4000-8000-000000000003</UUID>
+  <IssuingSystem>Synthetic finance generator</IssuingSystem>
+  <IssueDate>2026-05-07</IssueDate>
+  <TaxPointDate>2026-05-07</TaxPointDate>
+  <VATApplicable>true</VATApplicable>
+  <LocalCurrencyCode>CZK</LocalCurrencyCode>
+  <CurrRate>1</CurrRate>
+  <RefCurrRate>1</RefCurrRate>
+  <AccountingSupplierParty>
+    <Party>
+      <PartyIdentification>
+        <ID>41700032</ID>
+      </PartyIdentification>
+      <PartyName>
+        <Name>Zemni Prace Kral s.r.o.</Name>
+      </PartyName>
+    </Party>
+  </AccountingSupplierParty>
+  <AccountingCustomerParty>
+    <Party>
+      <PartyIdentification>
+        <ID>27000009</ID>
+      </PartyIdentification>
+      <PartyName>
+        <Name>Stavitel FVE s.r.o.</Name>
+      </PartyName>
+    </Party>
+  </AccountingCustomerParty>
+  <InvoiceLines>
+    <InvoiceLine>
+      <ID>1</ID>
+      <InvoicedQuantity unitCode="C62">100</InvoicedQuantity>
+      <LineExtensionAmount>12000.00</LineExtensionAmount>
+      <LineExtensionAmountTax>2520.00</LineExtensionAmountTax>
+      <LineExtensionAmountTaxInclusive>14520.00</LineExtensionAmountTaxInclusive>
+      <UnitPrice>120.00</UnitPrice>
+      <ClassifiedTaxCategory>
+        <Percent>21</Percent>
+        <VATCalculationMethod>0</VATCalculationMethod>
+      </ClassifiedTaxCategory>
+      <Item>
+        <Description>Vykop kabelovych rysu</Description>
+      </Item>
+    </InvoiceLine>
+    <InvoiceLine>
+      <ID>2</ID>
+      <InvoicedQuantity unitCode="C62">50</InvoicedQuantity>
+      <LineExtensionAmount>4000.00</LineExtensionAmount>
+      <LineExtensionAmountTax>840.00</LineExtensionAmountTax>
+      <LineExtensionAmountTaxInclusive>4840.00</LineExtensionAmountTaxInclusive>
+      <UnitPrice>80.00</UnitPrice>
+      <ClassifiedTaxCategory>
+        <Percent>21</Percent>
+        <VATCalculationMethod>0</VATCalculationMethod>
+      </ClassifiedTaxCategory>
+      <Item>
+        <Description>Terenni upravy a skrabani</Description>
+      </Item>
+    </InvoiceLine>
+    <InvoiceLine>
+      <ID>3</ID>
+      <InvoicedQuantity unitCode="C62">1</InvoicedQuantity>
+      <LineExtensionAmount>4000.00</LineExtensionAmount>
+      <LineExtensionAmountTax>840.00</LineExtensionAmountTax>
+      <LineExtensionAmountTaxInclusive>4840.00</LineExtensionAmountTaxInclusive>
+      <UnitPrice>4000.00</UnitPrice>
+      <ClassifiedTaxCategory>
+        <Percent>21</Percent>
+        <VATCalculationMethod>0</VATCalculationMethod>
+      </ClassifiedTaxCategory>
+      <Item>
+        <Description>Zpevnene plochy a cesty</Description>
+      </Item>
+    </InvoiceLine>
+    <InvoiceLine>
+      <ID>4</ID>
+      <InvoicedQuantity unitCode="C62">30</InvoicedQuantity>
+      <LineExtensionAmount>4500.00</LineExtensionAmount>
+      <LineExtensionAmountTax>945.00</LineExtensionAmountTax>
+      <LineExtensionAmountTaxInclusive>5445.00</LineExtensionAmountTaxInclusive>
+      <UnitPrice>150.00</UnitPrice>
+      <ClassifiedTaxCategory>
+        <Percent>21</Percent>
+        <VATCalculationMethod>0</VATCalculationMethod>
+      </ClassifiedTaxCategory>
+      <Item>
+        <Description>Oploceni arealu</Description>
+      </Item>
+    </InvoiceLine>
+    <InvoiceLine>
+      <ID>5</ID>
+      <InvoicedQuantity unitCode="C62">2</InvoicedQuantity>
+      <LineExtensionAmount>2500.00</LineExtensionAmount>
+      <LineExtensionAmountTax>525.00</LineExtensionAmountTax>
+      <LineExtensionAmountTaxInclusive>3025.00</LineExtensionAmountTaxInclusive>
+      <UnitPrice>1250.00</UnitPrice>
+      <ClassifiedTaxCategory>
+        <Percent>21</Percent>
+        <VATCalculationMethod>0</VATCalculationMethod>
+      </ClassifiedTaxCategory>
+      <Item>
+        <Description>Doprava materialu</Description>
+      </Item>
+    </InvoiceLine>
+  </InvoiceLines>
+  <TaxTotal>
+    <TaxSubTotal>
+      <TaxableAmount>27000.00</TaxableAmount>
+      <TaxAmount>5670.00</TaxAmount>
+      <TaxInclusiveAmount>32670.00</TaxInclusiveAmount>
+      <TaxCategory>
+        <Percent>21</Percent>
+      </TaxCategory>
+    </TaxSubTotal>
+    <TaxAmount>5670.00</TaxAmount>
+  </TaxTotal>
+  <LegalMonetaryTotal>
+    <TaxExclusiveAmount>27000.00</TaxExclusiveAmount>
+    <TaxInclusiveAmount>32670.00</TaxInclusiveAmount>
+    <PayableAmount>32670.00</PayableAmount>
+  </LegalMonetaryTotal>
+  <PaymentMeans>
+    <Payment>
+      <PaidAmount>32670.00</PaidAmount>
+      <PaymentMeansCode>42</PaymentMeansCode>
+      <Details>
+        <PaymentDueDate>2026-05-21</PaymentDueDate>
+        <ID>5551234</ID>
+        <BankCode>5500</BankCode>
+        <VariableSymbol>202600021</VariableSymbol>
+      </Details>
+    </Payment>
+  </PaymentMeans>
+</Invoice>

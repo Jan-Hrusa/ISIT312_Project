@@ -1,0 +1,4 @@
+project_code,name,town,region,lat,lon,radius_m,mwp,has_battery,contract_value,offer_date,signed_date,construction_start,construction_end,status
+FVE-2019-02,FVE Tábor 1,Tábor,Jihočeský,49.434000,14.690000,400,1.20,false,24000000.00,2019-02-14,2019-03-11,2019-05-06,2020-03-27,COMPLETED
+FVE-2025-04,FVE Strakonice 1,Strakonice,Jihočeský,49.282300,13.926400,600,1.00,false,22000000.00,2025-05-20,,,,NOT_SIGNED
+FVE-2026-02,FVE Písek 1,Písek,Jihočeský,49.331000,14.165000,500,1.60,true,32000000.00,2026-01-07,2026-01-20,2026-03-02,2027-01-29,ACTIVE
