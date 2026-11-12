@@ -6,6 +6,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-12 - Task 17.1: Planted finance problems (Jayden)
+- Merged: generators/finance_docs/planted.py (OVERRUN 6, NO_PROJECT 25, DUPLICATE 5, MISSING_VS 10, PARSE_ERROR 2, counts x scale), planted.apply called from __main__.py (CLI plants by default, --no-planted switches it off), resent and truncated ISDOC files, out/ledger/planted_finance.csv, tests/generators/test_planted.py
+- Checked: pytest tests/generators passed (the 4 named tests plus file checks for resent, truncated, blank-project and no-VS invoices); ruff check and format clean; scale-1 run writes planted_finance.csv with the task's counts
+  
 ### 2026-11-12 - Task 13: Review fixes to the finance parsers (Jan)
 - Merged: processing.finance.run parses the files on the executors (one binaryFiles call per 200 files, so one partition each; only parse issues and ISDOC names reach the driver), because it ran out of Java heap on the scale-1 data; a file whose date can't be read no longer gets a made-up date; ruff check and format fixes in processing/finance and tests/processing/test_finance.py; test_run_on_fixtures expects exactly 9 lines; new test_run_reads_only_listed_files; Riya's log entry moved here from processing/finance/log.md
 - Checked: pytest -m "not integration" passed; ruff check and format clean; run() on the generator's scale-1 output (9,488 files): 4,655 invoices (466 PDF-only), 12,746 lines, 4,644 booked costs, 0 issues, in about a minute; Task 13 Validate on the Docker stack: SELECT COUNT(*) FROM fve_clean.invoices = 4
