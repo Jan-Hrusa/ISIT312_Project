@@ -34,3 +34,6 @@ desktop.ini
 
 # secrets
 .env
+
+# screenshots go to the Drive folder Screenshots/<area>/, never into the repo
+/Screenshots/

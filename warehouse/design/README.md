@@ -161,16 +161,37 @@ Dimension tables are not partitioned because they are expected to be relatively 
 
 The warehouse contains four fact tables:
 
-| Fact table | Partition columns | Purpose |
+| Fact table | Partition columns | Queries that filter on it |
 |---|---|---|
-| `fact_budget_line` | `signed_year` | Supports filtering budgets by contract signing year |
-| `fact_invoice_line` | `issue_year` | Supports filtering invoices by issue year |
-| `fact_payment` | `pay_year`, `pay_month` | Supports monthly and yearly payment analysis |
-| `fact_payment_order` | `order_year` | Supports filtering payment orders by year |
+| `fact_budget_line` | `signed_year` | V5 cost per MWp per signed year (`q5_cost_per_mwp.sql`): a query for one signing year reads one partition |
+| `fact_invoice_line` | `issue_year` | V5 spend by category group × year (`q2_category_by_year.sql`) and the monthly spend of `q3_cumulative_spend.sql` / `q6_month_on_month.sql` when limited to a year; experiment E5 (Task 31.1) measures this pruning |
+| `fact_payment` | `pay_year`, `pay_month` | payments of one month or year (cash paid out per period); two levels, so a month filter reads one folder |
+| `fact_payment_order` | `order_year` | payment orders of one year (e.g. the orders no debit cleared, `cleared = 0`) |
 
-Partitioning allows Hive and Spark to skip irrelevant partitions when queries filter on partition columns. This reduces the amount of data scanned during dashboard queries.
+Partitioning allows Hive and Spark to skip partitions that a query doesn't need. Two consequences for the queries:
 
-The `fact_payment` table uses two partition columns because financial reports commonly analyze payments by both year and month.
+- Pruning happens only when the query filters on the fact's own partition column (e.g. `WHERE f.issue_year = 2025`).
+  A filter on `dim_date.year` through the join alone doesn't let Hive skip partitions, so year-limited queries
+  should also filter the partition column.
+- The dashboard views V1–V4 select by project, not by date, so they read every partition. At the company's volume
+  (about 5,000 invoices in ten years) that is cheap; the partitions matter for the year- and month-based analyses,
+  for the 10× dataset, and for the nightly loads, which rewrite partitions instead of whole tables.
+
+Partition columns are years (and months for payments) rather than projects: a project key would create about 90
+small partitions per table, and the time columns follow how the loads and the period analyses cut the data.
+
+### Relation to Lab 5 (Part B)
+
+- **B1, partitioned tables:** the four facts are created with `PARTITIONED BY`; the partition columns are not
+  stored in the ORC files but in the folder names.
+- **B2, query plans:** experiment E5 (Task 31.1) compares `EXPLAIN EXTENDED` of a year-filtered query on
+  `fact_invoice_line` and on an unpartitioned copy, to show the pruning.
+- **B3, partition folders in HDFS:** each partition is a folder under the table's location, e.g.
+  `/lake/dw/fact_payment/pay_year=2026/pay_month=5/` (`hdfs dfs -ls -R /lake/dw/fact_payment`).
+- **B4, dynamic partitioning:** the loads (Task 26) use `INSERT OVERWRITE … PARTITION (…)` with dynamic partition
+  values; `hive.exec.dynamic.partition.mode=nonstrict` is set by `common.spark.get_spark`.
+- **B5, bucketing:** not used. The tables are small and no query joins two large tables on the same key, so buckets
+  would add files without saving work.
 
 ### Data Types
 
@@ -202,10 +223,16 @@ This supports both the normal dataset and the 10× benchmark dataset using the s
 
 ### Validation
 
-Automated tests are defined in `tests/warehouse/test_ddl.py`.
+Automated tests are defined in `tests/warehouse/test_ddl.py`. They run the DDL on conftest's `spark_hive` session
+(a local Derby metastore and a temporary folder), never on the stack's metastore.
 
 They verify SQL variable substitution, rejection of unknown variables, named-query parsing, repeatable DDL execution, table existence, partition columns, and EXTERNAL ORC storage.
 
 The DDL uses `CREATE DATABASE IF NOT EXISTS` and `CREATE EXTERNAL TABLE IF NOT EXISTS` so it can be executed repeatedly without recreating existing tables.
 
-Spark/Hive integration validation and screenshots are required before Task 10 can be considered complete.
+On the Docker stack (profile `core`), in the client:
+`run_file(get_spark("ddl"), "warehouse/ddl/fve_dw.sql")`; then in beeline `SHOW TABLES IN fve_dw` lists the nine
+tables and `SHOW CREATE TABLE fve_dw.fact_payment` shows an EXTERNAL ORC table partitioned by `pay_year`,
+`pay_month` at `/lake/dw/fact_payment`. The same file runs in beeline with
+`--hivevar DW_DB=fve_dw --hivevar LAKE_DW=/lake/dw -f warehouse/ddl/fve_dw.sql`. Screenshots: Drive folder
+*Screenshots/warehouse/*.
