@@ -6,6 +6,14 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-12 - Task 10: Review fixes to the warehouse DDL (Jan)
+- Merged: tests/warehouse/test_ddl.py uses conftest's spark_hive (its own SparkSession reached the stack's metastore in the client container and stopped the shared test session) and checks every table's partitions and location; warehouse/sql.py: run_file(spark, path, **params), ${...} in comment lines no longer fails; ruff fixes; Screenshots/ removed from the repo (moved to the Drive folder Screenshots/warehouse/) and ignored; README physical design: the queries each partition column serves, Lab 5 B1-B5, the validation on the stack; Gokulsanjay's log entry added
+- Checked: pytest -m "not integration" passed; tests/warehouse also pass in the client configuration with the stack down; ruff check and format clean; DDL on the Docker stack: 9 tables in fve_dw
+
+### 2026-11-12 - Task 10: Warehouse DDL, SQL runner and physical design (Gokulsanjay)
+- Merged: warehouse/ddl/fve_dw.sql (the nine external ORC tables of contracts section 8 with their partitions), warehouse/sql.py (render, named_queries, run_file), warehouse/etl/__init__.py, the physical design section of warehouse/design/README.md, tests/warehouse/test_ddl.py
+- Checked: the 7 tests in tests/warehouse/test_ddl.py; DDL run on the Docker stack, SHOW TABLES IN fve_dw and DESCRIBE FORMATTED fve_dw.fact_payment in beeline
+
 ### 2026-11-12 - Task 13: Review fixes to the finance parsers (Jan)
 - Merged: processing.finance.run parses the files on the executors (one binaryFiles call per 200 files, so one partition each; only parse issues and ISDOC names reach the driver), because it ran out of Java heap on the scale-1 data; a file whose date can't be read no longer gets a made-up date; ruff check and format fixes in processing/finance and tests/processing/test_finance.py; test_run_on_fixtures expects exactly 9 lines; new test_run_reads_only_listed_files; Riya's log entry moved here from processing/finance/log.md
 - Checked: pytest -m "not integration" passed; ruff check and format clean; run() on the generator's scale-1 output (9,488 files): 4,655 invoices (466 PDF-only), 12,746 lines, 4,644 booked costs, 0 issues, in about a minute; Task 13 Validate on the Docker stack: SELECT COUNT(*) FROM fve_clean.invoices = 4

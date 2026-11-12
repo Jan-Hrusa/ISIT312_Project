@@ -1,4 +1,3 @@
-
 """Shared SQL utilities for the Hive data warehouse."""
 
 from __future__ import annotations
@@ -7,7 +6,6 @@ import re
 from pathlib import Path
 
 from common import config
-
 
 _VARIABLE = re.compile(r"\$\{([^}]+)\}")
 _NAME = re.compile(r"^\s*--\s*name:\s*(\S+)\s*$", re.IGNORECASE)
@@ -26,7 +24,11 @@ def _parameters(params: dict) -> dict[str, str]:
 
 
 def _substitute(sql: str, values: dict[str, str]) -> str:
-    """Replace variables and reject unknown placeholders."""
+    """Replace variables and reject unknown placeholders.
+
+    Comment lines are kept as they are: they are dropped from the statements anyway, and a `${...}`
+    mentioned in a comment (e.g. how to run the file in beeline) must not fail the render.
+    """
 
     def replace(match):
         name = match.group(1)
@@ -34,7 +36,9 @@ def _substitute(sql: str, values: dict[str, str]) -> str:
             raise ValueError(f"Unknown SQL variable: {name}")
         return values[name]
 
-    return _VARIABLE.sub(replace, sql)
+    return "\n".join(
+        line if line.strip().startswith("--") else _VARIABLE.sub(replace, line) for line in sql.splitlines()
+    )
 
 
 def _statements(sql: str) -> list[str]:
@@ -86,9 +90,7 @@ def named_queries(path: str | Path, **params) -> dict[str, str]:
 
         statements = _statements("\n".join(lines))
         if len(statements) != 1:
-            raise ValueError(
-                f"Named query {name!r} must contain exactly one statement"
-            )
+            raise ValueError(f"Named query {name!r} must contain exactly one statement")
         if name in queries:
             raise ValueError(f"Duplicate named query: {name}")
         queries[name] = statements[0]
@@ -107,6 +109,6 @@ def named_queries(path: str | Path, **params) -> dict[str, str]:
     return queries
 
 
-def run_file(spark, path: str | Path):
-    """Execute each rendered statement using Spark SQL."""
-    return [spark.sql(statement) for statement in render(path)]
+def run_file(spark, path: str | Path, **params):
+    """Execute each rendered statement using Spark SQL; `params` as in render() (e.g. DW_DB=fve_dw_sample)."""
+    return [spark.sql(statement) for statement in render(path, **params)]
