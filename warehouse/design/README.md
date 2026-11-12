@@ -119,3 +119,93 @@ model adds primary keys, foreign keys, data types, and role-playing date relatio
 - `docs/contracts.md` — data contracts and warehouse schema requirements.
 - `docs/dashboard-design.md` — dashboard views and reporting requirements.
 - Drive document *02 Project description* — section 5.4, data warehouse design.
+
+## Physical Warehouse Design (Task 10)
+
+### Overview
+
+The physical warehouse is implemented using Apache Hive and stores structured construction and financial data for the FVE project. It follows the conceptual and logical warehouse designs documented above.
+
+The warehouse contains nine tables: five dimension tables and four fact tables. All tables are defined in `warehouse/ddl/fve_dw.sql`.
+
+The default Hive database is `fve_dw`, with warehouse data stored under `/lake/dw`. The 10× dataset uses `fve_dw_x10` and `/bench/x10/lake/dw`.
+
+### Storage Format: ORC
+
+All warehouse tables are EXTERNAL Hive tables stored in ORC (Optimized Row Columnar) format.
+
+ORC was selected because it provides:
+
+- **Columnar storage:** Queries can read only the required columns rather than processing every column.
+- **Compression:** Reduces storage requirements for large datasets.
+- **Predicate pushdown:** Allows supported filters to be applied efficiently using ORC statistics.
+- **Efficient analytics:** Suitable for aggregation, filtering, and reporting using Hive and Spark SQL.
+
+EXTERNAL tables allow the project to manage warehouse data independently of Hive table definitions.
+
+### Dimension Tables
+
+The warehouse contains five dimension tables:
+
+| Table | Description |
+|---|---|
+| `dim_project` | Project information, locations, contract values, and construction dates |
+| `dim_supplier` | Supplier information and categories |
+| `dim_cost_category` | Cost categories used for financial analysis |
+| `dim_date` | Calendar attributes used for time-based analysis |
+| `dim_bank_account` | Bank account information for financial transactions |
+
+Dimension tables are not partitioned because they are expected to be relatively small. Partitioning these tables would introduce unnecessary metadata and storage-management overhead.
+
+### Fact Tables and Partitioning
+
+The warehouse contains four fact tables:
+
+| Fact table | Partition columns | Purpose |
+|---|---|---|
+| `fact_budget_line` | `signed_year` | Supports filtering budgets by contract signing year |
+| `fact_invoice_line` | `issue_year` | Supports filtering invoices by issue year |
+| `fact_payment` | `pay_year`, `pay_month` | Supports monthly and yearly payment analysis |
+| `fact_payment_order` | `order_year` | Supports filtering payment orders by year |
+
+Partitioning allows Hive and Spark to skip irrelevant partitions when queries filter on partition columns. This reduces the amount of data scanned during dashboard queries.
+
+The `fact_payment` table uses two partition columns because financial reports commonly analyze payments by both year and month.
+
+### Data Types
+
+The physical design follows the agreed schema in `docs/contracts.md`.
+
+- Surrogate keys and date keys use `INT`.
+- Financial amounts use `DECIMAL(14,2)` to preserve decimal precision.
+- Project capacity (`mwp`) uses `DECIMAL(5,2)`.
+- Calendar and construction dates use `DATE`.
+- Battery availability uses `BOOLEAN`.
+- Payment-order clearance status uses `TINYINT`.
+- Descriptive fields and identifiers use `STRING`.
+
+Partition columns are declared separately using Hive's `PARTITIONED BY` clause.
+
+### SQL Execution and Configuration
+
+The shared SQL runner is implemented in `warehouse/sql.py`.
+
+It provides three functions:
+
+- `render()` substitutes configuration variables and separates SQL statements.
+- `named_queries()` extracts named SQL queries.
+- `run_file()` executes the rendered statements using Spark SQL.
+
+The DDL uses `${DW_DB}` and `${LAKE_DW}` rather than hard-coded database names or locations.
+
+This supports both the normal dataset and the 10× benchmark dataset using the shared configuration in `common/config.py`.
+
+### Validation
+
+Automated tests are defined in `tests/warehouse/test_ddl.py`.
+
+They verify SQL variable substitution, rejection of unknown variables, named-query parsing, repeatable DDL execution, table existence, partition columns, and EXTERNAL ORC storage.
+
+The DDL uses `CREATE DATABASE IF NOT EXISTS` and `CREATE EXTERNAL TABLE IF NOT EXISTS` so it can be executed repeatedly without recreating existing tables.
+
+Spark/Hive integration validation and screenshots are required before Task 10 can be considered complete.
