@@ -18,7 +18,7 @@ syntax. Both references describe the same single-payer group and item structure.
 Fields use one ASCII space as the separator. An empty SS before an RB AV message
 leaves two consecutive spaces before `AV:`. The project uses prefix-free
 accounts. The group total is 1–14 digits, an RB item amount is 1–12 digits,
-VS is 1–10 digits, and SS is 0–10 digits. Amounts are positive integers in
+VS is 1–10 digits (a missing VS is written as `0`, which parsers read as NULL), and SS is 0–10 digits. Amounts are positive integers in
 haléře. The group due date applies to every item and can differ from the
 order-run date. A payment run can contain multiple groups. Item numbering
 starts at one and counts only payment items across the file.

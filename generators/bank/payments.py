@@ -79,7 +79,25 @@ def _credits(projects, rng):
     return credits
 
 
-def _choose_cases(eligible, ordinary, late, rng):
+def _digit_swaps(vs: str) -> list[str]:
+    """Every VS made by swapping two different digits of `vs` (a typing mistake), in a stable order.
+
+    Swaps that would start with 0 are left out: the parsers strip leading zeros, so the digits would no longer
+    be a swap of the original.
+    """
+    swaps = []
+    for first in range(len(vs)):
+        for second in range(first + 1, len(vs)):
+            if vs[first] == vs[second]:
+                continue
+            digits = list(vs)
+            digits[first], digits[second] = digits[second], digits[first]
+            if digits[0] != "0":
+                swaps.append("".join(digits))
+    return swaps
+
+
+def _choose_cases(eligible, ordinary, late, used_vs, rng):
     # Integer arithmetic implements nearest integer, with exact halves rounded up.
     size = len(eligible)
     counts = {
@@ -91,13 +109,21 @@ def _choose_cases(eligible, ordinary, late, rng):
         "ORDER_LOST": 10,
     }
     cases = {}
+    # Task 9 reports an uncleared order only after its due date + 5 days and OVERDUE only after the due
+    # date, so a case due later would not show on DATA_END (the matching job's as_of): counts would be short.
+    last_due = config.DATA_END - timedelta(days=6)
     for problem, count in counts.items():
         pool = []
         for invoice in eligible:
             key = invoice["invoice_id"]
             if key in cases or (problem == "LATE" and not late[key]):
                 continue
+            if date.fromisoformat(invoice["due_date"]) > last_due:
+                continue
             if problem == "INSTALMENTS" and len({entry[2] for entry in ordinary[key]}) < 2:
+                continue
+            # At least `count` free swaps, so the other chosen invoices can never take all of this one's.
+            if problem == "WRONG_VS" and len(set(_digit_swaps(invoice["vs"])) - used_vs) < count:
                 continue
             pool.append(key)
         if len(pool) < count:
@@ -124,8 +150,8 @@ def plan(ledger, suppliers, projects, rng):
         late[key] = list(schedules(issue, due + timedelta(days=5), due + timedelta(days=40), late=True))
         in_period.append(row)
 
-    cases = _choose_cases([row for row in in_period if row["vs"]], ordinary, late, rng)
     used_vs = {row["vs"] for row in rows}
+    cases = _choose_cases([row for row in in_period if row["vs"]], ordinary, late, used_vs, rng)
     debits, orders = [], []
     for row in in_period:
         key = row["invoice_id"]
@@ -149,8 +175,7 @@ def plan(ledger, suppliers, projects, rng):
                 amounts.append(cents - first)
         vs = row["vs"]
         if problem == "WRONG_VS":
-            while vs in used_vs:
-                vs = str(rng.randrange(1_000_000_000, 10_000_000_000))
+            vs = rng.choice([swap for swap in _digit_swaps(vs) if swap not in used_vs])
             used_vs.add(vs)
         for index, ((run, due, debit), amount) in enumerate(zip(slots, amounts, strict=True)):
             account, code = row["supplier_account"], row["supplier_bank_code"]
@@ -162,7 +187,10 @@ def plan(ledger, suppliers, projects, rng):
                 movement = Movement(bank, debit, -amount, account, code, vs, detail, key, order.ks)
                 debits.append(movement)
             if problem and index == 0:
-                planted.append(Planted(problem, key, movement or order, "Planted payment case"))
+                case_detail = "Planted payment case"
+                if problem == "WRONG_VS":
+                    case_detail = f"paid with VS {vs} instead of {row['vs']}"
+                planted.append(Planted(problem, key, movement or order, case_detail))
 
     credits = _credits(projects, rng)
     occupied = {item.value_date for item in (*debits, *credits) if item.bank == "RB"}

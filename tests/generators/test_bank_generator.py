@@ -91,7 +91,7 @@ def test_gpc_totals_match_items(generated):
 def test_sta_opening_plus_items_equals_closing(generated):
     for path in generated.rglob("*.sta"):
         rows = _records(path, "cp852")
-        assert rows[4].startswith(":28C:")
+        assert rows[4].startswith(":28:")
         assert rows[-1] == "-}"
         opening = Decimal(rows[5][15:].replace(",", "."))
         balance = -opening if rows[5][5] == "D" else opening
@@ -174,10 +174,62 @@ def test_planted_counts(bank_inputs):
             assert items[0].value_date < items[1].value_date
         if case.problem == "LATE":
             assert 5 <= (items[0].value_date - date(2026, 2, 1)).days <= 40
+        if case.problem == "WRONG_VS":
+            original = next(row["vs"] for row in invoices if row["invoice_id"] == case.invoice_id)
+            (paid,) = items
+            assert paid.vs not in {row["vs"] for row in invoices}
+            assert sorted(paid.vs) == sorted(original)
+            assert sum(a != b for a, b in zip(paid.vs, original, strict=True)) == 2
     missing = [order for order in orders if not order.vs]
     assert len(missing) == 2
-    with pytest.raises(ValueError, match="No approved raw KPC encoding"):
-        kpc.validate_vs(missing[0])
+    assert {kpc.kpc_vs(order) for order in missing} == {"0"}
+
+
+def test_missing_vs_is_paid_with_empty_vs(bank_inputs):
+    invoices, _, _ = bank_inputs
+    for row in invoices[:2]:
+        row["vs"] = ""
+    _rewrite_ledger(invoices)
+    generate(312)
+    blank = {row["invoice_id"].rsplit("-", 1)[-1] for row in invoices[:2]}
+    items = [
+        record.split(" ")
+        for path in (config.SOURCES_DIR / "drive" / "payments").glob("*.kpc")
+        for record in _records(path)
+        if record.split(" ")[-1] in blank
+    ]
+    assert sorted(item[-1] for item in items) == sorted(blank)
+    assert {item[2] for item in items} == {"0"}
+    with (config.LEDGER_DIR / "planted_payments.csv").open(encoding="utf-8") as stream:
+        refs = [row["tx_or_order_ref"] for row in csv.DictReader(stream) if row["problem"] == "NO_VS"]
+    assert len(refs) == 2 and all(refs)
+
+
+def _rewrite_ledger(invoices):
+    path = config.LEDGER_DIR / "invoice_ledger.csv"
+    with path.open("w", encoding="utf-8", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=list(invoices[0]))
+        writer.writeheader()
+        writer.writerows(invoices)
+
+
+def test_planted_cases_are_visible_on_data_end(bank_inputs):
+    # Invoices due in the last days give no ORDER_NOT_CLEARED / OVERDUE yet (Task 9): none is planted there.
+    invoices, suppliers, projects = bank_inputs
+    late_invoices = [
+        dict(
+            row,
+            invoice_id=f"20400013-2026{900 + index:05d}",
+            vs=str(202600900 + index),
+            due_date="2026-03-30",
+        )
+        for index, row in enumerate(invoices[:60], start=1)
+    ]
+    _, _, _, planted = payments.plan(invoices + late_invoices, suppliers, projects, random.Random(312))
+    due = {row["invoice_id"]: date.fromisoformat(row["due_date"]) for row in invoices + late_invoices}
+    chosen = [case for case in planted if case.problem not in ("NO_VS", "BAD_FILE")]
+    assert chosen
+    assert all(due[case.invoice_id] + timedelta(days=5) < config.DATA_END for case in chosen)
 
 
 def test_bad_file_statement_has_no_invoice_payment(generated):

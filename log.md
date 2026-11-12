@@ -6,6 +6,14 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-12 - Task 6: Review fixes to the bank generator (Jan)
+- Merged: STA statements write `:28:` (decision of 12 Nov); an invoice without VS in the ledger (Task 17.1's MISSING_VS) is ordered and paid with an empty VS, written as `0` in the KPC item (docs/formats/kpc.md), so the generator no longer stops on it; WRONG_VS pays with two digits of the VS swapped (a VS no invoice uses), and planted_payments.csv names both; planted cases only on invoices due at least 6 days before DATA_END, so all 10 ORDER_NOT_CLEARED and every OVERDUE show on DATA_END; Obaid's log entry added
+- Checked: pytest -m "not integration" passed; ruff check and format clean; scale-1 run with 10 empty VS: Task 9's match_invoice on the parsed files gives exactly the planted statuses (10 ORDER_NOT_CLEARED, 15 + 10 UNMATCHED_PAYMENT); finance and bank generators run with Task 17.1 (PR #25) merged
+
+### 2026-11-12 - Task 6: Bank generator (Obaid)
+- Merged: generators/bank (payment plan, statements with carried balances, GPC, STA, TXT and KPC writers, planted_payments.csv) and tests/generators/test_bank_generator.py
+- Checked: the 10 tests in tests/generators/test_bank_generator.py; ruff check and format; a seed-312 scale-1 run (4,951 bank movements, 4,667 KPC orders)
+
 ### 2026-11-12 - Task 10: Review fixes to the warehouse DDL (Jan)
 - Merged: tests/warehouse/test_ddl.py uses conftest's spark_hive (its own SparkSession reached the stack's metastore in the client container and stopped the shared test session) and checks every table's partitions and location; warehouse/sql.py: run_file(spark, path, **params), ${...} in comment lines no longer fails; ruff fixes; Screenshots/ removed from the repo (moved to the Drive folder Screenshots/warehouse/) and ignored; README physical design: the queries each partition column serves, Lab 5 B1-B5, the validation on the stack; Gokulsanjay's log entry added
 - Checked: pytest -m "not integration" passed; tests/warehouse also pass in the client configuration with the stack down; ruff check and format clean; DDL on the Docker stack: 9 tables in fve_dw
