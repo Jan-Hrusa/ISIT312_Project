@@ -9,6 +9,7 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 from urllib.parse import unquote, urlparse
 
+from pyspark import RDD, StorageLevel
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.types import (
     BooleanType,
@@ -29,6 +30,9 @@ __all__ = ["FinanceParseError", "run"]
 
 FINANCE_SOURCES = ("master", "budgets", "isdoc", "invoice_pdf", "accounting")
 
+# Files per Spark partition when reading (one binaryFiles call per chunk, see _parse_all).
+FILES_PER_PARTITION = 200
+
 _HDFS_PREFIX_RE = re.compile(r"^hdfs://[^/]+")
 
 _HIVE_TO_SPARK = {
@@ -43,13 +47,16 @@ _HIVE_TO_SPARK = {
     "DECIMAL(4,2)": DecimalType(4, 2),
 }
 
+# Kinds of the tagged records the per-file parser emits besides table rows (first element of each record).
+_ISSUE = "issue"
+_PDF_ISSUE = "pdf_issue"
+_ISDOC_INVOICE = "isdoc_invoice"
+_PDF_INVOICE = "pdf_invoice"
 
-def _spark_schema(
-    table: str, extra_cols: list[tuple[str, Any]] | None = None
-) -> StructType:
+
+def _spark_schema(table: str, extra_cols: list[tuple[str, Any]] | None = None) -> StructType:
     fields = [
-        StructField(name, _HIVE_TO_SPARK[hive_type], True)
-        for name, hive_type in schemas.CLEAN_TABLES[table]
+        StructField(name, _HIVE_TO_SPARK[hive_type], True) for name, hive_type in schemas.CLEAN_TABLES[table]
     ]
     if extra_cols:
         fields.extend(StructField(n, t, True) for n, t in extra_cols)
@@ -69,8 +76,12 @@ def _norm_lookup_key(uri_or_path: str) -> str:
     return s
 
 
-def _local_mtime_date(uri_or_path: str) -> date:
-    """Fallback business_date from file mtime in UTC when running in inputs=... mode."""
+def _local_mtime_date(uri_or_path: str) -> date | None:
+    """business_date from the file mtime (UTC) in inputs=... mode.
+
+    None when the file can't be stat'ed; Spark then fails the run on the same file (a listed file that is
+    missing is an error of the input list, not a PARSE_ERROR).
+    """
     try:
         if uri_or_path.startswith("file:"):
             p = Path(unquote(urlparse(uri_or_path).path))
@@ -79,20 +90,18 @@ def _local_mtime_date(uri_or_path: str) -> date:
         ts = p.stat().st_mtime
         return datetime.fromtimestamp(ts, tz=timezone.utc).date()
     except OSError:
-        return date(2026, 1, 1)
+        return None
 
 
 def _collect_source_files(
     spark: SparkSession, inputs: dict[str, list[str]] | None
-) -> dict[str, list[tuple[str, str, date]]]:
+) -> dict[str, list[tuple[str, str, date | None]]]:
     """Return {source: [(read_path, raw_path_for_table, business_date), ...]}."""
-    result: dict[str, list[tuple[str, str, date]]] = {s: [] for s in FINANCE_SOURCES}
+    result: dict[str, list[tuple[str, str, date | None]]] = {s: [] for s in FINANCE_SOURCES}
     if inputs is not None:
         for source in FINANCE_SOURCES:
             for p in inputs.get(source, []):
-                clean_raw = _strip_hdfs_scheme(p)
-                bdate = _local_mtime_date(p)
-                result[source].append((p, clean_raw, bdate))
+                result[source].append((p, _strip_hdfs_scheme(p), _local_mtime_date(p)))
         return result
 
     for source in FINANCE_SOURCES:
@@ -103,124 +112,117 @@ def _collect_source_files(
     return result
 
 
-def _read_bytes_map(
-    spark: SparkSession, file_entries: list[tuple[str, str, date]]
-) -> dict[str, bytes]:
-    """Read all files via SparkContext.binaryFiles and map back to canonical raw_path."""
-    if not file_entries:
-        return {}
+def _parse_file(source: str, raw_p: str, bdate: date | None, data: bytes) -> list[tuple]:
+    """Parse one raw finance file into tagged records (runs on the executors).
+
+    Records: (<table>, row) for projects, suppliers, budget_lines, invoice_lines and booked_costs;
+    (_ISDOC_INVOICE, stem, row) and (_PDF_INVOICE, stem, row) for invoices; (_ISSUE, issue) and
+    (_PDF_ISSUE, stem, issue), issue = (issue_type, source, record_ref, project_code, detail).
+    """
+    fname = PurePosixPath(raw_p.replace("\\", "/")).name
+    try:
+        if source == "master":
+            text = data.decode("utf-8")
+            if fname.lower().startswith("projects"):
+                return [("projects", r) for r in master.parse_projects(text, raw_p)]
+            if fname.lower().startswith("suppliers"):
+                return [("suppliers", r) for r in master.parse_suppliers(text, raw_p)]
+            raise FinanceParseError(f"Unknown master file {fname!r}", raw_p)
+        if source == "budgets":
+            return [("budget_lines", r) for r in budgets.parse_budget(data, raw_p)]
+        if source == "isdoc":
+            inv, lines = isdoc.parse(data, raw_p)
+            inv["business_date"] = bdate
+            line_records = [("invoice_lines", {**ln, "business_date": bdate}) for ln in lines]
+            return [(_ISDOC_INVOICE, invoice_pdf.stem_key(raw_p), inv), *line_records]
+        if source == "invoice_pdf":
+            stem = invoice_pdf.stem_key(raw_p)
+            try:
+                if not data.startswith(b"%PDF"):
+                    raise FinanceParseError("Invalid PDF magic header", raw_p)
+                inv = invoice_pdf.header(fname, raw_p)
+            except FinanceParseError as exc:
+                # An error only when no ISDOC of the same name was parsed; run() decides that.
+                return [(_PDF_ISSUE, stem, ("PARSE_ERROR", source, raw_p, None, str(exc)))]
+            inv["business_date"] = bdate
+            return [(_PDF_INVOICE, stem, inv)]
+        if source == "accounting":
+            return [("booked_costs", r) for r in money_export.parse(data.decode("utf-8"), raw_p)]
+        raise FinanceParseError(f"Unknown finance source {source!r}", raw_p)
+    except (UnicodeDecodeError, FinanceParseError) as exc:
+        return [(_ISSUE, ("PARSE_ERROR", source, raw_p, None, str(exc)))]
+
+
+def _parse_all(spark: SparkSession, entries: list[tuple[str, str, str, date | None]]) -> RDD:
+    """Read the listed files with binaryFiles and parse them on the executors; file bytes never reach the
+    driver. `entries` = (source, read_path, raw_path, business_date). Returns the persisted record RDD."""
     sc = spark.sparkContext
-    lookup = {_norm_lookup_key(read_p): raw_p for read_p, raw_p, _ in file_entries}
-    read_paths = [read_p for read_p, _, _ in file_entries]
-    rdd = sc.binaryFiles(",".join(read_paths))
-    out: dict[str, bytes] = {}
-    for k, content in rdd.collect():
-        norm_k = _norm_lookup_key(k)
-        raw_p = lookup.get(norm_k, _strip_hdfs_scheme(k))
-        out[raw_p] = bytes(content)
-    return out
+    if not entries:
+        return sc.emptyRDD()
+    wanted = {_norm_lookup_key(read_p): (source, raw_p, bdate) for source, read_p, raw_p, bdate in entries}
+    wanted_b = sc.broadcast(wanted)
+    # binaryFiles packs small files into splits of up to spark.files.maxPartitionBytes (128 MB) and ignores
+    # minPartitions below that, so the whole dataset would be read by one task; one call per chunk of files
+    # gives one partition each.
+    chunks = [entries[i : i + FILES_PER_PARTITION] for i in range(0, len(entries), FILES_PER_PARTITION)]
+    files = sc.union([sc.binaryFiles(",".join(e[1] for e in chunk)) for chunk in chunks])
+
+    def parse_pair(kv):
+        source, raw_p, bdate = wanted_b.value[_norm_lookup_key(kv[0])]
+        return _parse_file(source, raw_p, bdate, bytes(kv[1]))
+
+    return files.flatMap(parse_pair).persist(StorageLevel.MEMORY_AND_DISK)
 
 
-def run(
-    spark: SparkSession, inputs: dict[str, list[str]] | None = None
-) -> dict[str, int]:
+def _rows_df(spark: SparkSession, records: RDD, kind: str, schema: StructType, pos: int = 1) -> DataFrame:
+    """DataFrame of the dict rows at position `pos` of one kind of record, in the schema's column order."""
+    names = schema.fieldNames()
+    rows = records.filter(lambda r: r[0] == kind).map(lambda r: tuple(r[pos].get(n) for n in names))
+    return spark.createDataFrame(rows, schema)
+
+
+def run(spark: SparkSession, inputs: dict[str, list[str]] | None = None) -> dict[str, int]:
     """Run the finance processing pipeline step and return table/issue row counts."""
     source_map = _collect_source_files(spark, inputs)
-    all_entries = [entry for entries in source_map.values() for entry in entries]
-    bytes_by_raw_path = _read_bytes_map(spark, all_entries)
+    entries = [(s, read_p, raw_p, bdate) for s in FINANCE_SOURCES for read_p, raw_p, bdate in source_map[s]]
+    records = _parse_all(spark, entries)
 
-    project_rows: list[dict[str, Any]] = []
-    supplier_rows: list[dict[str, Any]] = []
-    budget_rows: list[dict[str, Any]] = []
-    invoice_rows: list[dict[str, Any]] = []
-    line_rows: list[dict[str, Any]] = []
-    booked_rows: list[dict[str, Any]] = []
-    parse_issues: list[tuple[str, str, str, str | None, str]] = []
-
-    parsed_isdoc_stems: set[str] = set()
-
-    for _, raw_p, _ in sorted(source_map["master"], key=lambda x: x[1]):
-        raw_bytes = bytes_by_raw_path.get(raw_p, b"")
-        fname = PurePosixPath(raw_p.replace("\\", "/")).name.lower()
-        try:
-            text = raw_bytes.decode("utf-8")
-            if fname.startswith("projects"):
-                project_rows.extend(master.parse_projects(text, raw_p))
-            elif fname.startswith("suppliers"):
-                supplier_rows.extend(master.parse_suppliers(text, raw_p))
-            else:
-                raise FinanceParseError(f"Unknown master file {fname!r}", raw_p)
-        except (UnicodeDecodeError, FinanceParseError) as exc:
-            parse_issues.append(("PARSE_ERROR", "master", raw_p, None, str(exc)))
-
-    # 2. Budgets (.xlsx)
-    for _, raw_p, _ in sorted(source_map["budgets"], key=lambda x: x[1]):
-        raw_bytes = bytes_by_raw_path.get(raw_p, b"")
-        try:
-            budget_rows.extend(budgets.parse_budget(raw_bytes, raw_p))
-        except FinanceParseError as exc:
-            parse_issues.append(("PARSE_ERROR", "budgets", raw_p, None, str(exc)))
-
-    # 3. ISDOC XML invoices (.isdoc)
-    for _, raw_p, bdate in sorted(source_map["isdoc"], key=lambda x: x[1]):
-        raw_bytes = bytes_by_raw_path.get(raw_p, b"")
-        try:
-            inv, lines = isdoc.parse(raw_bytes, raw_p)
-            inv["business_date"] = bdate
-            for ln in lines:
-                ln["business_date"] = bdate
-            invoice_rows.append(inv)
-            line_rows.extend(lines)
-            parsed_isdoc_stems.add(invoice_pdf.stem_key(raw_p))
-        except FinanceParseError as exc:
-            parse_issues.append(("PARSE_ERROR", "isdoc", raw_p, None, str(exc)))
-
-    # 4. PDF-only invoices (.pdf without a successfully parsed ISDOC of the same stem)
-    for _, raw_p, bdate in sorted(source_map["invoice_pdf"], key=lambda x: x[1]):
-        stem = invoice_pdf.stem_key(raw_p)
-        if stem in parsed_isdoc_stems:
-            continue
-        raw_bytes = bytes_by_raw_path.get(raw_p, b"")
-        try:
-            if not raw_bytes.startswith(b"%PDF"):
-                raise FinanceParseError("Invalid PDF magic header", raw_p)
-            fname = PurePosixPath(raw_p.replace("\\", "/")).name
-            inv = invoice_pdf.header(fname, raw_p)
-            inv["business_date"] = bdate
-            invoice_rows.append(inv)
-        except FinanceParseError as exc:
-            parse_issues.append(("PARSE_ERROR", "invoice_pdf", raw_p, None, str(exc)))
-
-   
-    for _, raw_p, _ in sorted(source_map["accounting"], key=lambda x: x[1]):
-        raw_bytes = bytes_by_raw_path.get(raw_p, b"")
-        try:
-            text = raw_bytes.decode("utf-8")
-            booked_rows.extend(money_export.parse(text, raw_p))
-        except (UnicodeDecodeError, FinanceParseError) as exc:
-            parse_issues.append(("PARSE_ERROR", "accounting", raw_p, None, str(exc)))
-
-
-    projects_df = spark.createDataFrame(project_rows, _spark_schema("projects"))
-    suppliers_df = spark.createDataFrame(supplier_rows, _spark_schema("suppliers"))
-    budgets_df = spark.createDataFrame(budget_rows, _spark_schema("budget_lines"))
-    booked_df = spark.createDataFrame(booked_rows, _spark_schema("booked_costs"))
-
-    invoices_df = spark.createDataFrame(
-        invoice_rows,
-        _spark_schema("invoices", [("business_date", DateType())]),
+    # Only small results go to the driver: the parse issues and the stems of the parsed ISDOCs.
+    small = records.filter(lambda r: r[0] in (_ISSUE, _PDF_ISSUE, _ISDOC_INVOICE)).map(
+        lambda r: (r[0], r[1], r[2] if r[0] == _PDF_ISSUE else None)
     )
-    lines_df = spark.createDataFrame(
-        line_rows,
-        _spark_schema(
-            "invoice_lines",
-            [("source_file", StringType()), ("business_date", DateType())],
-        ),
+    isdoc_stems: set[str] = set()
+    parse_issues: list[tuple] = []
+    pdf_issues: list[tuple[str, tuple]] = []
+    for kind, first, second in small.collect():
+        if kind == _ISSUE:
+            parse_issues.append(first)
+        elif kind == _PDF_ISSUE:
+            pdf_issues.append((first, second))
+        else:
+            isdoc_stems.add(first)
+    parse_issues.extend(issue for stem, issue in pdf_issues if stem not in isdoc_stems)
+
+    # PDF-only rows only for invoices without a successfully parsed ISDOC of the same name.
+    stems_b = spark.sparkContext.broadcast(isdoc_stems)
+    pdf_only = records.filter(lambda r: r[0] == _PDF_INVOICE and r[1] not in stems_b.value)
+    invoice_schema = _spark_schema("invoices", [("business_date", DateType())])
+    invoices_df = _rows_df(spark, records, _ISDOC_INVOICE, invoice_schema, pos=2).unionByName(
+        _rows_df(spark, pdf_only, _PDF_INVOICE, invoice_schema, pos=2)
     )
+    lines_df = _rows_df(
+        spark,
+        records,
+        "invoice_lines",
+        _spark_schema("invoice_lines", [("source_file", StringType()), ("business_date", DateType())]),
+    )
+    projects_df = _rows_df(spark, records, "projects", _spark_schema("projects"))
+    suppliers_df = _rows_df(spark, records, "suppliers", _spark_schema("suppliers"))
+    budgets_df = _rows_df(spark, records, "budget_lines", _spark_schema("budget_lines"))
+    booked_df = _rows_df(spark, records, "booked_costs", _spark_schema("booked_costs"))
 
     all_issues_df: DataFrame = dq.issue_rows(spark, parse_issues)
 
-    
     try:
         from processing.finance import dq_checks
     except ImportError:
@@ -243,7 +245,6 @@ def run(
     if dq_checks is not None and hasattr(dq_checks, "run"):
         check_issues_df = dq_checks.run(invoices_df, lines_df, booked_df, budgets_df)
         all_issues_df = all_issues_df.unionByName(check_issues_df)
-
 
     projects_df = projects_df.cache()
     suppliers_df = suppliers_df.cache()
@@ -280,3 +281,4 @@ def run(
             booked_df,
         ):
             cached_df.unpersist()
+        records.unpersist()
