@@ -7,6 +7,7 @@ from decimal import Decimal
 from pathlib import Path
 
 import pytest
+from py4j.protocol import Py4JJavaError
 
 from common import config, tables
 from processing.finance import (
@@ -25,18 +26,10 @@ def _fixture_inputs(root: Path) -> dict[str, list[str]]:
             (root / "master/projects.csv").as_uri(),
             (root / "master/suppliers.csv").as_uri(),
         ],
-        "budgets": [
-            p.as_uri() for p in sorted((root / "drive/budgets").glob("*.xlsx"))
-        ],
-        "isdoc": [
-            p.as_uri() for p in sorted((root / "mailbox/invoices").glob("*.isdoc"))
-        ],
-        "invoice_pdf": [
-            p.as_uri() for p in sorted((root / "mailbox/invoices").glob("*.pdf"))
-        ],
-        "accounting": [
-            p.as_uri() for p in sorted((root / "drive/accounting").glob("*.csv"))
-        ],
+        "budgets": [p.as_uri() for p in sorted((root / "drive/budgets").glob("*.xlsx"))],
+        "isdoc": [p.as_uri() for p in sorted((root / "mailbox/invoices").glob("*.isdoc"))],
+        "invoice_pdf": [p.as_uri() for p in sorted((root / "mailbox/invoices").glob("*.pdf"))],
+        "accounting": [p.as_uri() for p in sorted((root / "drive/accounting").glob("*.csv"))],
     }
 
 
@@ -97,7 +90,6 @@ def test_isdoc_missing_vs_is_null(fixtures_dir: Path) -> None:
     path = fixtures_dir / "sources/mailbox/invoices/20400013_202600014.isdoc"
     raw_xml = path.read_text(encoding="utf-8")
 
-   
     xml_empty = raw_xml.replace(
         "<VariableSymbol>202600014</VariableSymbol>",
         "<VariableSymbol>   </VariableSymbol>",
@@ -105,10 +97,7 @@ def test_isdoc_missing_vs_is_null(fixtures_dir: Path) -> None:
     inv_empty, _ = isdoc.parse(xml_empty, "raw/empty_vs.isdoc")
     assert inv_empty["vs"] is None
 
-   
-    xml_removed = raw_xml.replace(
-        "<VariableSymbol>202600014</VariableSymbol>", ""
-    ).encode("utf-8")
+    xml_removed = raw_xml.replace("<VariableSymbol>202600014</VariableSymbol>", "").encode("utf-8")
     inv_removed, _ = isdoc.parse(xml_removed, "raw/no_vs.isdoc")
     assert inv_removed["vs"] is None
 
@@ -165,9 +154,7 @@ def test_bad_xml_gives_parse_error() -> None:
         isdoc.parse(b"<Invoice><unclosed>", "raw/broken.isdoc")
 
     with pytest.raises(FinanceParseError):
-        isdoc.parse(
-            b"<OtherRoot xmlns='http://isdoc.cz/namespace/2013'/>", "raw/wrong.isdoc"
-        )
+        isdoc.parse(b"<OtherRoot xmlns='http://isdoc.cz/namespace/2013'/>", "raw/wrong.isdoc")
 
 
 def test_run_on_fixtures(clean_db, sources_tree: Path) -> None:
@@ -179,7 +166,8 @@ def test_run_on_fixtures(clean_db, sources_tree: Path) -> None:
     assert counts["suppliers"] == 5
     assert counts["budget_lines"] == 10
     assert counts["invoices"] == 4
-    assert counts["invoice_lines"] in (9, 10)
+    # 1 + 3 + 5 ISDOC lines; the PDF-only invoice gets its line from the booking in Task 20.1
+    assert counts["invoice_lines"] == 9
     assert counts["booked_costs"] == 4
     assert counts["dq_issues"] == 0
 
@@ -188,3 +176,29 @@ def test_run_on_fixtures(clean_db, sources_tree: Path) -> None:
     pdf_only = inv_df.filter("invoice_id = '63900051-202600008'").first()
     assert pdf_only is not None
     assert pdf_only.has_isdoc is False
+
+
+def test_run_reads_only_listed_files(clean_db, sources_tree: Path) -> None:
+    """run() reads only the listed files (not their neighbours in the same folder), and the PDF of a parsed
+    ISDOC gives no second invoice row. A listed file that doesn't exist stops the run: the raw zone is
+    write-once, so it is an error of the input list, not a PARSE_ERROR."""
+    invoices = sources_tree / "mailbox/invoices"
+    inputs = {
+        "master": [(sources_tree / "master/projects.csv").as_uri()],
+        "isdoc": [(invoices / "20400013_202600014.isdoc").as_uri()],
+        "invoice_pdf": [
+            (invoices / "20400013_202600014.pdf").as_uri(),
+            (invoices / "63900051_202600008.pdf").as_uri(),
+        ],
+    }
+    counts = run(clean_db, inputs=inputs)
+
+    assert counts["projects"] == 3
+    assert counts["suppliers"] == 0
+    assert counts["invoices"] == 2  # one ISDOC invoice, one PDF-only invoice; the other ISDOCs aren't listed
+    assert counts["invoice_lines"] == 1
+    assert counts["dq_issues"] == 0
+
+    inputs["isdoc"].append((invoices / "99999999_202600001.isdoc").as_uri())
+    with pytest.raises(Py4JJavaError, match="Input path does not exist"):
+        run(clean_db, inputs=inputs)

@@ -6,6 +6,14 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-12 - Task 13: Review fixes to the finance parsers (Jan)
+- Merged: processing.finance.run parses the files on the executors (one binaryFiles call per 200 files, so one partition each; only parse issues and ISDOC names reach the driver), because it ran out of Java heap on the scale-1 data; a file whose date can't be read no longer gets a made-up date; ruff check and format fixes in processing/finance and tests/processing/test_finance.py; test_run_on_fixtures expects exactly 9 lines; new test_run_reads_only_listed_files; Riya's log entry moved here from processing/finance/log.md
+- Checked: pytest -m "not integration" passed; ruff check and format clean; run() on the generator's scale-1 output (9,488 files): 4,655 invoices (466 PDF-only), 12,746 lines, 4,644 booked costs, 0 issues, in about a minute; Task 13 Validate on the Docker stack: SELECT COUNT(*) FROM fve_clean.invoices = 4
+
+### 2026-11-12 - Task 13: Finance parsers (Riya)
+- Merged: processing/finance: parsers for projects, suppliers, budgets, ISDOC, PDF-only invoices and the Money S3 export, and run(spark, inputs=None) writing the six clean tables and the finance dq_issues; tests/processing/test_finance.py
+- Checked: the 8 tests in tests/processing/test_finance.py
+
 ### 2026-11-12 - Task 6.1: Review fixes to the bank sample files (Jan)
 - Merged: MT940 statement tag `:28:` as in Česká spořitelna's specification (Jan's decision) in the STA fixture, its README and test, and docs/formats/sta.md (Task 16 accepts `:28:` and `:28C:`); the Air Bank specification linked in docs/formats/gpc.md; Obaid's log.md entry says what was merged and checked
 - Checked: pytest -m "not integration" passed; ruff check and format clean

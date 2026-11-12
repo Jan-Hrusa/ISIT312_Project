@@ -39,9 +39,7 @@ def _opt_date(val: str | None, field: str, source_file: str) -> date | None:
         raise FinanceParseError(f"Invalid date {val!r} in {field}", source_file) from exc
 
 
-def _req_decimal(
-    val: str | None, field: str, source_file: str, scale: str = "0.01"
-) -> Decimal:
+def _req_decimal(val: str | None, field: str, source_file: str, scale: str = "0.01") -> Decimal:
     if val is None or val.strip() == "":
         raise FinanceParseError(f"Missing decimal in {field}", source_file)
     cleaned = val.strip().replace("\u00a0", "").replace(" ", "").replace(",", ".")
@@ -86,9 +84,7 @@ def parse_projects(text: str, source_file: str) -> list[dict[str, Any]]:
         "status",
     ]
     if reader.fieldnames != expected:
-        raise FinanceParseError(
-            f"Unexpected projects.csv columns: {reader.fieldnames}", source_file
-        )
+        raise FinanceParseError(f"Unexpected projects.csv columns: {reader.fieldnames}", source_file)
 
     rows: list[dict[str, Any]] = []
     for raw in reader:
@@ -108,9 +104,7 @@ def parse_projects(text: str, source_file: str) -> list[dict[str, Any]]:
             lon = float(_req_str(raw, "lon", source_file))
             radius_m = int(_req_str(raw, "radius_m", source_file))
         except ValueError as exc:
-            raise FinanceParseError(
-                f"Invalid numeric coordinate/radius: {exc}", source_file
-            ) from exc
+            raise FinanceParseError(f"Invalid numeric coordinate/radius: {exc}", source_file) from exc
 
         offer_date = _opt_date(raw.get("offer_date"), "offer_date", source_file)
         if offer_date is None:
@@ -135,9 +129,7 @@ def parse_projects(text: str, source_file: str) -> list[dict[str, Any]]:
                 "construction_start": _opt_date(
                     raw.get("construction_start"), "construction_start", source_file
                 ),
-                "construction_end": _opt_date(
-                    raw.get("construction_end"), "construction_end", source_file
-                ),
+                "construction_end": _opt_date(raw.get("construction_end"), "construction_end", source_file),
                 "status": status,
                 "source_file": source_file,
             }
@@ -156,9 +148,7 @@ def parse_suppliers(text: str, source_file: str) -> list[dict[str, Any]]:
     reader = csv.DictReader(io.StringIO(text.lstrip("\ufeff")), delimiter=",")
     expected = ["ico", "name", "category", "bank_account", "bank_code"]
     if reader.fieldnames != expected:
-        raise FinanceParseError(
-            f"Unexpected suppliers.csv columns: {reader.fieldnames}", source_file
-        )
+        raise FinanceParseError(f"Unexpected suppliers.csv columns: {reader.fieldnames}", source_file)
 
     rows: list[dict[str, Any]] = []
     for raw in reader:

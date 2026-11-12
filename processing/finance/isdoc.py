@@ -40,9 +40,7 @@ def _req_date(elem: etree._Element, xpath: str, source_file: str) -> date:
         raise FinanceParseError(f"Invalid date {raw!r} at {xpath}", source_file) from exc
 
 
-def _req_dec(
-    elem: etree._Element, xpath: str, source_file: str, scale: str = "0.01"
-) -> Decimal:
+def _req_dec(elem: etree._Element, xpath: str, source_file: str, scale: str = "0.01") -> Decimal:
     raw = _req_text(elem, xpath, source_file)
     cleaned = raw.replace("\u00a0", "").replace(" ", "").replace(",", ".")
     try:
@@ -58,9 +56,7 @@ def _normalize_vs(raw: str | None) -> str | None:
     return stripped if stripped != "" else None
 
 
-def parse(
-    xml_bytes: bytes, source_file: str
-) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+def parse(xml_bytes: bytes, source_file: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     """Parse an ISDOC XML byte stream into (invoice_dict, list_of_line_dicts)."""
     if not xml_bytes:
         raise FinanceParseError("Empty ISDOC XML file", source_file)
@@ -85,20 +81,12 @@ def parse(
 
     invoice_id = f"{supplier_ico}-{number}"
     issue_date = _req_date(root, "i:IssueDate", source_file)
-    due_date = _req_date(
-        root, "i:PaymentMeans/i:Payment/i:Details/i:PaymentDueDate", source_file
-    )
-    vs = _normalize_vs(
-        _text(root, "i:PaymentMeans/i:Payment/i:Details/i:VariableSymbol")
-    )
+    due_date = _req_date(root, "i:PaymentMeans/i:Payment/i:Details/i:PaymentDueDate", source_file)
+    vs = _normalize_vs(_text(root, "i:PaymentMeans/i:Payment/i:Details/i:VariableSymbol"))
     currency = _text(root, "i:LocalCurrencyCode") or config.CURRENCY
 
-    total_net = _req_dec(
-        root, "i:LegalMonetaryTotal/i:TaxExclusiveAmount", source_file, "0.01"
-    )
-    total_gross = _req_dec(
-        root, "i:LegalMonetaryTotal/i:TaxInclusiveAmount", source_file, "0.01"
-    )
+    total_net = _req_dec(root, "i:LegalMonetaryTotal/i:TaxExclusiveAmount", source_file, "0.01")
+    total_gross = _req_dec(root, "i:LegalMonetaryTotal/i:TaxInclusiveAmount", source_file, "0.01")
     total_vat = _req_dec(root, "i:TaxTotal/i:TaxAmount", source_file, "0.01")
 
     line_elems = root.findall("i:InvoiceLines/i:InvoiceLine", namespaces=NS)
@@ -117,9 +105,7 @@ def parse(
         quantity = _req_dec(line_el, "i:InvoicedQuantity", source_file, "0.001")
         unit_price = _req_dec(line_el, "i:UnitPrice", source_file, "0.01")
         amount_net = _req_dec(line_el, "i:LineExtensionAmount", source_file, "0.01")
-        vat_rate = _req_dec(
-            line_el, "i:ClassifiedTaxCategory/i:Percent", source_file, "0.01"
-        )
+        vat_rate = _req_dec(line_el, "i:ClassifiedTaxCategory/i:Percent", source_file, "0.01")
         vat_amount = _req_dec(line_el, "i:LineExtensionTaxAmount", source_file, "0.01")
 
         lines.append(

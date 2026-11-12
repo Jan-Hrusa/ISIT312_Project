@@ -1,4 +1,4 @@
-"""Parser for weekly Money S3 accounting exports. """
+"""Parser for weekly Money S3 accounting exports."""
 
 from __future__ import annotations
 
@@ -41,9 +41,7 @@ def _extract_export_week(source_file: str) -> str:
     name = PurePosixPath(source_file.replace("\\", "/")).name
     match = WEEK_RE.search(name)
     if not match:
-        raise FinanceParseError(
-            f"Cannot extract export_week from file name {source_file!r}", source_file
-        )
+        raise FinanceParseError(f"Cannot extract export_week from file name {source_file!r}", source_file)
     return match.group(1)
 
 
@@ -75,9 +73,7 @@ def parse(text: str, source_file: str) -> list[dict[str, Any]]:
         "amount_gross_czk",
     ]
     if reader.fieldnames != expected:
-        raise FinanceParseError(
-            f"Unexpected Money S3 header: {reader.fieldnames}", source_file
-        )
+        raise FinanceParseError(f"Unexpected Money S3 header: {reader.fieldnames}", source_file)
 
     rows: list[dict[str, Any]] = []
     for raw in reader:
@@ -90,16 +86,12 @@ def parse(text: str, source_file: str) -> list[dict[str, Any]]:
 
         supplier_ico = raw["supplier_ico"].strip()
         if not ICO_RE.fullmatch(supplier_ico):
-            raise FinanceParseError(
-                f"Invalid supplier_ico {supplier_ico!r}", source_file
-            )
+            raise FinanceParseError(f"Invalid supplier_ico {supplier_ico!r}", source_file)
 
         project_code_raw = raw["project_code"].strip()
         project_code: str | None = project_code_raw if project_code_raw else None
         if project_code is not None and not config.is_project_code(project_code):
-            raise FinanceParseError(
-                f"Invalid project_code {project_code!r}", source_file
-            )
+            raise FinanceParseError(f"Invalid project_code {project_code!r}", source_file)
 
         category = raw["category"].strip()
         if category not in config.CATEGORIES:
@@ -116,16 +108,12 @@ def parse(text: str, source_file: str) -> list[dict[str, Any]]:
                 "vs": _normalize_vs(raw.get("vs")),
                 "issue_date": _parse_date(raw.get("issue_date"), "issue_date", source_file),
                 "due_date": _parse_date(raw.get("due_date"), "due_date", source_file),
-                "booking_date": _parse_date(
-                    raw.get("booking_date"), "booking_date", source_file
-                ),
+                "booking_date": _parse_date(raw.get("booking_date"), "booking_date", source_file),
                 "project_code": project_code,
                 "cost_centre": cost_centre,
                 "category": category,
                 "amount": parse_decimal_comma(raw.get("amount_net_czk"), source_file),
-                "amount_gross": parse_decimal_comma(
-                    raw.get("amount_gross_czk"), source_file
-                ),
+                "amount_gross": parse_decimal_comma(raw.get("amount_gross_czk"), source_file),
                 "export_week": export_week,
                 "source_file": source_file,
             }
