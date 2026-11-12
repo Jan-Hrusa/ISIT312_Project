@@ -54,6 +54,6 @@ In the combined field the two leading positions are zero in the fixtures, follow
 the bank code at positions 74–77 and KS at positions 78–81. All-zero symbol fields
 represent missing symbols in these fixtures. Use the one-based ordinal of the `075`
 within its statement for TXT and transaction IDs. The data-kind example uses the
-domestic payment code documented in the linked Air Bank ABO export specification.
+domestic payment code documented in the [Air Bank ABO export specification](https://www.airbank.cz/file-download/technicke-pozadavky-a-specifikace-hromadnych-plateb-a-export-vypisu).
 Raiffeisenbank defines the field structure and leaves the operation code to its bank
 code list. This field is outside the clean transaction schema.
