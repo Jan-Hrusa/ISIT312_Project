@@ -41,7 +41,7 @@ The TXT has one line, `1|Investor milestone`.
 `mailbox/bank/CS/26005_2900112233.sta`, business date 2026-05-31.
 CP852 with CRLF. The fixture has 17 physical lines, including three
 `:61:` records and their three `:86:` records with one continuation each.
-Account `0800/2900112233`, statement tag `:28C:00005/00001`.
+Account `0800/2900112233`, statement tag `:28:00005/00001`.
 Opening balance is CZK 50000.00 on 2026-04-30. Closing balance is
 CZK 54499.25 on 2026-05-31.
 

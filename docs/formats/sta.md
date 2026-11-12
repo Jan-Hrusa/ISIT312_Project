@@ -8,16 +8,16 @@ Use CP852 and CRLF. The project filename is `YYNNN_<account>.sta`.
 | File preamble | `GIBACZPX 0800`, then `940 N2` |
 | `:20:` | Reference containing the account in the six-position prefix and ten-position account format |
 | `:25:` | Bank code, slash, account, e.g. `0800/2900112233` |
-| `:28C:` | Statement and page number separated by a slash, e.g. `00005/00001` |
+| `:28:` | Statement and page number separated by a slash, e.g. `00005/00001` |
 | `:60F:` | Opening balance: `C` or `D`, YYMMDD, `CZK`, amount with decimal comma |
 | `:61:` | One per transaction: value date YYMMDD, optional posting date MMDD, direction, optional third currency character (`K`), amount with decimal comma, four-character transaction key beginning with `N`, reference |
 | `:86:` | Structured transaction details immediately after its `:61:`; may continue on the next physical line |
 | `:62F:` | Closing balance in the same format as the opening balance |
 | `-}` | Statement terminator |
 
-**For Jan’s review:** Česká spořitelna documents `:28:`. Task 6 explicitly uses
-`:28C:`, so Task 6.1 and the planned Task 6 generator use `:28C:` with the bank's
-statement/page value structure. Task 16 should parse the project tag.
+The statement number tag is `:28:`, as in Česká spořitelna's specification (decided
+12 Nov): the fixture and the Task 6 generator write `:28:`. The generic SWIFT MT940
+tag `:28C:` carries the same statement/page value, so Task 16's parser accepts both.
 
 ## Domestic transaction details
 

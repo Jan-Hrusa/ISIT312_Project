@@ -6,9 +6,14 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-12 - Task 6.1: Review fixes to the bank sample files (Jan)
+- Merged: MT940 statement tag `:28:` as in Česká spořitelna's specification (Jan's decision) in the STA fixture, its README and test, and docs/formats/sta.md (Task 16 accepts `:28:` and `:28C:`); the Air Bank specification linked in docs/formats/gpc.md; Obaid's log.md entry says what was merged and checked
+- Checked: pytest -m "not integration" passed; ruff check and format clean
+
 ### 2026-11-12 - Task 6.1: Bank sample files (Obaid)
-- Ready for review: GPC, STA, KPC and TXT format notes and synthetic fixtures, business dates and fixture test.
-- Checked: record widths, encodings, balances, invoice-to-order correspondence and fixture paths verified directly. Docker pytest and Ruff pending due to Docker API access denial in this session.
+- Merged: docs/formats/gpc.md, sta.md, kpc.md, txt.md (field positions from the RB ABO and ČS MT940 specs); bank samples in tests/fixtures/sources (RB GPC with the 4 Task 5.1 invoice debits and 1 credit, a broken RB GPC, ČS STA, RB KPC with 4 orders, a TXT per statement), tests/fixtures/mtimes_bank.csv, tests/fixtures/bank/README.md, tests/generators/test_bank_fixtures.py
+- Checked: test_bank_fixtures_match_readme passed; pytest -m "not integration" passed; ruff check and format clean (in Jan's review, on the branch rebased on integration)
+
 ### 2026-11-12 - Task 5.1: Review fixes to the finance sample set (Jan)
 - Merged: the three ISDOC fixtures regenerated with the merged generator (isdoc.to_xml) from their own values, so their invoice lines carry the ISDOC 6.0.2 elements of PR #16 (LineExtensionTaxAmount, UnitPriceTaxInclusive, schema order); test_finance_fixtures_match_readme also checks that the line VAT adds up to the invoice VAT; whitespace line in log.md removed
 - Checked: pytest -m "not integration" passed; ruff check and format clean; only those line elements differ from the merged fixtures, totals unchanged
