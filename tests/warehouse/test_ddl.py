@@ -122,7 +122,7 @@ def created_warehouse(warehouse_spark, tmp_path_factory):
     for statement in statements:
         warehouse_spark.sql(statement)
 
-    yield warehouse_spark, database
+    yield warehouse_spark, database, root.as_uri()
 
     warehouse_spark.sql(
         f"DROP DATABASE IF EXISTS {database} CASCADE"
@@ -130,14 +130,12 @@ def created_warehouse(warehouse_spark, tmp_path_factory):
 
 
 def test_ddl_runs_twice(created_warehouse):
-    spark, database = created_warehouse
+    spark, database, location = created_warehouse
 
     statements = render(
         DDL,
         DW_DB=database,
-        LAKE_DW=spark.sql(
-            f"DESCRIBE DATABASE EXTENDED {database}"
-        ).collect()[-1][1],
+        LAKE_DW=location,
     )
 
     for statement in statements:
@@ -145,7 +143,7 @@ def test_ddl_runs_twice(created_warehouse):
 
 
 def test_all_9_tables_exist(created_warehouse):
-    spark, database = created_warehouse
+    spark, database, _ = created_warehouse
 
     actual = {
         row.tableName
@@ -158,7 +156,7 @@ def test_all_9_tables_exist(created_warehouse):
 
 
 def test_partition_columns(created_warehouse):
-    spark, database = created_warehouse
+    spark, database, _ = created_warehouse
 
     for table, expected in PARTITIONS.items():
         columns = spark.catalog.listColumns(table, database)
@@ -174,7 +172,7 @@ def test_partition_columns(created_warehouse):
 
 
 def test_tables_are_external_orc(created_warehouse):
-    spark, database = created_warehouse
+    spark, database, _ = created_warehouse
 
     for table in TABLES:
         rows = spark.sql(
@@ -187,5 +185,5 @@ def test_tables_are_external_orc(created_warehouse):
             if row[0] is not None
         }
 
-        assert metadata.get("Table Type") == "EXTERNAL_TABLE"
+        assert metadata.get("Type") == "EXTERNAL"
         assert "OrcInputFormat" in metadata.get("InputFormat", "")
