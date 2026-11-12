@@ -26,7 +26,7 @@ def generate(seed: int) -> dict:
     suppliers = _read(sources / "master" / "suppliers.csv")
     projects = _read(sources / "master" / "projects.csv")
     debits, credits, orders, planted = payments.plan(ledger, suppliers, projects, random.Random(seed))
-    # Validate the unresolved KPC case before emitting any files.
+    # Check every order's VS before writing any file, so a bad ledger leaves no partial output.
     for order in orders:
         kpc.validate_vs(order)
 

@@ -22,7 +22,7 @@ def write(path: Path, st: Statement) -> None:
         "940 N2",
         f":20:{st.account.zfill(16)}",
         f":25:{code}/{st.account.zfill(10)}",
-        f":28C:{st.number:05d}/00001",
+        f":28:{st.number:05d}/00001",
         f":60F:{_direction(st.opening)}{st.opening_day:%y%m%d}CZK{_amount(st.opening)}",
     ]
     for index, item in enumerate(st.movements, start=1):

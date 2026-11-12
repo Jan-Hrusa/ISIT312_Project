@@ -21,9 +21,17 @@ class Order:
     ks: str = "308"
 
 
+def kpc_vs(order: Order) -> str:
+    """The item's VS field: an empty VS is written as `0`.
+
+    The ABO item needs 1-10 digits, and Task 16 reads an all-zero VS as NULL, so `0` is the missing VS.
+    """
+    return order.vs or "0"
+
+
 def validate_vs(order: Order) -> None:
     if not order.vs:
-        raise ValueError(f"No approved raw KPC encoding for missing VS on invoice {order.invoice_id}")
+        return
     if not order.vs.isascii() or not order.vs.isdecimal() or len(order.vs) > 10:
         raise ValueError(f"Invalid KPC VS on invoice {order.invoice_id}: {order.vs!r}")
 
@@ -46,7 +54,7 @@ def write(path: Path, run: list[Order]) -> None:
             if not 0 < item.cents < 10**12:
                 raise ValueError(f"KPC item amount exceeds format limits: {item.cents}")
             records.append(
-                f"{item.counterparty_account} {item.cents} {item.vs} "
+                f"{item.counterparty_account} {item.cents} {kpc_vs(item)} "
                 f"{item.counterparty_bank_code}{item.ks.zfill(4)}  AV:Invoice "
                 f"{item.invoice_id.rsplit('-', 1)[-1]}"
             )
