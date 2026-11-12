@@ -6,6 +6,9 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-12 - Task 6.1: Bank sample files (Obaid)
+- Ready for review: GPC, STA, KPC and TXT format notes and synthetic fixtures, business dates and fixture test.
+- Checked: record widths, encodings, balances, invoice-to-order correspondence and fixture paths verified directly. Docker pytest and Ruff pending due to Docker API access denial in this session.
 ### 2026-11-12 - Task 5.1: Review fixes to the finance sample set (Jan)
 - Merged: the three ISDOC fixtures regenerated with the merged generator (isdoc.to_xml) from their own values, so their invoice lines carry the ISDOC 6.0.2 elements of PR #16 (LineExtensionTaxAmount, UnitPriceTaxInclusive, schema order); test_finance_fixtures_match_readme also checks that the line VAT adds up to the invoice VAT; whitespace line in log.md removed
 - Checked: pytest -m "not integration" passed; ruff check and format clean; only those line elements differ from the merged fixtures, totals unchanged
