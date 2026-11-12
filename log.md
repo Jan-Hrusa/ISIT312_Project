@@ -6,10 +6,14 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-12 - Task 17.1: Review fixes to the planted finance problems (Jan)
+- Merged: MISSING_VS picks only invoices due at least 6 days before DATA_END, so the bank generator pays all of them with an empty VS and Task 25 sees each as OVERDUE with an unmatched payment on DATA_END (one invoice was due 14 Nov 2026); new test test_missing_vs_invoices_are_due_in_time_to_be_paid (scale 1 and 2); whitespace line after Jayden's log entry removed
+- Checked: pytest -m "not integration" passed; ruff check and format clean; the new test fails on the old planted.py; scale-1 run of the finance and bank generators: Task 9's match_invoice on the parsed bank files gives 10 NO_VS invoices OVERDUE with 10 UNMATCHED_PAYMENT, 10 ORDER_NOT_CLEARED, 15 WRONG_VS
+
 ### 2026-11-12 - Task 17.1: Planted finance problems (Jayden)
 - Merged: generators/finance_docs/planted.py (OVERRUN 6, NO_PROJECT 25, DUPLICATE 5, MISSING_VS 10, PARSE_ERROR 2, counts x scale), planted.apply called from __main__.py (CLI plants by default, --no-planted switches it off), resent and truncated ISDOC files, out/ledger/planted_finance.csv, tests/generators/test_planted.py
 - Checked: pytest tests/generators passed (the 4 named tests plus file checks for resent, truncated, blank-project and no-VS invoices); ruff check and format clean; scale-1 run writes planted_finance.csv with the task's counts
-  
+
 ### 2026-11-12 - Task 6: Review fixes to the bank generator (Jan)
 - Merged: STA statements write `:28:` (decision of 12 Nov); an invoice without VS in the ledger (Task 17.1's MISSING_VS) is ordered and paid with an empty VS, written as `0` in the KPC item (docs/formats/kpc.md), so the generator no longer stops on it; WRONG_VS pays with two digits of the VS swapped (a VS no invoice uses), and planted_payments.csv names both; planted cases only on invoices due at least 6 days before DATA_END, so all 10 ORDER_NOT_CLEARED and every OVERDUE show on DATA_END; Obaid's log entry added
 - Checked: pytest -m "not integration" passed; ruff check and format clean; scale-1 run with 10 empty VS: Task 9's match_invoice on the parsed files gives exactly the planted statuses (10 ORDER_NOT_CLEARED, 15 + 10 UNMATCHED_PAYMENT); finance and bank generators run with Task 17.1 (PR #25) merged

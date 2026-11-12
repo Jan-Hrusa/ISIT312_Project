@@ -195,6 +195,16 @@ def test_missing_vs_everywhere(pplan, run_dirs):
     assert all(r["vs"] for r in others)
 
 
+@pytest.mark.parametrize("scale", [1, 2])
+def test_missing_vs_invoices_are_due_in_time_to_be_paid(scale, pplan):
+    # Task 6 pays them with an empty VS; Task 25 sees OVERDUE + UNMATCHED_PAYMENT on DATA_END only then.
+    p = pplan if scale == 1 else planted_plan(scale=scale)
+    by_id = {inv.invoice_id: inv for inv in p.invoices}
+    ids = [r["ref"] for r in p.truth if r["problem"] == "MISSING_VS"]
+    assert len(ids) == 10 * scale
+    assert all(by_id[i].due_date <= DATA_END - timedelta(days=6) for i in ids)
+
+
 def test_ledger_has_one_row_per_invoice(pplan, run_dirs):
     _, led, stats = run_dirs
     ledger = read_csv(led / "invoice_ledger.csv")

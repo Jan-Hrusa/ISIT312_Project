@@ -34,6 +34,10 @@ OVERRUN_ALLOWED = (1.18, 1.30)  # what the finished plan must satisfy (task: 118
 MIN_CONSTRUCTION_DAYS = 183  # "at least 6 months of construction data"
 NO_PROJECT_WINDOW_DAYS = 90  # the window of Task 20.1's SINGLE_ACTIVE rule
 MAX_RESEND_DAYS = 5
+# Task 6 pays a MISSING_VS invoice with an empty VS, and Task 25 reports it as OVERDUE with an unmatched
+# payment on DATA_END (its as_of). That needs a due date on or before DATA_END - 6 days, the margin Task 6
+# keeps for its own planted cases (an uncleared order is reported only after its due date + 5 days).
+PAYABLE_MARGIN_DAYS = 6
 
 
 def apply(invoices, projects, rng, *, budgets, suppliers, scale=1) -> list[dict]:
@@ -254,7 +258,7 @@ def _plant_no_project(invoices, by_code, rng, scale, used, overrun_pairs):
 # ------------------------------------------------- DUPLICATE, MISSING_VS, PARSE_ERROR
 
 
-def _with_isdoc(invoices, used, latest_issue=None):
+def _with_isdoc(invoices, used, latest_issue=None, latest_due=None):
     """Booked invoices that have an ISDOC and carry no planted problem yet, sorted for a fixed order."""
     return sorted(
         (
@@ -264,6 +268,7 @@ def _with_isdoc(invoices, used, latest_issue=None):
             and not inv.pdf_only
             and inv.booking_date <= DATA_END
             and (latest_issue is None or inv.issue_date <= latest_issue)
+            and (latest_due is None or inv.due_date <= latest_due)
         ),
         key=lambda i: i.invoice_id,
     )
@@ -291,7 +296,8 @@ def _plant_duplicates(invoices, rng, scale, used):
 
 def _plant_missing_vs(invoices, rng, scale, used):
     rows = []
-    for inv in _take(_with_isdoc(invoices, used), COUNTS["MISSING_VS"] * scale, rng, "MISSING_VS"):
+    pool = _with_isdoc(invoices, used, latest_due=DATA_END - timedelta(days=PAYABLE_MARGIN_DAYS))
+    for inv in _take(pool, COUNTS["MISSING_VS"] * scale, rng, "MISSING_VS"):
         old_vs, inv.vs = inv.vs, None
         used.add(inv.invoice_id)
         rows.append(
