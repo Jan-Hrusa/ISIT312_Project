@@ -1,14 +1,13 @@
-
 """Tests for the Hive warehouse DDL and shared SQL runner."""
 
+import uuid
 from pathlib import Path
 
 import pytest
 
 from warehouse.sql import named_queries, render, run_file
 
-
-DDL = Path("warehouse/ddl/fve_dw.sql")
+DDL = Path(__file__).resolve().parents[2] / "warehouse" / "ddl" / "fve_dw.sql"
 
 TABLES = {
     "dim_project",
@@ -32,32 +31,26 @@ PARTITIONS = {
 
 def test_render_replaces_variables(tmp_path):
     sql_file = tmp_path / "variables.sql"
-    sql_file.write_text(
-        "SELECT '${DW_DB}', '${LAKE_DW}', '${CUSTOM}';",
-        encoding="utf-8",
-    )
+    sql_file.write_text("SELECT '${DW_DB}', '${LAKE_DW}', '${CUSTOM}';", encoding="utf-8")
 
-    statements = render(
-        sql_file,
-        DW_DB="test_dw",
-        LAKE_DW="/test/dw",
-        CUSTOM="hello",
-    )
+    statements = render(sql_file, DW_DB="test_dw", LAKE_DW="/test/dw", CUSTOM="hello")
 
-    assert statements == [
-        "SELECT 'test_dw', '/test/dw', 'hello'"
-    ]
+    assert statements == ["SELECT 'test_dw', '/test/dw', 'hello'"]
 
 
 def test_render_unknown_variable_fails(tmp_path):
     sql_file = tmp_path / "unknown.sql"
-    sql_file.write_text(
-        "SELECT '${DOES_NOT_EXIST}';",
-        encoding="utf-8",
-    )
+    sql_file.write_text("SELECT '${DOES_NOT_EXIST}';", encoding="utf-8")
 
     with pytest.raises(ValueError, match="DOES_NOT_EXIST"):
         render(sql_file)
+
+
+def test_render_ignores_variables_in_comments(tmp_path):
+    sql_file = tmp_path / "comment.sql"
+    sql_file.write_text("-- run with ${SOMETHING_ELSE}\nSELECT '${DW_DB}';", encoding="utf-8")
+
+    assert render(sql_file, DW_DB="test_dw") == ["SELECT 'test_dw'"]
 
 
 def test_named_queries(tmp_path):
@@ -81,109 +74,57 @@ SELECT 2;
     }
 
 
-@pytest.fixture(scope="module")
-def warehouse_spark(tmp_path_factory):
-    """Create an isolated local Spark session with Hive support."""
-    from pyspark.sql import SparkSession
+@pytest.fixture
+def created_warehouse(spark_hive, tmp_path):
+    """The DDL run once through run_file in a fresh database and a temporary lake folder.
 
-    root = tmp_path_factory.mktemp("warehouse_spark")
-    warehouse_dir = root / "warehouse"
-    metastore_dir = root / "metastore"
-
-    spark = (
-        SparkSession.builder
-        .master("local[2]")
-        .appName("warehouse-ddl-tests")
-        .config("spark.sql.warehouse.dir", warehouse_dir.as_uri())
-        .config(
-            "javax.jdo.option.ConnectionURL",
-            f"jdbc:derby:;databaseName={metastore_dir};create=true",
-        )
-        .enableHiveSupport()
-        .getOrCreate()
-    )
-
-    yield spark
-    spark.stop()
-
-
-@pytest.fixture(scope="module")
-def created_warehouse(warehouse_spark, tmp_path_factory):
-    """Run the DDL in a temporary database and local directory."""
-    root = tmp_path_factory.mktemp("warehouse_tables")
-    database = "fve_dw_test"
-
-    statements = render(
-        DDL,
-        DW_DB=database,
-        LAKE_DW=root.as_uri(),
-    )
-
-    for statement in statements:
-        warehouse_spark.sql(statement)
-
-    yield warehouse_spark, database, root.as_uri()
-
-    warehouse_spark.sql(
-        f"DROP DATABASE IF EXISTS {database} CASCADE"
-    )
+    Uses conftest's `spark_hive` (local Derby metastore), so the tests never reach the stack's metastore, also
+    inside the client container where /opt/conf/hive-site.xml points at it.
+    """
+    database = f"fve_dw_test_{uuid.uuid4().hex[:8]}"
+    location = (tmp_path / "dw").as_uri()
+    run_file(spark_hive, DDL, DW_DB=database, LAKE_DW=location)
+    yield spark_hive, database, location
+    spark_hive.sql(f"DROP DATABASE IF EXISTS {database} CASCADE")
 
 
 def test_ddl_runs_twice(created_warehouse):
     spark, database, location = created_warehouse
 
-    statements = render(
-        DDL,
-        DW_DB=database,
-        LAKE_DW=location,
-    )
+    run_file(spark, DDL, DW_DB=database, LAKE_DW=location)
 
-    for statement in statements:
-        spark.sql(statement)
+    assert {row.tableName for row in spark.sql(f"SHOW TABLES IN {database}").collect()} == TABLES
 
 
 def test_all_9_tables_exist(created_warehouse):
     spark, database, _ = created_warehouse
 
-    actual = {
-        row.tableName
-        for row in spark.sql(
-            f"SHOW TABLES IN {database}"
-        ).collect()
-    }
+    actual = {row.tableName for row in spark.sql(f"SHOW TABLES IN {database}").collect()}
 
-    assert TABLES.issubset(actual)
+    assert actual == TABLES
 
 
 def test_partition_columns(created_warehouse):
     spark, database, _ = created_warehouse
 
-    for table, expected in PARTITIONS.items():
-        columns = spark.catalog.listColumns(table, database)
-        actual = [
-            column.name
-            for column in columns
-            if column.isPartition
-        ]
+    for table in TABLES:
+        expected = PARTITIONS.get(table, [])  # dimensions are unpartitioned
+        columns = spark.catalog.listColumns(f"{database}.{table}")
+        actual = [column.name for column in columns if column.isPartition]
 
-        assert actual == expected, (
-            f"{table}: expected {expected}, got {actual}"
-        )
+        assert actual == expected, f"{table}: expected {expected}, got {actual}"
 
 
 def test_tables_are_external_orc(created_warehouse):
     spark, database, _ = created_warehouse
 
     for table in TABLES:
-        rows = spark.sql(
-            f"DESCRIBE FORMATTED {database}.{table}"
-        ).collect()
+        rows = spark.sql(f"DESCRIBE FORMATTED {database}.{table}").collect()
 
         metadata = {
-            str(row[0]).strip().rstrip(":"): str(row[1]).strip()
-            for row in rows
-            if row[0] is not None
+            str(row[0]).strip().rstrip(":"): str(row[1]).strip() for row in rows if row[0] is not None
         }
 
         assert metadata.get("Type") == "EXTERNAL"
         assert "OrcInputFormat" in metadata.get("InputFormat", "")
+        assert metadata.get("Location", "").rstrip("/").endswith(f"/dw/{table}")
