@@ -9,6 +9,28 @@ One entry per merged task (or part with its own checkpoint), newest first:
 2026-11-14 - Task 8: Full Docker stack and setup guide (Ryan)
 Merged: Docker stack extended with HBase 2.5.16, HBase Thrift interface, Spark Thrift Server and Zeppelin 0.11.2; HBase configuration; Zeppelin Dockerfile with HappyBase, pandas and Hive JDBC driver; Hive, SparkSQL and Python interpreters; updated docker-compose.yml, check.sh, README.md and new SETUP.md covering Windows, macOS and Linux setup.
 Checked: HBase table creation, write, read and deletion tested successfully; Zeppelin %hive and %sparksql SHOW DATABASES queries returned default; Zeppelin %python successfully connected to HBase through HappyBase; ./check.sh reported 7 OK and 2 SKIP (YARN and Hive-on-YARN).
+### 2026-11-14 - Task 7: Review fixes to the media generator and samples (Jan)
+- Merged: the media generator follows the Task 7 output table: 1% of photos WRONG_SITE at 2-5 km from their own
+  site and outside every project's radius (was 5 photos 10+ km away); 100-150 photos in the first construction
+  week, then 3-8 a week on one workday; building permit = start - 30 days, grid connection = start + 60 days;
+  drawings v1 = signed + 10, v2 = signed + 25, final = later of v2 + 10 and start - 5, planted final 20 days
+  before v2, 20-60 KB; 3-5 videos per project. Task 7.1 samples: 4 more photos (2 inside FVE-2026-02, a second
+  without GPS, one 3 km away = WRONG_SITE), permit and drawings re-dated by the rules, grid_connection.pdf added;
+  README, mtimes_media.csv and tests updated (new: test_photos_first_week_then_weekly,
+  test_documents_dated_by_the_rules)
+- Checked: pytest -m "not integration" passed in the client image; ruff check and format clean; the new and
+  changed tests fail on the old generator; scale-1 run: 30,876 photos, 3,088 without GPS, 309 wrong site (2.0-5.0
+  km from their site, none inside any radius), 101-150 photos in each completed project's first week, 333 videos,
+  every document and drawing dated by the rules; Validate screenshot (3 generated photos on the map of their
+  site) in Drive Screenshots/media/
+
+### 2026-11-14 - Task 7.1: Media and document samples (Muhammad)
+- Merged: sample.mp4, 7 sample photos, the FVE-2026-02 folder (contract, permit, 3 drawings, 1 video), mtimes_media.csv, README with expected values, tests/generators/test_media_fixtures.py
+- Checked: tests run outside Docker (piexif stand-in); not yet in the client container
+
+### 2026-11-14 - Task 7: Media generator (Muhammad)
+- Merged: generators/media (photos with EXIF and GPS, videos, documents, drawings, planted_media.csv) and tests/generators/test_media_generator.py
+- Checked: same as above; a full scale-1 run gave 27,448 photos (2,745 without GPS, 5 wrong site), 328 videos, 316 documents, 249 drawings
 
 ### 2026-11-12 - Task 17.1: Review fixes to the planted finance problems (Jan)
 - Merged: MISSING_VS picks only invoices due at least 6 days before DATA_END, so the bank generator pays all of them with an empty VS and Task 25 sees each as OVERDUE with an unmatched payment on DATA_END (one invoice was due 14 Nov 2026); new test test_missing_vs_invoices_are_due_in_time_to_be_paid (scale 1 and 2); whitespace line after Jayden's log entry removed
