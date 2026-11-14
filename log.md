@@ -6,6 +6,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+2026-11-14 - Task 8: Full Docker stack and setup guide (Ryan)
+Merged: Docker stack extended with HBase 2.5.16, HBase Thrift interface, Spark Thrift Server and Zeppelin 0.11.2; HBase configuration; Zeppelin Dockerfile with HappyBase, pandas and Hive JDBC driver; Hive, SparkSQL and Python interpreters; updated docker-compose.yml, check.sh, README.md and new SETUP.md covering Windows, macOS and Linux setup.
+Checked: HBase table creation, write, read and deletion tested successfully; Zeppelin %hive and %sparksql SHOW DATABASES queries returned default; Zeppelin %python successfully connected to HBase through HappyBase; ./check.sh reported 7 OK and 2 SKIP (YARN and Hive-on-YARN).
+
 ### 2026-11-12 - Task 17.1: Review fixes to the planted finance problems (Jan)
 - Merged: MISSING_VS picks only invoices due at least 6 days before DATA_END, so the bank generator pays all of them with an empty VS and Task 25 sees each as OVERDUE with an unmatched payment on DATA_END (one invoice was due 14 Nov 2026); new test test_missing_vs_invoices_are_due_in_time_to_be_paid (scale 1 and 2); whitespace line after Jayden's log entry removed
 - Checked: pytest -m "not integration" passed; ruff check and format clean; the new test fails on the old planted.py; scale-1 run of the finance and bank generators: Task 9's match_invoice on the parsed bank files gives 10 NO_VS invoices OVERDUE with 10 UNMATCHED_PAYMENT, 10 ORDER_NOT_CLEARED, 15 WRONG_VS
@@ -109,6 +113,7 @@ One entry per merged task (or part with its own checkpoint), newest first:
 - Checked: check.sh all 6 OK on fresh volumes (core + yarn); pytest 21 passed and ruff in the client container; namenode 1 live datanode, yarn 1 active node, data kept after down/up
 
 ### 2026-11-05 - Task 2: Architecture freeze and data contracts (Jan)
+
 - Merged: docs/contracts.md; common/ config, schemas, tables, spark, projects, dq (hdfs, lake as signatures for 14.1); tests/conftest.py fixtures, tests/fixtures/make_sources.py
 - Checked: pytest (21 passed, no stack), ruff check, ruff format --check; Validate (beeline on the stack) after Task 3
 

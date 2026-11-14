@@ -141,6 +141,43 @@ services:
     mem_limit: 256m
     depends_on: [resourcemanager]
 
+  hbase:
+    <<: *stack
+    profiles: [hbase]
+    hostname: hbase
+    command: ["bash", "-c", "start-hbase.sh && exec hbase thrift start -p 9090"]
+    environment:
+      HBASE_CONF_DIR: /opt/conf
+      HBASE_HEAPSIZE: 512
+    ports: ["16010:16010", "9090:9090"]
+    mem_limit: 1g
+    depends_on: [namenode, datanode]
+
+  sparksql:
+    <<: *stack
+    profiles: [zeppelin]
+    hostname: sparksql
+    command: ["bash", "-c", "exec /opt/spark/bin/spark-submit --class org.apache.spark.sql.hive.thriftserver.HiveThriftServer2 --master 'local[2]' --driver-memory 1g --hiveconf hive.server2.thrift.port=10001 --hiveconf hive.server2.thrift.bind.host=0.0.0.0 --conf spark.ui.port=4041"]
+    ports: ["10001:10001", "4041:4041"]
+    mem_limit: 1536m
+    depends_on: [metastore, datanode]
+
+  zeppelin:
+    image: isit312/zeppelin:1.0
+    platform: linux/amd64
+    build: ./zeppelin
+    profiles: [zeppelin]
+    hostname: zeppelin
+    ports: ["8080:8080"]
+    networks: [lake]
+    environment:
+      PYTHONPATH: /repo
+    volumes:
+      - ../notebooks:/opt/zeppelin/notebook
+      - ..:/repo:ro
+    mem_limit: 1g
+    depends_on: [hiveserver2, sparksql, hbase]
+
 networks:
   lake:
     name: lake
