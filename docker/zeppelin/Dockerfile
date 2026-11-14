@@ -14,6 +14,8 @@ RUN mkdir -p /opt/hive/jdbc \
 RUN cp /opt/hive/jdbc/hive-jdbc-3.1.3-standalone.jar \
     /opt/zeppelin/interpreter/jdbc/
 
+# interpreter.json is not copied in here: docker-compose.yml mounts the repo's file as a seed and copies it into
+# conf/ at every start, so edits need no rebuild.
+
 # Restore the original Zeppelin runtime user
-COPY --chown=1000:0 interpreter.json /opt/zeppelin/conf/interpreter.json
 USER 1000:0

@@ -18,7 +18,6 @@ FROM eclipse-temurin:11-jdk-jammy
 ARG TARGETARCH
 ARG HADOOP_VERSION=3.3.6
 ARG SPARK_VERSION=3.5.9
-ARG HBASE_VERSION=2.5.16
 ARG APACHE_MIRROR=https://archive.apache.org/dist
 
 RUN apt-get update \
@@ -40,9 +39,12 @@ RUN set -eux; \
       | tar -xz -C /opt; \
     mv "/opt/spark-${SPARK_VERSION}-bin-hadoop3" /opt/spark
 
-# HBase 2.5 Hadoop 3 distribution; kept separate to preserve the Hadoop and Spark build cache.
+# HBase 2.5 Hadoop 3 distribution (Task 8) in its own layer after Spark. Its ARG is declared only here: an ARG
+# declared above the first RUN changes the cache key of every layer below it, so all members would download
+# Hadoop and Spark again. The versioned folder stays valid on both mirrors (hbase/stable/ moves with releases).
+ARG HBASE_VERSION=2.5.16
 RUN set -eux; \
-    curl -fsSL "${APACHE_MIRROR}/hbase/stable/hbase-${HBASE_VERSION}-hadoop3-bin.tar.gz" \
+    curl -fsSL "${APACHE_MIRROR}/hbase/${HBASE_VERSION}/hbase-${HBASE_VERSION}-hadoop3-bin.tar.gz" \
       | tar -xz -C /opt; \
     mv "/opt/hbase-${HBASE_VERSION}-hadoop3" /opt/hbase
 
@@ -50,8 +52,9 @@ COPY --from=hivejars /jars /opt/hive-metastore-jars
 
 COPY requirements.txt /tmp/requirements.txt
 
-# Spark already includes PySpark 3.5.9 and its matching Py4J library.
-# Install the remaining Python dependencies without downloading PySpark again.
+# Spark already includes PySpark 3.5.9 and its matching Py4J library (PYTHONPATH below points at them).
+# Install the remaining Python dependencies without downloading PySpark again; requirements.txt keeps the
+# pyspark pin for a host virtual environment (editor completion only).
 RUN grep -v '^pyspark==' /tmp/requirements.txt > /tmp/requirements-no-pyspark.txt \
     && pip3 install --no-cache-dir -r /tmp/requirements-no-pyspark.txt \
     && rm /tmp/requirements.txt /tmp/requirements-no-pyspark.txt
