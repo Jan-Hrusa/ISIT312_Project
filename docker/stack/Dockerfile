@@ -18,6 +18,7 @@ FROM eclipse-temurin:11-jdk-jammy
 ARG TARGETARCH
 ARG HADOOP_VERSION=3.3.6
 ARG SPARK_VERSION=3.5.9
+ARG HBASE_VERSION=2.5.16
 ARG APACHE_MIRROR=https://archive.apache.org/dist
 
 RUN apt-get update \
@@ -39,25 +40,38 @@ RUN set -eux; \
       | tar -xz -C /opt; \
     mv "/opt/spark-${SPARK_VERSION}-bin-hadoop3" /opt/spark
 
+# HBase 2.5 Hadoop 3 distribution; kept separate to preserve the Hadoop and Spark build cache.
+RUN set -eux; \
+    curl -fsSL "${APACHE_MIRROR}/hbase/stable/hbase-${HBASE_VERSION}-hadoop3-bin.tar.gz" \
+      | tar -xz -C /opt; \
+    mv "/opt/hbase-${HBASE_VERSION}-hadoop3" /opt/hbase
+
 COPY --from=hivejars /jars /opt/hive-metastore-jars
 
 COPY requirements.txt /tmp/requirements.txt
-RUN pip3 install --no-cache-dir -r /tmp/requirements.txt && rm /tmp/requirements.txt
+
+# Spark already includes PySpark 3.5.9 and its matching Py4J library.
+# Install the remaining Python dependencies without downloading PySpark again.
+RUN grep -v '^pyspark==' /tmp/requirements.txt > /tmp/requirements-no-pyspark.txt \
+    && pip3 install --no-cache-dir -r /tmp/requirements-no-pyspark.txt \
+    && rm /tmp/requirements.txt /tmp/requirements-no-pyspark.txt
 
 # All daemons and the client run as `hadoop` (uid 1000), the HDFS superuser. /data holds the HDFS volumes.
 RUN useradd --create-home --uid 1000 --shell /bin/bash hadoop \
     && mkdir -p /data/nn /data/dn /opt/conf \
-    && chown -R hadoop:hadoop /data /opt/hadoop /opt/spark \
+    && chown -R hadoop:hadoop /data /opt/hadoop /opt/spark /opt/hbase \
     && ln -s /usr/bin/python3 /usr/local/bin/python
 
 ENV HADOOP_HOME=/opt/hadoop \
     HADOOP_CONF_DIR=/opt/conf \
     SPARK_HOME=/opt/spark \
     SPARK_CONF_DIR=/opt/conf \
+    HBASE_HOME=/opt/hbase \
     HADOOP_USER_NAME=hadoop \
     PYSPARK_PYTHON=python3 \
+    PYTHONPATH=/opt/spark/python/lib/pyspark.zip:/opt/spark/python/lib/py4j-0.10.9.7-src.zip \
     PYTHONDONTWRITEBYTECODE=1 \
-    PATH=/opt/hadoop/bin:/opt/hadoop/sbin:/opt/spark/bin:${PATH}
+    PATH=/opt/hadoop/bin:/opt/hadoop/sbin:/opt/spark/bin:/opt/hbase/bin:${PATH}
 
 USER hadoop
 WORKDIR /repo

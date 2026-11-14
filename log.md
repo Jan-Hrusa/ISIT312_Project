@@ -6,6 +6,9 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+2026-11-14 - Task 8: Full Docker stack and setup guide (Ryan)
+Merged: Docker stack extended with HBase 2.5.16, HBase Thrift interface, Spark Thrift Server and Zeppelin 0.11.2; HBase configuration; Zeppelin Dockerfile with HappyBase, pandas and Hive JDBC driver; Hive, SparkSQL and Python interpreters; updated docker-compose.yml, check.sh, README.md and new SETUP.md covering Windows, macOS and Linux setup.
+Checked: HBase table creation, write, read and deletion tested successfully; Zeppelin %hive and %sparksql SHOW DATABASES queries returned default; Zeppelin %python successfully connected to HBase through HappyBase; ./check.sh reported 7 OK and 2 SKIP (YARN and Hive-on-YARN).
 ### 2026-11-14 - Task 7: Review fixes to the media generator and samples (Jan)
 - Merged: the media generator follows the Task 7 output table: 1% of photos WRONG_SITE at 2-5 km from their own
   site and outside every project's radius (was 5 photos 10+ km away); 100-150 photos in the first construction
@@ -132,6 +135,7 @@ One entry per merged task (or part with its own checkpoint), newest first:
 - Checked: check.sh all 6 OK on fresh volumes (core + yarn); pytest 21 passed and ruff in the client container; namenode 1 live datanode, yarn 1 active node, data kept after down/up
 
 ### 2026-11-05 - Task 2: Architecture freeze and data contracts (Jan)
+
 - Merged: docs/contracts.md; common/ config, schemas, tables, spark, projects, dq (hdfs, lake as signatures for 14.1); tests/conftest.py fixtures, tests/fixtures/make_sources.py
 - Checked: pytest (21 passed, no stack), ruff check, ruff format --check; Validate (beeline on the stack) after Task 3
 

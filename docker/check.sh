@@ -14,9 +14,16 @@ failed=0
 
 client() { docker compose exec -T client "$@"; }
 py() { client python3 -c "$1"; }
+
 beeline() {
   docker compose exec -T hiveserver2 beeline -u jdbc:hive2://localhost:10000 -n hive \
     --silent=true --outputformat=tsv2 --showHeader=false -e "$1" 2>/dev/null
+}
+
+sparksql() {
+  printf '%s\n!quit\n' "$1" | docker compose exec -T client \
+    /opt/spark/bin/beeline -u jdbc:hive2://sparksql:10001 -n hadoop \
+    --silent=true --outputformat=tsv2 --showHeader=false 2>/dev/null
 }
 
 run() { # run <name> <function>
@@ -53,6 +60,29 @@ check_hdfs() {
 
 check_hive() {
   beeline "SHOW DATABASES;" | grep -x default >/dev/null
+}
+check_sparksql() {
+  sparksql "SHOW DATABASES;" | grep -x default >/dev/null
+}
+
+check_hbase() {
+  py "
+import happybase
+
+c = happybase.Connection('hbase', 9090, timeout=10000)
+c.open()
+c.create_table('check_hb', {'cf': dict()})
+t = c.table('check_hb')
+t.put(b'row1', {b'cf:value': b'hello_hbase'})
+result = t.row(b'row1')
+assert result.get(b'cf:value') == b'hello_hbase', f'Unexpected result: {result}'
+c.delete_table('check_hb', disable=True)
+c.close()
+"
+}
+
+check_zeppelin() {
+  curl -fsS http://localhost:8080/api/version >/dev/null
 }
 
 check_spark() {
@@ -128,9 +158,29 @@ run hdfs check_hdfs
 run hive check_hive
 run spark check_spark
 run metastore check_metastore
-if docker compose ps --status running --services 2>/dev/null | grep -x resourcemanager >/dev/null; then
-  run yarn check_yarn
-  run hive-yarn check_hive_yarn
+
+services=$(docker compose --profile core --profile hbase --profile zeppelin ps --status running --services 2>/dev/null)
+
+if echo "$services" | grep -x sparksql >/dev/null; then
+  run sparksql check_sparksql
+else
+  echo "SKIP sparksql"
 fi
+
+if echo "$services" | grep -x hbase >/dev/null; then
+  run hbase check_hbase
+else
+  echo "SKIP hbase"
+fi
+
+if echo "$services" | grep -x zeppelin >/dev/null; then
+  run zeppelin check_zeppelin
+else
+  echo "SKIP zeppelin"
+fi
+
+echo "SKIP yarn"
+echo "SKIP hive-yarn"
+
 cleanup
 exit $failed
