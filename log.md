@@ -6,9 +6,31 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
-2026-11-14 - Task 8: Full Docker stack and setup guide (Ryan)
-Merged: Docker stack extended with HBase 2.5.16, HBase Thrift interface, Spark Thrift Server and Zeppelin 0.11.2; HBase configuration; Zeppelin Dockerfile with HappyBase, pandas and Hive JDBC driver; Hive, SparkSQL and Python interpreters; updated docker-compose.yml, check.sh, README.md and new SETUP.md covering Windows, macOS and Linux setup.
-Checked: HBase table creation, write, read and deletion tested successfully; Zeppelin %hive and %sparksql SHOW DATABASES queries returned default; Zeppelin %python successfully connected to HBase through HappyBase; ./check.sh reported 7 OK and 2 SKIP (YARN and Hive-on-YARN).
+### 2026-11-14 - Task 8: Review fixes to the full Docker stack and setup guide (Jan)
+- Merged: `zeppelin` no longer depends on `hbase`, so `--profile core --profile zeppelin` starts (it was an invalid
+  project); check.sh runs the YARN checks again when the yarn profile is up and drops a leftover check_hb table
+  first; HBase runs from docker/hbase/start.sh (master in the foreground with the Thrift server; the container
+  exits and restarts when either dies; Thrift heap 256m so both JVMs fit in 1 GB; clean stop); interpreter.json is
+  mounted as a seed and copied into conf/ at every start (Zeppelin rewrites the file, so a bind mount of the file
+  itself fails); stack Dockerfile: ARG HBASE_VERSION moved down to the HBase layer (the Hadoop and Spark layers
+  keep their cache) and HBase downloaded from hbase/<version>/ instead of hbase/stable/; README restored
+  (truncated) with the new services, PySpark note and disk sizes; SETUP.md converted to plain Markdown with the
+  per-area profiles, branch and same-mirror rules, Windows disk compaction and every member in the machine table;
+  final newlines
+- Checked: fresh compose project with the rebuilt images: check.sh all OK with core + zeppelin, with core + hbase +
+  zeppelin and with core + yarn; Zeppelin %hive, %sparksql and %python (happybase) paragraphs succeed; HBase keeps
+  a table across stop/start, recreate and a killed master (restart count 1); the pre-#29 Dockerfile's apt, Hadoop
+  and Spark layers are CACHED from the new build; pytest -m "not integration" 121 passed in the new client image
+
+### 2026-11-14 - Task 8: Full Docker stack and setup guide (Ryan)
+- Merged: Docker stack extended with HBase 2.5.16, HBase Thrift interface, Spark Thrift Server and Zeppelin 0.11.2;
+  HBase configuration; Zeppelin Dockerfile with HappyBase, pandas and Hive JDBC driver; Hive, SparkSQL and Python
+  interpreters; updated docker-compose.yml, check.sh, README.md and new SETUP.md covering Windows, macOS and Linux
+  setup.
+- Checked: HBase table creation, write, read and deletion tested successfully; Zeppelin %hive and %sparksql SHOW
+  DATABASES queries returned default; Zeppelin %python successfully connected to HBase through HappyBase;
+  ./check.sh reported 7 OK and 2 SKIP (YARN and Hive-on-YARN).
+
 ### 2026-11-14 - Task 7: Review fixes to the media generator and samples (Jan)
 - Merged: the media generator follows the Task 7 output table: 1% of photos WRONG_SITE at 2-5 km from their own
   site and outside every project's radius (was 5 photos 10+ km away); 100-150 photos in the first construction

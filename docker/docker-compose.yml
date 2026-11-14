@@ -145,12 +145,20 @@ services:
     <<: *stack
     profiles: [hbase]
     hostname: hbase
-    command: ["bash", "-c", "start-hbase.sh && exec hbase thrift start -p 9090"]
+    # Master (with regionserver and ZooKeeper, standalone) and the Thrift server for happybase; the script stops
+    # the container when either process dies, so Docker shows it and restarts it.
+    command: ["bash", "/opt/hbase-start.sh"]
     environment:
       HBASE_CONF_DIR: /opt/conf
       HBASE_HEAPSIZE: 512
+      # The Thrift server is a second JVM: a smaller heap keeps both inside mem_limit (a later -Xmx wins).
+      HBASE_THRIFT_OPTS: -Xmx256m
+    volumes:
+      - ./conf:/opt/conf:ro
+      - ./hbase/start.sh:/opt/hbase-start.sh:ro
     ports: ["16010:16010", "9090:9090"]
     mem_limit: 1g
+    stop_grace_period: 30s
     depends_on: [namenode, datanode]
 
   sparksql:
@@ -175,8 +183,14 @@ services:
     volumes:
       - ../notebooks:/opt/zeppelin/notebook
       - ..:/repo:ro
+      # Zeppelin rewrites conf/interpreter.json at startup (temp file + rename), which fails on a bind-mounted
+      # file ("Device or resource busy"). So the repo file is mounted read-only as a seed and copied into the
+      # container's conf/ at every start: an edit in the repo applies at the next restart, no rebuild.
+      - ./zeppelin/interpreter.json:/opt/zeppelin-seed/interpreter.json:ro
+    command: ["bash", "-c", "cp /opt/zeppelin-seed/interpreter.json conf/interpreter.json && exec bin/zeppelin.sh"]
     mem_limit: 1g
-    depends_on: [hiveserver2, sparksql, hbase]
+    # Not hbase: Areas 7 and 9 run core + zeppelin only; the search notebook needs --profile hbase as well.
+    depends_on: [hiveserver2, sparksql]
 
 networks:
   lake:

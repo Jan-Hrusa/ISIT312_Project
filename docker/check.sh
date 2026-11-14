@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Checks the running stack. Run from anywhere (bash; Git Bash on Windows) after
-#   docker compose --profile core up -d        (and --profile yarn for the YARN checks)
-# Prints one line per check, "OK <name>" or "FAIL <name>: <first error line>", and exits 1 if any check failed.
+#   docker compose --profile core up -d        (plus --profile yarn, hbase or zeppelin for their checks)
+# Prints one line per check, "OK <name>", "FAIL <name>: <first error line>" or "SKIP <name>" (that profile's
+# containers aren't running), and exits 1 if any check failed.
 set -uo pipefail
 # With pipefail, a pipeline must not end in "grep -q": grep exits at the first match, the command feeding it then
 # fails writing to the closed pipe, and the check fails at random. Use "grep ... >/dev/null", which reads to the end.
@@ -71,6 +72,8 @@ import happybase
 
 c = happybase.Connection('hbase', 9090, timeout=10000)
 c.open()
+if b'check_hb' in c.tables():  # left over by an interrupted earlier run
+    c.delete_table('check_hb', disable=True)
 c.create_table('check_hb', {'cf': dict()})
 t = c.table('check_hb')
 t.put(b'row1', {b'cf:value': b'hello_hbase'})
@@ -159,28 +162,35 @@ run hive check_hive
 run spark check_spark
 run metastore check_metastore
 
-services=$(docker compose --profile core --profile hbase --profile zeppelin ps --status running --services 2>/dev/null)
+services=$(docker compose --profile core --profile yarn --profile hbase --profile zeppelin \
+  ps --status running --services 2>/dev/null)
+up() { echo "$services" | grep -x "$1" >/dev/null; }
 
-if echo "$services" | grep -x sparksql >/dev/null; then
+if up resourcemanager; then
+  run yarn check_yarn
+  run hive-yarn check_hive_yarn
+else
+  echo "SKIP yarn"
+  echo "SKIP hive-yarn"
+fi
+
+if up sparksql; then
   run sparksql check_sparksql
 else
   echo "SKIP sparksql"
 fi
 
-if echo "$services" | grep -x hbase >/dev/null; then
+if up hbase; then
   run hbase check_hbase
 else
   echo "SKIP hbase"
 fi
 
-if echo "$services" | grep -x zeppelin >/dev/null; then
+if up zeppelin; then
   run zeppelin check_zeppelin
 else
   echo "SKIP zeppelin"
 fi
-
-echo "SKIP yarn"
-echo "SKIP hive-yarn"
 
 cleanup
 exit $failed
