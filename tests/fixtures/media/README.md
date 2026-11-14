@@ -32,15 +32,25 @@ the date, otherwise `UNASSIGNED` with the issue named.
 | IMG_20260610_110000_00001.jpg | 2026-06-10 11:00:00 | 49.700000 | 16.200000 | Google Pixel 7a | 112.8 km to FVE-2019-02 | UNASSIGNED | UNASSIGNED_PHOTO |
 | IMG_20190715_083000_00001.jpg | 2019-07-15 08:30:00 | 49.434898 | 14.690000 | Samsung Galaxy A54 | 100 m to FVE-2019-02 | FVE-2019-02 | – |
 | IMG_20260705_120000_00001.jpg | 2026-07-05 12:00:00 | 49.434000 | 14.690000 | Xiaomi Redmi Note 12 | 0 m to FVE-2019-02 | UNASSIGNED | UNASSIGNED_PHOTO |
+| IMG_20260708_073000_00001.jpg | 2026-07-08 07:30:00 | 49.328305 | 14.165000 | Apple iPhone 13 | 300 m to FVE-2026-02 | FVE-2026-02 | – |
+| IMG_20260916_131500_00001.jpg | 2026-09-16 13:15:00 | 49.331000 | 14.162243 | Xiaomi Redmi Note 12 | 200 m to FVE-2026-02 | FVE-2026-02 | – |
+| IMG_20260415_140000_00002.jpg | 2026-04-15 14:00:00 | none | none | Google Pixel 7a | – | UNASSIGNED | NO_GPS |
+| IMG_20260520_151000_00004.jpg | 2026-05-20 15:10:00 | 49.331000 | 14.206353 | Samsung Galaxy A54 | 3.0 km to FVE-2026-02 | UNASSIGNED | UNASSIGNED_PHOTO |
 
 What each one tests:
 1. inside the site, well within the radius;
 2. inside, near the edge (449 of 500 m);
 3. no GPS position (the generator's `NO_GPS`);
 4. just outside the radius (649 of 500 m) on a construction day of `FVE-2026-02`;
-5. far from every site (the generator's `WRONG_SITE`);
+5. far from every site (112.8 km);
 6. the older project: inside the `FVE-2019-02` site during its construction;
-7. right place, wrong date: the centre of the `FVE-2019-02` site six years after its construction ended.
+7. right place, wrong date: the centre of the `FVE-2019-02` site six years after its construction ended;
+8. inside the site, 300 m south of the centre;
+9. inside the site, 200 m west of the centre (with 1, 2, 8 and 6: five photos inside a site on a
+   construction day);
+10. a second photo without GPS position;
+11. 3.0 km east of the `FVE-2026-02` site and outside every site's radius: the generator's `WRONG_SITE`
+    (2-5 km from the photo's own site, 1% of the photos).
 
 | File | file_id | Bytes |
 |---|---|---:|
@@ -51,26 +61,32 @@ What each one tests:
 | IMG_20260610_110000_00001.jpg | e5250eb4246ce822 | 8648 |
 | IMG_20190715_083000_00001.jpg | 81996a8f1af54d0c | 7584 |
 | IMG_20260705_120000_00001.jpg | 6898b9ec0d8ca655 | 7110 |
+| IMG_20260708_073000_00001.jpg | 5f7600b441c2e07d | 6754 |
+| IMG_20260916_131500_00001.jpg | 4e331ce5fc1416c8 | 6972 |
+| IMG_20260415_140000_00002.jpg | 2d88f6713e9cee82 | 7994 |
+| IMG_20260520_151000_00004.jpg | d9cd8f7a02c32859 | 7159 |
 
 ## Project folder `drive/projects/FVE-2026-02/`
 
 | File | Business date | doc_type / version | file_id | Bytes |
 |---|---|---|---|---:|
 | contract.docx | 2026-01-20 (signing) | contract | 5f0db876d7038852 | 36725 |
-| building_permit.pdf | 2026-02-16 | building_permit | eaaef1eb0371160e | 1909 |
-| site_layout_v1.dwg | 2026-01-26 | site_layout v1 | 3d08eaf0d12ec377 | 6416 |
-| site_layout_v2.dwg | 2026-02-09 | site_layout v2 | 6f81cbdf10d57d51 | 7943 |
-| site_layout_final.dwg | 2026-02-23 | site_layout final | 1b2b07da9d2f6e4d | 10495 |
+| building_permit.pdf | 2026-01-31 (construction start - 30 days) | building_permit | 8f665c0df96e6871 | 1914 |
+| grid_connection.pdf | 2026-05-01 (construction start + 60 days) | grid_connection | 3665e8bd88ec56c1 | 1929 |
+| site_layout_v1.dwg | 2026-01-30 (signing + 10 days) | site_layout v1 | 850654da5e8fac9d | 29520 |
+| site_layout_v2.dwg | 2026-02-14 (signing + 25 days) | site_layout v2 | 7cb3b4e6c6db6e6e | 42877 |
+| site_layout_final.dwg | 2026-02-25 (construction start - 5 days) | site_layout final | 9359aa8452131a64 | 26573 |
 | videos/VID_20260520_00001.mp4 | 2026-05-20 | video | 5c3286dcd620f43c | 24588 |
 
-- The project is ACTIVE and its construction ends after `DATA_END`, so it has no `grid_connection.pdf`
-  (dated 14-45 days before construction ends) and no `handover_protocol.pdf` (COMPLETED only), exactly as the
-  generator would write it.
+- The dates follow the generator's rules (Task 7): permit = construction start - 30 days, grid connection =
+  start + 60 days, drawings v1 = signing + 10 days, v2 = signing + 25 days, final = the later of v2 + 10 days
+  and construction start - 5 days. The project is ACTIVE and its construction ends after `DATA_END`, so it
+  has no `handover_protocol.pdf` (COMPLETED only), exactly as the generator would write it.
 - Drawings are in order v1 < v2 < final: the latest drawing is `site_layout_final.dwg` and there is **no**
   `WRONG_VERSION` here (the generator plants that on one COMPLETED project).
 - DWG files are dummy bytes: they start with `AC1032`, then a NUL and the ASCII line
   `SYNTHETIC SITE LAYOUT FVE-2026-02 <version> <date>`.
-- `contract.docx` and the PDF carry the project code, name, site, power and date as text.
+- `contract.docx` and the PDFs carry the project code, name, site, power and date as text.
 
 ## Video
 

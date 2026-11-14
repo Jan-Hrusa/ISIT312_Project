@@ -1,9 +1,11 @@
 """Site photos: which photos exist (plan), the planted problems, and the JPEG bytes (render).
 
-Each signed project gets PHOTOS_PER_PROJECT photos over its whole construction period, taken on weekdays in
-working hours within 90% of the site radius (so rounding never pushes a photo out of its site). For an ACTIVE
-project only the part up to DATA_END exists. Then 10% of all photos lose their GPS (NO_GPS) and
-WRONG_SITE_PER_SCALE x scale photos get a position at least WRONG_SITE_MIN_M from every project site.
+Each signed project gets FIRST_WEEK_PHOTOS photos spread over the workdays of its first construction week,
+then WEEKLY_PHOTOS photos every following week, all on one workday of that week (the site manager's weekly
+visit), until construction ends (Task 7; ~300-400 photos per completed project). Photos are taken in working
+hours within 90% of the site radius (so rounding never pushes a photo out of its site); nothing after DATA_END
+exists, so an ACTIVE project's photos stop there. Then 10% of all photos lose their GPS (NO_GPS) and 1% get a
+position 2-5 km from their own site and outside every project's radius (WRONG_SITE).
 """
 
 import io
@@ -17,13 +19,14 @@ from common import config
 from common.projects import Project
 from generators.media.util import distance_m, offset, workdays
 
-PHOTOS_PER_PROJECT = (300, 400)  # over the full construction period
+FIRST_WEEK_PHOTOS = (100, 150)  # spread over the first construction week
+WEEKLY_PHOTOS = (3, 8)  # every later week, on one workday
 NO_GPS_SHARE = 0.10
-WRONG_SITE_PER_SCALE = 5
-WRONG_SITE_MIN_M = 10_000.0
+WRONG_SITE_SHARE = 0.01
+WRONG_SITE_M = (2_000.0, 5_000.0)  # distance from the photo's own site
+WRONG_SITE_CLEARANCE_M = 100.0  # at least this far outside every project's radius
 SITE_SHARE = 0.9  # photos fall within this share of the radius
 WORK_HOURS_UTC = (6, 16)  # first and last+1 hour (08:00-18:00 Czech summer time)
-CZ_BOX = (48.6, 51.0, 12.1, 18.8)  # lat min, lat max, lon min, lon max: where wrong-site positions are drawn
 WIDTH, HEIGHT, QUALITY = 320, 240, 70
 
 DEVICES = (
@@ -58,21 +61,32 @@ def photo_period(project: Project, data_end: date) -> tuple[date, date] | None:
     return project.construction_start, min(project.construction_end, data_end)
 
 
-def plan(projects: list[Project], rng, scale: int = 1, data_end: date = config.DATA_END) -> list[PhotoSpec]:
+def shoot_days(project: Project, rng) -> list[date]:
+    """One date per photo over the project's whole construction (before any DATA_END cut): FIRST_WEEK_PHOTOS
+    on random workdays of the first week, then WEEKLY_PHOTOS on one random workday of each later week."""
+    start, end = project.construction_start, project.construction_end
+    days = []
+    first_week = workdays(start, min(start + timedelta(6), end))
+    if first_week:
+        days += [rng.choice(first_week) for _ in range(rng.randint(*FIRST_WEEK_PHOTOS))]
+    week = start + timedelta(7)
+    while week <= end:
+        work = workdays(week, min(week + timedelta(6), end))
+        if work:
+            days += [rng.choice(work)] * rng.randint(*WEEKLY_PHOTOS)
+        week += timedelta(7)
+    return days
+
+
+def plan(projects: list[Project], rng, data_end: date = config.DATA_END) -> list[PhotoSpec]:
     """Every photo of every signed project, with the planted problems, sorted by name."""
-    raw = []  # (taken_at, project_code, lat, lon, device)
+    raw = []  # [taken_at, project_code, lat, lon, device, planted]
     for p in projects:
-        period = photo_period(p, data_end)
-        if period is None:
+        if photo_period(p, data_end) is None:
             continue
-        work = workdays(*period)
-        if not work:
-            continue
-        full_days = (p.construction_end - p.construction_start).days + 1
-        part_days = (period[1] - period[0]).days + 1
-        count = round(rng.randint(*PHOTOS_PER_PROJECT) * part_days / full_days)
-        for _ in range(count):
-            day = rng.choice(work)
+        for day in shoot_days(p, rng):
+            if day > data_end:
+                continue
             second = rng.randrange(WORK_HOURS_UTC[0] * 3600, WORK_HOURS_UTC[1] * 3600)
             taken = datetime(day.year, day.month, day.day, tzinfo=timezone.utc) + timedelta(seconds=second)
             bearing = rng.uniform(0, 2 * math.pi)
@@ -80,7 +94,7 @@ def plan(projects: list[Project], rng, scale: int = 1, data_end: date = config.D
             lat, lon = offset(p.lat, p.lon, dist * math.cos(bearing), dist * math.sin(bearing))
             raw.append([taken, p.project_code, lat, lon, rng.choice(DEVICES), None])
 
-    _plant(raw, projects, rng, scale)
+    _plant(raw, projects, rng)
 
     raw.sort(key=lambda r: (r[0], r[1]))
     per_day: dict[date, int] = {}
@@ -91,28 +105,34 @@ def plan(projects: list[Project], rng, scale: int = 1, data_end: date = config.D
     return specs
 
 
-def _plant(raw: list, projects: list[Project], rng, scale: int) -> None:
-    """NO_GPS on NO_GPS_SHARE of the photos, WRONG_SITE on WRONG_SITE_PER_SCALE x scale others (in place)."""
+def _plant(raw: list, projects: list[Project], rng) -> None:
+    """NO_GPS on NO_GPS_SHARE of the photos, WRONG_SITE on WRONG_SITE_SHARE of the others (in place)."""
     if not raw:
         return
+    by_code = {p.project_code: p for p in projects}
     order = list(range(len(raw)))
     rng.shuffle(order)
     n_no_gps = round(len(raw) * NO_GPS_SHARE)
-    n_wrong = min(WRONG_SITE_PER_SCALE * scale, len(raw) - n_no_gps)
+    n_wrong = min(round(len(raw) * WRONG_SITE_SHARE), len(raw) - n_no_gps)
     for i in order[:n_no_gps]:
         raw[i][2] = raw[i][3] = None
         raw[i][5] = "NO_GPS"
     for i in order[n_no_gps : n_no_gps + n_wrong]:
-        raw[i][2], raw[i][3] = far_position(projects, rng)
+        raw[i][2], raw[i][3] = wrong_site_position(by_code[raw[i][1]], projects, rng)
         raw[i][5] = "WRONG_SITE"
 
 
-def far_position(projects: list[Project], rng) -> tuple[float, float]:
-    """A position in the Czech box at least WRONG_SITE_MIN_M from every project site."""
-    lat_min, lat_max, lon_min, lon_max = CZ_BOX
+def wrong_site_position(own: Project, projects: list[Project], rng) -> tuple[float, float]:
+    """A position WRONG_SITE_M from the own site and at least WRONG_SITE_CLEARANCE_M outside every project's
+    radius, so photo filing can't place it on any site."""
     while True:
-        lat, lon = round(rng.uniform(lat_min, lat_max), 6), round(rng.uniform(lon_min, lon_max), 6)
-        if all(distance_m(lat, lon, p.lat, p.lon) >= WRONG_SITE_MIN_M for p in projects):
+        bearing = rng.uniform(0, 2 * math.pi)
+        dist = rng.uniform(*WRONG_SITE_M)
+        lat, lon = offset(own.lat, own.lon, dist * math.cos(bearing), dist * math.sin(bearing))
+        own_m = distance_m(lat, lon, own.lat, own.lon)
+        if WRONG_SITE_M[0] <= own_m <= WRONG_SITE_M[1] and all(
+            distance_m(lat, lon, p.lat, p.lon) >= p.radius_m + WRONG_SITE_CLEARANCE_M for p in projects
+        ):
             return lat, lon
 
 

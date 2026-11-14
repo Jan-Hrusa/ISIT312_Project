@@ -12,7 +12,7 @@ from common import config
 from common.projects import Project
 from generators.media.util import workdays
 
-VIDEOS_PER_PROJECT = 4
+VIDEOS_PER_PROJECT = (3, 5)
 SAMPLE_MP4 = config.REPO_ROOT / "tests" / "fixtures" / "media" / "sample.mp4"
 
 
@@ -27,11 +27,11 @@ def free_box(payload: bytes) -> bytes:
 
 
 def plan_days(project: Project, rng, period: tuple[date, date] | None) -> list[date]:
-    """VIDEOS_PER_PROJECT distinct weekdays of the photo period (fewer if it is shorter), sorted."""
+    """3-5 (VIDEOS_PER_PROJECT) distinct weekdays of the photo period (fewer if it is shorter), sorted."""
     if period is None:
         return []
     work = workdays(*period)
-    return sorted(rng.sample(work, min(VIDEOS_PER_PROJECT, len(work))))
+    return sorted(rng.sample(work, min(rng.randint(*VIDEOS_PER_PROJECT), len(work))))
 
 
 def make(project_dir: Path, day: date, n: int, sample: bytes) -> Path:

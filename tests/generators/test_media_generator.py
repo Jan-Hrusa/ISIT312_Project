@@ -6,7 +6,8 @@ import random
 import re
 import shutil
 import struct
-from datetime import date, datetime, timezone
+from collections import Counter
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -83,13 +84,17 @@ def test_gps_inside_radius(photo_exif, planted, projects):
 
 def test_wrong_site_far_from_every_project(photo_exif, planted, projects):
     wrong_site = _refs(planted, "WRONG_SITE")
-    assert len(wrong_site) == photos.WRONG_SITE_PER_SCALE
+    assert len(wrong_site) == round(len(photo_exif) * photos.WRONG_SITE_SHARE) > 0
     for name, row in wrong_site.items():
         meta = photo_exif[name]
         assert meta["lat"] is not None
+        own = projects[row["project_code"]]
+        assert own.is_signed
+        own_m = distance_m(meta["lat"], meta["lon"], own.lat, own.lon)
+        assert photos.WRONG_SITE_M[0] - 1 <= own_m <= photos.WRONG_SITE_M[1] + 1, name
         for p in projects.values():
-            assert distance_m(meta["lat"], meta["lon"], p.lat, p.lon) >= photos.WRONG_SITE_MIN_M
-        assert projects[row["project_code"]].is_signed
+            assert distance_m(meta["lat"], meta["lon"], p.lat, p.lon) > p.radius_m, name
+        assert _owner(meta, projects) is None
 
 
 def test_dates_inside_construction(photo_exif, planted, projects):
@@ -108,10 +113,25 @@ def test_nothing_after_data_end(run, photo_exif, projects):
     assert files
     assert all(_mtime(p) <= limit for p in files)
     assert all(m["taken_at"].date() <= config.DATA_END for m in photo_exif.values())
-    # FVE-2026-02 is ACTIVE until 2027: its photos stop at DATA_END and it has no grid connection yet
+    # FVE-2026-02 is ACTIVE until 2027: its photos stop at DATA_END and it has no handover protocol yet
     active = [m for n, m in photo_exif.items() if m["taken_at"].year == 2026]
     assert active and max(m["taken_at"].date() for m in active) <= config.DATA_END
-    assert not (sources / "drive" / "projects" / "FVE-2026-02" / "grid_connection.pdf").exists()
+    assert not (sources / "drive" / "projects" / "FVE-2026-02" / "handover_protocol.pdf").exists()
+
+
+def test_photos_first_week_then_weekly(projects):
+    specs = photos.plan(list(projects.values()), random.Random(config.SEED))
+    p = projects["FVE-2019-02"]  # COMPLETED before DATA_END: its whole construction is planned
+    days = sorted(s.taken_at.date() for s in specs if s.project_code == p.project_code)
+    first = [d for d in days if d < p.construction_start + timedelta(7)]
+    assert photos.FIRST_WEEK_PHOTOS[0] <= len(first) <= photos.FIRST_WEEK_PHOTOS[1]
+    week = p.construction_start + timedelta(7)
+    while week + timedelta(6) <= p.construction_end:
+        in_week = [d for d in days if week <= d < week + timedelta(7)]
+        assert photos.WEEKLY_PHOTOS[0] <= len(in_week) <= photos.WEEKLY_PHOTOS[1], week
+        assert len(set(in_week)) == 1, week  # one site visit a week
+        week += timedelta(7)
+    assert 300 <= len(days) <= 450
 
 
 def test_ten_percent_without_gps(photo_exif, planted):
@@ -132,10 +152,26 @@ def test_drawing_versions_present(run, projects):
             assert f"{code} {version} ".encode() in data[:80]
         names = {f.name for f in (root / code).iterdir() if f.is_file()}
         expected = {"contract.docx", "building_permit.pdf"}
+        if p.construction_start + timedelta(60) <= config.DATA_END:
+            expected.add("grid_connection.pdf")
         if p.status == "COMPLETED":
-            expected |= {"grid_connection.pdf", "handover_protocol.pdf"}
-        assert expected <= names
+            expected.add("handover_protocol.pdf")
+        assert {n for n in names if not n.endswith(".dwg")} == expected
         assert (root / code / "contract.docx").read_bytes()[:2] == b"PK"
+        for version in ("v1", "v2", "final"):
+            size = (root / code / f"site_layout_{version}.dwg").stat().st_size
+            assert 20_000 <= size <= 60_000
+
+
+def test_documents_dated_by_the_rules(run, projects):
+    root = run[0] / "drive" / "projects"
+    for code, p in projects.items():
+        if not p.is_signed:
+            continue
+        folder = root / code
+        assert _mtime(folder / "building_permit.pdf") == _midday(p.construction_start - timedelta(30))
+        if (folder / "grid_connection.pdf").exists():
+            assert _mtime(folder / "grid_connection.pdf") == _midday(p.construction_start + timedelta(60))
 
 
 def test_final_newer_than_v2_except_planted(run, projects, planted):
@@ -145,7 +181,10 @@ def test_final_newer_than_v2_except_planted(run, projects, planted):
         if not p.is_signed or code in wrong:
             continue
         v1, v2, final = (_mtime(root / code / f"site_layout_{v}.dwg") for v in ("v1", "v2", "final"))
-        assert v1 < v2 < final <= _midday(p.construction_start)
+        assert v1 < v2 < final
+        assert v1 == _midday(p.signed_date + timedelta(10))
+        assert v2 == _midday(p.signed_date + timedelta(25))
+        assert final == _midday(max(p.signed_date + timedelta(35), p.construction_start - timedelta(5)))
 
 
 def test_one_wrong_version_project(run, projects, planted):
@@ -154,8 +193,8 @@ def test_one_wrong_version_project(run, projects, planted):
     (code,) = wrong
     assert wrong[code]["project_code"] == code and projects[code].status == "COMPLETED"
     folder = run[0] / "drive" / "projects" / code
-    v1, v2, final = (_mtime(folder / f"site_layout_{v}.dwg") for v in ("v1", "v2", "final"))
-    assert v1 < final < v2
+    v2, final = (_mtime(folder / f"site_layout_{v}.dwg") for v in ("v2", "final"))
+    assert final == v2 - timedelta(20)
 
 
 def test_videos_unique_bytes(run):
@@ -169,6 +208,8 @@ def test_videos_unique_bytes(run):
         assert data == sample + struct.pack(">I", 8 + len(name)) + b"free" + name
         hashes.add(hashlib.sha256(data).hexdigest())
     assert len(hashes) == len(videos)
+    per_project = Counter(path.parent.parent.name for path in videos)
+    assert all(3 <= n <= 5 for n in per_project.values())
 
 
 def test_names_unique(run):
@@ -246,7 +287,7 @@ def test_cli_prints_summary(tmp_path, capsys):
     for word in (
         "photos:",
         "with GPS:",
-        "wrong site: 5",
+        "wrong site:",
         "without GPS:",
         "videos:",
         "documents:",

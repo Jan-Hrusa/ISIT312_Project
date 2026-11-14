@@ -14,7 +14,7 @@ from pathlib import Path
 from common import config
 from common.projects import load_projects
 from generators.media import documents, drawings, exif, photos, videos
-from generators.media.util import set_business_mtime
+from generators.media.util import distance_m, set_business_mtime
 
 PLANTED_COLUMNS = ("problem", "ref", "project_code", "detail")
 WRONG_VERSION_PER_SCALE = 1
@@ -34,19 +34,25 @@ def generate(
         d.mkdir(parents=True, exist_ok=True)
 
     rng = random.Random(seed)  # all randomness flows from this one object, in a fixed order
-    specs = photos.plan(projects, rng, scale)
+    specs = photos.plan(projects, rng)
     completed = [p for p in projects if p.status == "COMPLETED"]
     wrong_version = {
         p.project_code for p in rng.sample(completed, min(WRONG_VERSION_PER_SCALE * scale, len(completed)))
     }
 
+    by_code = {p.project_code: p for p in projects}
     truth = []
     for s in specs:
         if s.planted == "NO_GPS":
             detail = f"taken {s.taken_at:%Y-%m-%d %H:%M:%S} UTC on site, no GPS position"
         elif s.planted == "WRONG_SITE":
+            own = by_code[s.project_code]
+            own_km = distance_m(s.lat, s.lon, own.lat, own.lon) / 1000
             km = photos.nearest_site_m(s.lat, s.lon, projects) / 1000
-            detail = f"GPS {s.lat:.6f},{s.lon:.6f}, nearest project site {km:.1f} km away"
+            detail = (
+                f"GPS {s.lat:.6f},{s.lon:.6f}, {own_km:.1f} km from its project's site, "
+                f"nearest project site {km:.1f} km away"
+            )
         else:
             continue
         truth.append({"problem": s.planted, "ref": s.name, "project_code": s.project_code, "detail": detail})
@@ -57,7 +63,7 @@ def generate(
         if not p.is_signed:
             continue
         folder = d_projects / p.project_code
-        n_documents += len(documents.write(p, folder, rng))
+        n_documents += len(documents.write(p, folder))
         dated = drawings.write(p, folder, rng, wrong_version=p.project_code in wrong_version)
         n_drawings += len(dated)
         if p.project_code in wrong_version:
