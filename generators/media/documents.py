@@ -1,9 +1,9 @@
 """A project's documents in its Drive folder: contract.docx, building_permit.pdf, grid_connection.pdf and
-(COMPLETED only) handover_protocol.pdf, each dated by a fixed rule:
+(COMPLETED only) handover_protocol.pdf, each dated by a fixed rule (Task 7):
 
 - contract: the signing date;
-- building permit: a day between the signing date and the day before construction starts;
-- grid connection: 14-45 days before construction ends (not before it starts);
+- building permit: 30 days before construction starts;
+- grid connection: 60 days after construction starts;
 - handover protocol: the day construction ends.
 
 A document dated after DATA_END doesn't exist yet and isn't written. Both formats are byte-reproducible:
@@ -21,7 +21,10 @@ from reportlab.pdfgen import canvas
 
 from common import config
 from common.projects import Project
-from generators.media.util import days, set_business_mtime
+from generators.media.util import set_business_mtime
+
+PERMIT_BEFORE_START_DAYS = 30
+GRID_AFTER_START_DAYS = 60
 
 TITLES = {
     "contract.docx": "Contract for work: construction of a photovoltaic power plant",
@@ -31,30 +34,23 @@ TITLES = {
 }
 
 
-def pre_construction_days(project: Project, data_end: date = config.DATA_END) -> list[date]:
-    """Signing date to the day before construction starts, cut at data_end (documents and drawings)."""
-    last = min(project.construction_start - timedelta(1), data_end)
-    return days(project.signed_date, last)
-
-
-def plan(project: Project, rng, data_end: date = config.DATA_END) -> dict[str, date]:
+def plan(project: Project, data_end: date = config.DATA_END) -> dict[str, date]:
     """File name -> document date for a signed project (only documents dated on or before data_end)."""
     if not project.is_signed:
         return {}
-    dated = {"contract.docx": project.signed_date}
-    window = pre_construction_days(project, data_end)
-    if window:
-        dated["building_permit.pdf"] = rng.choice(window)
-    grid = max(project.construction_end - timedelta(rng.randint(14, 45)), project.construction_start)
-    dated["grid_connection.pdf"] = grid
+    dated = {
+        "contract.docx": project.signed_date,
+        "building_permit.pdf": project.construction_start - timedelta(PERMIT_BEFORE_START_DAYS),
+        "grid_connection.pdf": project.construction_start + timedelta(GRID_AFTER_START_DAYS),
+    }
     if project.status == "COMPLETED":
         dated["handover_protocol.pdf"] = project.construction_end
     return {name: day for name, day in dated.items() if day <= data_end}
 
 
-def write(project: Project, folder: Path, rng, data_end: date = config.DATA_END) -> dict[str, date]:
+def write(project: Project, folder: Path, data_end: date = config.DATA_END) -> dict[str, date]:
     """Write the project's documents into folder (mtime = document date); return file name -> date."""
-    dated = plan(project, rng, data_end)
+    dated = plan(project, data_end)
     folder.mkdir(parents=True, exist_ok=True)
     for name, day in dated.items():
         write_file(project, folder / name, day)

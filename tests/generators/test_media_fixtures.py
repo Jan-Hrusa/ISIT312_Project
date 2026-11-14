@@ -53,7 +53,7 @@ def _expected_filing(lat, lon, day, projects) -> str:
 def test_media_fixtures_match_readme():
     photos = _table_rows("IMG_")
     described = [r for r in photos if len(r) == 8]
-    assert len(described) == 7
+    assert len(described) == 11
     projects = load_projects(SOURCES / "master" / "projects.csv")
     on_disk = sorted(p.name for p in (SOURCES / "mailbox" / "photos").glob("*.jpg"))
     assert on_disk == sorted(r[0] for r in described)
