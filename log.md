@@ -6,6 +6,15 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-15 - Task 12: HBase catalogue design and test table (Aryen)
+- Merged: hbase/schema.md (row key, four families, why project-first and zero-padded time, the two questions as
+  scans); hbase/catalogue.py (connect, create_table, row_key, scan_bounds, prefix, cells, thumbnail);
+  hbase/create_table.py; hbase/sample_rows.py (18 rows from the Task 7.1 samples); tests/hbase/test_rowkey.py
+- Checked: tests/hbase 5 passed (test_sample_rows_roundtrip on the stack's HBase); pytest -m "not integration"
+  126 passed; ruff check and format clean; check.sh core + hbase OK; in the HBase shell describe 'media_catalog'
+  (4 families, VERSIONS 1), count 18, a range scan of FVE-2026-02 photos 15 Apr - 20 May (2 rows, in time
+  order) and the drawing prefix scan (v1, v2, final)
+
 ### 2026-11-15 - Task 14.1: Collection job (Jan)
 - Merged: `ingest/collect.py` `collect(spark, sources_dir, sources, dry_run)` copies every new file of `sources/`
   into the raw zone once (de-duplicated by source, original path and SHA-256; an existing target is an error) and
@@ -19,7 +28,6 @@ One entry per merged task (or part with its own checkpoint), newest first:
   files collected in about 6 minutes, a second run collects 0; every raw file size equals its log row;
   `current_raw_files` feeds `processing.finance.run` (4,674 invoices, 2 PARSE_ERROR); snapshot allow, create,
   list and delete work on `/lake/raw`
-
 ### 2026-11-14 - Task 8: Review fixes to the full Docker stack and setup guide (Jan)
 - Merged: `zeppelin` no longer depends on `hbase`, so `--profile core --profile zeppelin` starts (it was an invalid
   project); check.sh runs the YARN checks again when the yarn profile is up and drops a leftover check_hb table
