@@ -6,6 +6,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-15 - Task 18: Photo packing into SequenceFiles (Muhammad)
+- Merged: ingest/seqfile.py (write_seq: one real SequenceFile through the Hadoop API, key Text = photo name, value BytesWritable = bytes; read_seq), ingest/media_pack.py (pack: photos grouped by business date into <LAKE_RAW>/photos/<yyyy>/<mm>/<yyyy-MM-dd>.seq, a day already packed gets <yyyy-MM-dd>__<ingest ts>.seq, one ingest_log row per photo with every column), tests/ingest/test_media_pack.py; collect.py already loads ingest.media_pack, so it is unchanged
+- Checked: not run in the client container (no Docker on my laptop, Jan validates); ruff check and format clean; the grouping checked on the 11 fixture photos with Spark stubbed out (7 daily files)
+
 ### 2026-11-15 - Task 17: Review fixes to the dataset statistics and the x10 dataset (Jan)
 - Merged: `generators/scale.py` runs on the stack's Python 3.10 (`timezone.utc`; `from datetime import UTC` broke
   the import, so `pytest -m "not integration"` stopped at collection); paths and seed from `common.config`
