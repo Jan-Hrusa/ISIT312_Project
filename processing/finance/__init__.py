@@ -246,6 +246,10 @@ def run(spark: SparkSession, inputs: dict[str, list[str]] | None = None) -> dict
         check_issues_df = dq_checks.run(invoices_df, lines_df, booked_df, budgets_df)
         all_issues_df = all_issues_df.unionByName(check_issues_df)
 
+    if dq_checks is not None and hasattr(dq_checks, "fill_project_codes"):
+        # DUPLICATE issues are found before project codes exist; they get the kept copy's code here.
+        all_issues_df = dq_checks.fill_project_codes(all_issues_df, invoices_df)
+
     projects_df = projects_df.cache()
     suppliers_df = suppliers_df.cache()
     budgets_df = budgets_df.cache()
