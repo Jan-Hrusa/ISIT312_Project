@@ -6,6 +6,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+
+### 2026-11-15 - Task 22: OLAP queries (Maysoon)
+- Prepared: warehouse/queries/ (six OLAP queries, V1 dashboard query, sample data and seven expected CSVs); tests/warehouse/test_queries.py
+- Checked: 129 non-integration tests passed; Task 22 query tests passed; Ruff lint and formatting passed; HiveServer2 Q1 rollup and V1 dashboard validated successfully. Screenshots to be shared via Google Drive.
 ### 2026-11-15 - Task 14.1: Collection job (Jan)
 - Merged: `ingest/collect.py` `collect(spark, sources_dir, sources, dry_run)` copies every new file of `sources/`
   into the raw zone once (de-duplicated by source, original path and SHA-256; an existing target is an error) and
