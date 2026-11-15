@@ -13,6 +13,7 @@ from PIL import Image
 
 from common import config, tables
 from common.projects import load_projects
+from ingest.seqfile import write_seq
 from processing.media import documents, filing, run, thumbs
 
 FILED_AT = datetime(2026, 5, 20, 10, 0, tzinfo=timezone.utc)
@@ -43,16 +44,11 @@ def write_projects(spark, sources: Path) -> None:
 
 
 def pack_photos(spark, sources: Path, dest: Path) -> list[tuple[str, str]]:
-    """The sample photos in one temporary SequenceFile (key Text = name, value BytesWritable = bytes).
-
-    Stands in for Task 18's ingest.seqfile.write_seq; returns the job's photo inputs [(seq_path, key), ...].
-    """
+    """The sample photos in one temporary SequenceFile; returns the job's inputs [(seq_path, key), ...]."""
     photos = sorted((sources / "mailbox" / "photos").glob("*.jpg"))
-    seq = dest / "photos.seq"
-    spark.sparkContext.parallelize(
-        [(p.name, bytearray(p.read_bytes())) for p in photos], 1
-    ).saveAsSequenceFile(seq.as_uri())
-    return [(seq.as_uri(), p.name) for p in photos]
+    seq = (dest / "photos.seq").as_uri()
+    write_seq(spark, seq, [(p.name, p.read_bytes()) for p in photos])
+    return [(seq, p.name) for p in photos]
 
 
 def media_inputs(spark, sources: Path, tmp_path: Path) -> dict:
