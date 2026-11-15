@@ -10,6 +10,20 @@ One entry per merged task (or part with its own checkpoint), newest first:
 ### 2026-11-15 - Task 22: OLAP queries (Maysoon)
 - Prepared: warehouse/queries/ (six OLAP queries, V1 dashboard query, sample data and seven expected CSVs); tests/warehouse/test_queries.py
 - Checked: 129 non-integration tests passed; Task 22 query tests passed; Ruff lint and formatting passed; HiveServer2 Q1 rollup and V1 dashboard validated successfully. Screenshots to be shared via Google Drive.
+### 2026-11-15 - Task 14.1: Collection job (Jan)
+- Merged: `ingest/collect.py` `collect(spark, sources_dir, sources, dry_run)` copies every new file of `sources/`
+  into the raw zone once (de-duplicated by source, original path and SHA-256; an existing target is an error) and
+  appends one `ingest_log` row per file; `ingest.run(spark)` returns `files_new` and `files_skipped`; run by hand
+  with `python -m ingest.collect [--sources ...] [--dry-run]`. `common/hdfs.py` (Hadoop FileSystem API through
+  Spark's JVM, snapshot helpers included) and `common/lake.py` (`raw_path`, `append_ingest_log`,
+  `current_raw_files`) are implemented. Photos are handed to `ingest.media_pack.pack` (Task 18); until that
+  module exists they are reported as `photos: SKIPPED (packer not merged)` and not logged
+- Checked: pytest tests/ingest tests/common/test_lake.py tests/common/test_hdfs.py (the 8 named tests and 16
+  more), pytest -m "not integration" 145 passed, ruff clean. On the stack with the scale-1 data (seed 312): 21,179
+  files collected in about 6 minutes, a second run collects 0; every raw file size equals its log row;
+  `current_raw_files` feeds `processing.finance.run` (4,674 invoices, 2 PARSE_ERROR); snapshot allow, create,
+  list and delete work on `/lake/raw`
+
 ### 2026-11-14 - Task 8: Review fixes to the full Docker stack and setup guide (Jan)
 - Merged: `zeppelin` no longer depends on `hbase`, so `--profile core --profile zeppelin` starts (it was an invalid
   project); check.sh runs the YARN checks again when the yarn profile is up and drops a leftover check_hb table
