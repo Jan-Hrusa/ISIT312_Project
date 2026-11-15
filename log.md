@@ -343,3 +343,8 @@ One entry per merged task (or part with its own checkpoint), newest first:
 - Merged: AGENTS.md sections 2 and 3: agents read the ClickUp guide page, then the task, then Drive 00 and 02, then README and contracts
 - Checked: docs only; no code changed
 
+
+### 2026-11-15 - Task 26: Warehouse loads and checks (Gokulsanjay)
+- Implemented: warehouse/etl/load_dims.sql (5 dimensions), load_facts.sql (4 facts), checks.sql (5 validation checks), run.py (ETL runner with row counts and RuntimeError on failed checks), tests/warehouse/test_etl.py (6 automated tests).
+- Checked: pytest tests/warehouse/ — 13 passed (7 DDL and 6 ETL); synthetic finance, bank transaction, invoice-status and payment-order fixtures; verified idempotency, positive payment amounts, UNKNOWN project, validation checks and error handling.
+- Pending: Full dataset validation and final payment reconciliation after Tasks 16 and 25.1 are integrated.
