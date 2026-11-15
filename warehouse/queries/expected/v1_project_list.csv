@@ -1,0 +1,4 @@
+project_code,name,region,mwp,status,contract_value,budget,spent,pct_spent,expected_margin,traffic_light
+FVE-2024-01,Solar Project Alpha,South Moravia,2.00,COMPLETED,3000000,2000,2300,115.00,2997700,RED
+FVE-2025-02,Solar Project Beta,Olomouc,1.50,COMPLETED,2500000,2000,2095,104.75,2497905,AMBER
+FVE-2026-03,Solar Project Gamma,Zlin,1.00,ACTIVE,1800000,2000,1800,90.00,1798000,GREEN

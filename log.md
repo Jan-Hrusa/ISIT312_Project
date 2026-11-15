@@ -14,6 +14,27 @@ One entry per merged task (or part with its own checkpoint), newest first:
   126 passed; ruff check and format clean; check.sh core + hbase OK; in the HBase shell describe 'media_catalog'
   (4 families, VERSIONS 1), count 18, a range scan of FVE-2026-02 photos 15 Apr - 20 May (2 rows, in time
   order) and the drawing prefix scan (v1, v2, final)
+### 2026-11-15 - Task 22: Review fixes to the OLAP queries (Jan)
+- Merged: `expected/q1_budget_vs_actual.csv` has the missing subtotal row of FVE-2026-03; every query test now
+  compares the result with its `expected/<query>.csv` (column names and rows); q5 also returns one row per signed
+  year (project_code NULL; the year's spending divided by the year's MWp); q4 `avg_overrun_pct` is the average
+  over the projects that are over budget (was over every COMPLETED project, which shrinks it towards 0 on the
+  full data); q6 has `month_on_month_pct` and the previous value is named `prev_month_with_spend` (a month
+  without invoices is skipped); every output column has an explicit name, so Hive and Spark SQL print the same
+  headers; `sample_fill.sql`: invoice ids `<ico>-<number>`, due dates 14 days after the issue date, payment
+  statuses PAID / PARTLY_PAID / UNPAID / OVERDUE, one bank account and 27 payments in `fact_payment` (for the
+  V3/V4 queries of Task 30.1); the expected CSVs end with a newline
+- Checked: pytest tests/warehouse/test_queries.py 10 passed (the q1 test fails on the old CSV); pytest -m "not
+  integration" 155 passed; ruff clean; all seven queries on HiveServer2 against the sample database give
+  the rows and the column names of the expected CSVs
+
+### 2026-11-15 - Task 22: OLAP queries (Maysoon)
+- Merged: `warehouse/queries/` with six OLAP queries (q1 budget vs actual with ROLLUP, q2 category group by year
+  with CUBE, q3 cumulative spend, q4 overrun ranking, q5 cost per MWp, q6 month on month), the V1 project-list
+  query with the traffic light, `sample_fill.sql` (3 projects, 4 categories, 36 invoice lines from November 2025
+  to February 2026) and seven expected CSVs; `tests/warehouse/test_queries.py`
+- Checked: pytest tests/warehouse/test_queries.py; pytest -m "not integration" 129 passed; ruff clean; q1 and v1
+  run in beeline on HiveServer2 with the sample database (screenshots in Drive `Screenshots/dashboard/`)
 
 ### 2026-11-15 - Task 14.1: Collection job (Jan)
 - Merged: `ingest/collect.py` `collect(spark, sources_dir, sources, dry_run)` copies every new file of `sources/`
