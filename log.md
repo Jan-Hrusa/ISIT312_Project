@@ -6,6 +6,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+
+### 2026-11-15 - Task 22: OLAP queries (Maysoon)
+- Prepared: warehouse/queries/ (six OLAP queries, V1 dashboard query, sample data and seven expected CSVs); tests/warehouse/test_queries.py
+- Checked: 129 non-integration tests passed; Task 22 query tests passed; Ruff lint and formatting passed; HiveServer2 Q1 rollup and V1 dashboard validated successfully. Screenshots to be shared via Google Drive.
 ### 2026-11-14 - Task 8: Review fixes to the full Docker stack and setup guide (Jan)
 - Merged: `zeppelin` no longer depends on `hbase`, so `--profile core --profile zeppelin` starts (it was an invalid
   project); check.sh runs the YARN checks again when the yarn profile is up and drops a leftover check_hb table
