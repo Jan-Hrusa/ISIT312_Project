@@ -21,7 +21,8 @@ def write_seq(spark: SparkSession, path: str, records: list[tuple[str, bytes]]) 
 
     The raw zone is write-once: an existing `path` is a FileExistsError, and if writing fails half-way the
     incomplete file (created by this call, logged nowhere) is removed before the error is raised.
-    Parent folders are created. Records are not compressed (JPEG bytes don't shrink).
+    Parent folders are created. Records are not compressed: real JPEG bytes don't shrink, and Hadoop's default
+    (zlib per record, used when no compression type is given) would cost CPU on every write and read.
     """
     sc = spark.sparkContext
     jvm = sc._jvm
@@ -33,8 +34,9 @@ def write_seq(spark: SparkSession, path: str, records: list[tuple[str, bytes]]) 
     fs.mkdirs(target.getParent())
 
     io = jvm.org.apache.hadoop.io
+    no_compression = getattr(io, "SequenceFile$CompressionType").NONE
     writer = io.SequenceFile.createWriter(
-        fs, conf, target, io.Text().getClass(), io.BytesWritable().getClass()
+        fs, conf, target, io.Text().getClass(), io.BytesWritable().getClass(), no_compression
     )
     written = 0
     try:
