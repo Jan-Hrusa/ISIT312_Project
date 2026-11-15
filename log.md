@@ -6,6 +6,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-15 - Task 17: Planted problems, dataset statistics, experiment dataset (Jayden)
+- Merged: generators/scale.py (--stats for the scale-1 tables, --scale 10 runs finance_docs, bank and media as subprocesses with FVE_DATASET=x10), docs/dataset-stats.md, docs/x10-MANIFEST.sha256, tests/generators/test_scale.py.
+- Checked: 3 scale tests pass, ruff clean. Scale 1: 52,055 files, 293.5 MB. x10 generated: 401,671 files, 2.78 GB (3.3 GB on disk). Two scale-2 runs gave an identical manifest.
+
 ### 2026-11-15 - Task 12: Review fixes to the HBase catalogue design (Jan)
 - Merged: videos, documents and drawings are keyed at 00:00:00 of their date (was 12:00; photos keep their
   `taken_at`); the sample rows carry the codes Task 19 writes: `meta:filing_rule` `GPS` / `NONE` / `FOLDER` (the
