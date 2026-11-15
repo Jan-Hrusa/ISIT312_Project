@@ -58,11 +58,13 @@ Planted problems:
 <!-- x10:begin -->
 ## Scaled dataset (x10)
 
-Command (repo root): `FVE_DATASET=x10 python -m generators.scale --scale 10`
+Generate it in the client container, with `sources_x10/` and `out_x10/` deleted or empty
+and about 15 GB free disk: `python -m generators.scale --scale 10`. The run ends
+by comparing your data with `docs/x10-MANIFEST.sha256` (it must print `OK`);
+`python -m generators.scale --check` repeats the comparison.
 
-- Seed: 312; Python 3.13.18
-- Runtime: 25.7 minutes
-- Compare your regenerated data with `docs/x10-MANIFEST.sha256`.
+- Seed: 312; Python 3.10.12 (client container)
+- Runtime: 13.4 minutes
 
 | File type | Files | Size (MB) |
 |---|---:|---:|

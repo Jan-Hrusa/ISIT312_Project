@@ -29,8 +29,17 @@ _X10 = DATASET == "x10"
 
 # Local folders (inside the client container the repo is /repo).
 REPO_ROOT = Path(__file__).resolve().parent.parent
-SOURCES_DIR = REPO_ROOT / ("sources_x10" if _X10 else "sources")
-OUT_DIR = REPO_ROOT / ("out_x10" if _X10 else "out")
+
+
+def dataset_dirs(dataset: str) -> tuple[Path, Path]:
+    """(sources folder, out folder) of a dataset, whichever one is active (generators.scale needs both)."""
+    if dataset not in DATASETS:
+        raise ValueError(f"dataset must be one of {', '.join(DATASETS)}, got {dataset!r}")
+    suffix = "" if dataset == "main" else f"_{dataset}"
+    return REPO_ROOT / f"sources{suffix}", REPO_ROOT / f"out{suffix}"
+
+
+SOURCES_DIR, OUT_DIR = dataset_dirs(DATASET)
 LEDGER_DIR = OUT_DIR / "ledger"
 
 # HDFS (paths without a scheme resolve against fs.defaultFS, hdfs://namenode:8020 in the stack).
