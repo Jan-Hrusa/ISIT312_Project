@@ -23,8 +23,16 @@ thumbnail or path is of no use.
 | `thumb` | `jpg` | photos: a 96×72 JPEG thumbnail |
 
 Values are UTF-8 strings: timestamps `yyyy-MM-dd HH:mm:ss` in UTC, dates `yyyy-MM-dd`, booleans
-`true`/`false`, coordinates with 6 decimals, sizes in bytes. The only binary value is `thumb:jpg`. An
-unknown value is not stored at all (HBase keeps no empty cells), so a photo without GPS has no `meta:lat`.
+`true`/`false`, coordinates with 6 decimals, sizes in bytes (`catalogue.cells` writes these formats). The only
+binary value is `thumb:jpg`. An unknown value is not stored at all (HBase keeps no empty cells), so a photo
+without GPS has no `meta:lat`.
+
+Two columns hold codes, the same as in the clean tables (`docs/contracts.md` section 6, written by Task 19):
+
+- `meta:filing_rule`: `GPS` (photo filed by position and date), `NONE` (photo left under `UNASSIGNED`),
+  `FOLDER` (video, filed by its project folder). Documents and drawings have none.
+- `doc:doc_type`: `CONTRACT`, `PERMIT`, `GRID`, `HANDOVER`, or `DRAWING` for every drawing; `doc:version` is
+  `v1`, `v2` or `final`.
 
 Create it with `python -m hbase.create_table` (`--drop` recreates it empty). In the HBase shell it is
 
@@ -40,8 +48,8 @@ Create it with `python -m hbase.create_table` (`--drop` recreates it empty). In 
   reach on their date), so the "to fix" list can find them under one prefix too.
 - `KIND`: `PHOTO`, `VIDEO`, `DOC` or `DRAWING`. Drawings are their own kind, not a `DOC` with a type, so
   that "the drawings of a project" is a prefix of their own.
-- Timestamp: when the photo was taken (EXIF, UTC); for videos, documents and drawings the business date
-  at 12:00 UTC, the time every generator sets as the file's mtime.
+- Timestamp: when the photo was taken (EXIF, UTC). Videos, documents and drawings only have a date (the
+  date in the video's name, the document's file date): their key carries that date at 00:00:00.
 - `file_id`: the first 16 hex characters of the file's SHA-256, as everywhere in the lake. It makes the key
   unique when two photos are taken in the same second.
 
@@ -84,7 +92,8 @@ how the data is used:
 ## The two questions as scans
 
 **Photos of a project between two dates** (both days included). `scan_bounds` gives the range; the stop key is
-exclusive, so it is midnight of the day after the end:
+exclusive, so it is midnight of the day after the end. The days are UTC days, like every time in the lake: a
+photo taken at 00:30 Czech time belongs to the day before.
 
     start, stop = catalogue.scan_bounds("FVE-2026-02", "PHOTO", date(2026, 6, 1), date(2026, 9, 1))
     # b"FVE-2026-02#PHOTO#20260601000000", b"FVE-2026-02#PHOTO#20260902000000"
@@ -110,8 +119,9 @@ that version, which is exactly the case the media job reports as `WRONG_VERSION`
 
 `python -m hbase.sample_rows` puts the Task 7.1 samples (`tests/fixtures/sources/`) into the table: 11 photos
 (5 filed to their project, 6 under `UNASSIGNED`), 1 video, 3 documents and 3 drawings of `FVE-2026-02`, with
-thumbnails. Each photo's project is the expected answer in `tests/fixtures/media/README.md`. `meta:filing_rule`
-holds `GPS_DATE` (filed), `NO_GPS` or `NO_SITE`; these values are the sample's own, the rule itself is Task 19's.
+thumbnails. Each photo's project is the expected answer in `tests/fixtures/media/README.md`; the filing rule
+itself is Task 19's. `meta:filing_rule` is `GPS` for the 5 filed photos, `NONE` for the 6 unassigned ones and
+`FOLDER` for the video.
 
 Check it in the HBase shell (`docker compose exec hbase hbase shell`):
 

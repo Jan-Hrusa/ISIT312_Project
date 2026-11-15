@@ -6,14 +6,28 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-15 - Task 12: Review fixes to the HBase catalogue design (Jan)
+- Merged: videos, documents and drawings are keyed at 00:00:00 of their date (was 12:00; photos keep their
+  `taken_at`); the sample rows carry the codes Task 19 writes: `meta:filing_rule` `GPS` / `NONE` / `FOLDER` (the
+  video too) and `doc:doc_type` `CONTRACT` / `PERMIT` / `GRID` / `HANDOVER` / `DRAWING`; `catalogue.cells` writes
+  floats (the coordinates) with 6 decimals, so the Task 19 load and the samples store the same text;
+  `hbase/schema.md` lists the codes and says that date ranges are UTC days; `docs/contracts.md` (shared file) now
+  has the `filing_rule` and `doc_type` value sets (section 6) and the key-time and value-format rule of
+  `media_catalog` (section 8); two new tests in `tests/hbase/test_rowkey.py`
+- Checked: pytest tests/hbase 7 passed on the stack (core + hbase; the two new tests fail on the old `hbase/`);
+  pytest -m "not integration" 161 passed, 1 skipped (the HBase test, no stack); ruff clean; `check.sh` OK hbase;
+  HBase shell on the 18 sample rows: describe (4 families, VERSIONS 1), count 18, photo range scan, drawing,
+  `UNASSIGNED` and video prefix scans (screenshots in Drive `Screenshots/catalogue/`)
+
 ### 2026-11-15 - Task 12: HBase catalogue design and test table (Aryen)
 - Merged: hbase/schema.md (row key, four families, why project-first and zero-padded time, the two questions as
   scans); hbase/catalogue.py (connect, create_table, row_key, scan_bounds, prefix, cells, thumbnail);
   hbase/create_table.py; hbase/sample_rows.py (18 rows from the Task 7.1 samples); tests/hbase/test_rowkey.py
 - Checked: tests/hbase 5 passed (test_sample_rows_roundtrip on the stack's HBase); pytest -m "not integration"
-  126 passed; ruff check and format clean; check.sh core + hbase OK; in the HBase shell describe 'media_catalog'
+  150 passed; ruff check and format clean; check.sh core + hbase OK; in the HBase shell describe 'media_catalog'
   (4 families, VERSIONS 1), count 18, a range scan of FVE-2026-02 photos 15 Apr - 20 May (2 rows, in time
   order) and the drawing prefix scan (v1, v2, final)
+
 ### 2026-11-15 - Task 22: Review fixes to the OLAP queries (Jan)
 - Merged: `expected/q1_budget_vs_actual.csv` has the missing subtotal row of FVE-2026-03; every query test now
   compares the result with its `expected/<query>.csv` (column names and rows); q5 also returns one row per signed
