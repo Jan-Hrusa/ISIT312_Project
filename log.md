@@ -6,6 +6,9 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-15 - Task 18: Photo packing into SequenceFiles (Muhammad)
+- Merged: ingest/seqfile.py (write_seq: one real SequenceFile through the Hadoop API, key Text = photo name, value BytesWritable = bytes; read_seq), ingest/media_pack.py (pack: photos grouped by business date into <LAKE_RAW>/photos/<yyyy>/<mm>/<yyyy-MM-dd>.seq, a day already packed gets <yyyy-MM-dd>__<ingest ts>.seq, one ingest_log row per photo with every column), tests/ingest/test_media_pack.py; collect.py already loads ingest.media_pack, so it is unchanged
+- Checked: not run in the client container (no Docker on my laptop, Jan validates); ruff check and format clean; the grouping checked on the 11 fixture photos with Spark stubbed out (7 daily files)
 ### 2026-11-15 - Tasks 20.1 and 20: Project codes and finance data-quality checks (Riya; fixes by Jan)
 - Merged: Riya's `processing/finance/project_codes.py` (`assign`: PDF-only invoices completed from their booking;
   rules BOOKED / SINGLE_ACTIVE / NONE in `project_rule`; category from the booking, else the supplier; lines
