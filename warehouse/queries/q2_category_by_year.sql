@@ -1,11 +1,10 @@
-
 -- name: q2_category_by_year
 -- Spending by category group and invoice year.
 -- CUBE includes group totals, year totals, and the grand total.
 
 SELECT
-    c.group_name,
-    d.year,
+    c.group_name AS group_name,
+    d.year AS year,
     SUM(i.amount_net) AS spent
 FROM ${DW_DB}.fact_invoice_line i
 JOIN ${DW_DB}.dim_cost_category c
