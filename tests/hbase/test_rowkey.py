@@ -95,6 +95,53 @@ def test_prefix_for_drawings():
         catalogue.prefix("FVE-2026-02", "DRAWINGS")
 
 
+def test_cells_write_the_documented_formats():
+    cells = catalogue.cells(
+        {
+            "meta": {"lat": 49.331, "lon": 14.165, "taken_at": datetime(2026, 4, 15, 9, 30), "device": None},
+            "doc": {"is_final": True, "file_date": date(2026, 2, 25)},
+        }
+    )
+    assert cells == {
+        b"meta:lat": b"49.331000",
+        b"meta:lon": b"14.165000",
+        b"meta:taken_at": b"2026-04-15 09:30:00",
+        b"doc:is_final": b"true",
+        b"doc:file_date": b"2026-02-25",
+    }
+
+
+def test_sample_rows_use_the_contract_values():
+    rows = sample_rows()
+    kinds = {}
+    for key, cells in rows.items():
+        project, kind, ts, _ = key.decode().split("#")
+        kinds.setdefault(kind, []).append((project, ts, cells))
+    assert {kind: len(found) for kind, found in kinds.items()} == {
+        "PHOTO": 11,
+        "VIDEO": 1,
+        "DOC": 3,
+        "DRAWING": 3,
+    }
+
+    # Files that only have a date are keyed at 00:00:00 of that date (contracts section 8).
+    for kind in ("VIDEO", "DOC", "DRAWING"):
+        assert all(ts.endswith("000000") for _, ts, _ in kinds[kind])
+    assert [ts for _, ts, _ in kinds["VIDEO"]] == ["20260520000000"]
+
+    # filing_rule and doc_type are the values Task 19 writes (contracts section 6).
+    for project, _, cells in kinds["PHOTO"]:
+        expected = b"NONE" if project == config.UNASSIGNED else b"GPS"
+        assert cells[b"meta:filing_rule"] == expected
+    assert [cells[b"meta:filing_rule"] for _, _, cells in kinds["VIDEO"]] == [b"FOLDER"]
+    assert sorted(cells[b"doc:doc_type"] for _, _, cells in kinds["DOC"]) == [b"CONTRACT", b"GRID", b"PERMIT"]
+    assert {cells[b"doc:doc_type"] for _, _, cells in kinds["DRAWING"]} == {b"DRAWING"}
+
+    # Coordinates with 6 decimals.
+    first = next(cells for _, ts, cells in kinds["PHOTO"] if ts == "20260415093000")
+    assert (first[b"meta:lat"], first[b"meta:lon"]) == (b"49.332078", b"14.165000")
+
+
 @pytest.mark.skipif(
     not _hbase_reachable(),
     reason=f"HBase Thrift {config.HBASE_HOST}:{config.HBASE_PORT} not reachable: start the stack with "

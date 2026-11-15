@@ -175,8 +175,10 @@ the same run (Spark refuses): compute the new content from other tables. Excepti
 | `ingest_log` | `run_id` STRING, `source` STRING, `original_path` STRING, `raw_path` STRING, `seq_key` STRING, `size_bytes` BIGINT, `sha256` STRING, `business_date` DATE, `ingested_at` TIMESTAMP | 14.1 (append), 18 (photo rows) |
 
 Value sets: `invoices.project_rule` `BOOKED` / `SINGLE_ACTIVE` / `NONE` (Task 20.1); `invoice_status.status`
-upper case (Task 9); `media_files.kind` `PHOTO` / `VIDEO`; `documents.doc_type` and `version` from the file name
-(Task 19).
+upper case (Task 9); `media_files.kind` `PHOTO` / `VIDEO`; `media_files.filing_rule` `GPS` (photo filed by
+position and date) / `NONE` (photo left `UNASSIGNED`) / `FOLDER` (video, filed by its project folder);
+`documents.doc_type` `CONTRACT` / `PERMIT` / `GRID` / `HANDOVER` / `DRAWING` and `version` `v1` / `v2` / `final`
+(drawings only), both from the file name (Task 19).
 
 One project and one category per invoice: `invoices.category` comes from the booking, else from the supplier's
 category, and every `invoice_lines` row carries its invoice's `project_code` and `category` (Task 20.1).
@@ -233,9 +235,12 @@ categories is needed.
 
 **HBase `media_catalog`** (`config.HBASE_TABLE`, Thrift at `config.HBASE_HOST:HBASE_PORT`; design Task 12, load
 Task 19): row key `<project_code>#<KIND>#<yyyyMMddHHmmss>#<file_id>`, KIND `PHOTO`, `VIDEO`, `DOC`, `DRAWING`;
-unfiled items under project `UNASSIGNED`. Families: `meta` (taken_at, lat, lon, size_bytes, device, original_name,
-ext, filing_rule), `loc` (raw_path, seq_key), `doc` (doc_type, version, is_final, title, file_date), `thumb` (`jpg`
-= 96x72 JPEG thumbnail of photos).
+unfiled items under project `UNASSIGNED`. The key time is `taken_at` (UTC) for photos; videos, documents and
+drawings only have a date (the date in the video's name, `file_date`) and are keyed at 00:00:00 of it. Families:
+`meta` (taken_at, lat, lon, size_bytes, device, original_name, ext, filing_rule), `loc` (raw_path, seq_key), `doc`
+(doc_type, version, is_final, title, file_date), `thumb` (`jpg` = 96x72 JPEG thumbnail of photos). Values are
+UTF-8 strings written by `hbase.catalogue.cells` (formats in `hbase/schema.md`); `filing_rule` and `doc_type`
+hold the codes of section 6.
 
 ## 9. Pipeline steps (module map)
 Each step is a function `run(spark) -> dict[str, int]` (row or file counts by name), called in this order by

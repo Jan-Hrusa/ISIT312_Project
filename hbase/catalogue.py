@@ -94,10 +94,12 @@ def prefix(project_code: str, kind: str | None = None) -> bytes:
 
 
 def cells(families: dict[str, dict[str, object]]) -> dict[bytes, bytes]:
-    """`{"meta": {"lat": 49.33, ...}, ...}` -> `{b"meta:lat": b"49.33", ...}` for `Table.put`.
+    """`{"meta": {"lat": 49.33, ...}, ...}` -> `{b"meta:lat": b"49.330000", ...}` for `Table.put`.
 
-    Every value is stored as a UTF-8 string except `thumb:jpg`, which is the JPEG bytes. None values are left
-    out (HBase stores no empty cells): a photo without GPS simply has no `meta:lat`.
+    Every value is stored as a UTF-8 string except `thumb:jpg`, which is the JPEG bytes: timestamps
+    `yyyy-MM-dd HH:mm:ss` in UTC, dates `yyyy-MM-dd`, booleans `true`/`false`, floats (the coordinates) with 6
+    decimals, so the sample rows and the Task 19 load write the same text. None values are left out (HBase
+    stores no empty cells): a photo without GPS simply has no `meta:lat`.
     """
     out: dict[bytes, bytes] = {}
     for family, columns in families.items():
@@ -130,6 +132,8 @@ def thumbnail(jpeg: bytes) -> bytes:
 def _text(value: object) -> str:
     if isinstance(value, bool):
         return "true" if value else "false"
+    if isinstance(value, float):
+        return f"{value:.6f}"
     if isinstance(value, datetime):
         if value.tzinfo is not None:
             value = value.astimezone(timezone.utc)
