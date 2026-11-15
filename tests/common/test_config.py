@@ -97,6 +97,11 @@ def test_dataset_switch(monkeypatch):
         main = importlib.reload(config)
         assert (main.DATASET, main.CLEAN_DB, main.LAKE_ROOT) == ("main", "fve_clean", "/lake")
         assert main.SOURCES_DIR.name == "sources"
+        # Both datasets' folders are known whichever is active (generators.scale).
+        assert [d.name for d in main.dataset_dirs("x10")] == ["sources_x10", "out_x10"]
+        assert main.dataset_dirs("main") == (main.SOURCES_DIR, main.OUT_DIR)
+        with pytest.raises(ValueError):
+            main.dataset_dirs("x100")
     finally:
         monkeypatch.delenv("FVE_DATASET", raising=False)
         importlib.reload(config)

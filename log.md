@@ -6,9 +6,25 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-15 - Task 17: Review fixes to the dataset statistics and the x10 dataset (Jan)
+- Merged: `generators/scale.py` runs on the stack's Python 3.10 (`timezone.utc`; `from datetime import UTC` broke
+  the import, so `pytest -m "not integration"` stopped at collection); paths and seed from `common.config`
+  (new `config.dataset_dirs`); only `--scale 10` (the one scaled dataset config knows); the run refuses non-empty
+  `sources_x10/` / `out_x10/` (files of an earlier run would end up in the statistics and the manifest); after
+  generating it compares the data with `docs/x10-MANIFEST.sha256` and prints `OK` or the differing entries;
+  `--check` repeats the comparison; `--record` rewrites the manifest and the x10 section (only for the repo);
+  rewriting the scale-1 section keeps the blank line before the x10 section. `docs/dataset-stats.md`
+  regenerated in the stack image (Python 3.10.12, 13.4 minutes) with the new instructions; the manifest is
+  unchanged. `test_scale_multiplies_invoices` checks the doubled offers per year and the invoices per signed
+  project (+-5%) instead of the total (which is 1.90x at scale 2 by design); two new tests
+- Checked: tests/generators/test_scale.py 5 passed (3 of them fail on the PR #38 version); pytest -m "not
+  integration" 166 passed, 1 skipped; ruff clean. In the stack image: x10 generated with `--scale 10 --record`, its 8,727
+  manifest lines identical to Jayden's manifest from Python 3.13 (photos included), `--check` OK; scale 1
+  regenerated and `--stats` leaves the doc unchanged
+
 ### 2026-11-15 - Task 17: Planted problems, dataset statistics, experiment dataset (Jayden)
 - Merged: generators/scale.py (--stats for the scale-1 tables, --scale 10 runs finance_docs, bank and media as subprocesses with FVE_DATASET=x10), docs/dataset-stats.md, docs/x10-MANIFEST.sha256, tests/generators/test_scale.py.
-- Checked: 3 scale tests pass, ruff clean. Scale 1: 52,055 files, 293.5 MB. x10 generated: 401,671 files, 2.78 GB (3.3 GB on disk). Two scale-2 runs gave an identical manifest.
+- Checked (on his PC with Python 3.13, not in the client container): 3 scale tests pass, ruff clean. Scale 1: 52,055 files, 293.5 MB. x10 generated: 401,671 files, 2.78 GB (3.3 GB on disk). Two scale-2 runs gave an identical manifest.
 
 ### 2026-11-15 - Task 12: Review fixes to the HBase catalogue design (Jan)
 - Merged: videos, documents and drawings are keyed at 00:00:00 of their date (was 12:00; photos keep their
