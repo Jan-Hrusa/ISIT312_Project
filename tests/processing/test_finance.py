@@ -166,8 +166,8 @@ def test_run_on_fixtures(clean_db, sources_tree: Path) -> None:
     assert counts["suppliers"] == 5
     assert counts["budget_lines"] == 10
     assert counts["invoices"] == 4
-    # 1 + 3 + 5 ISDOC lines; the PDF-only invoice gets its line from the booking in Task 20.1
-    assert counts["invoice_lines"] == 9
+    # 1 + 3 + 5 ISDOC lines plus the PDF-only invoice's line from its booking (Task 20.1)
+    assert counts["invoice_lines"] == 10
     assert counts["booked_costs"] == 4
     assert counts["dq_issues"] == 0
 
@@ -197,7 +197,8 @@ def test_run_reads_only_listed_files(clean_db, sources_tree: Path) -> None:
     assert counts["suppliers"] == 0
     assert counts["invoices"] == 2  # one ISDOC invoice, one PDF-only invoice; the other ISDOCs aren't listed
     assert counts["invoice_lines"] == 1
-    assert counts["dq_issues"] == 0
+    # No bookings listed, so neither invoice gets a project: two NO_PROJECT issues (Task 20)
+    assert counts["dq_issues"] == 2
 
     inputs["isdoc"].append((invoices / "99999999_202600001.isdoc").as_uri())
     with pytest.raises(Py4JJavaError, match="Input path does not exist"):

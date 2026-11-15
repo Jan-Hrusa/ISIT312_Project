@@ -5,14 +5,18 @@ from __future__ import annotations
 from datetime import date
 from decimal import Decimal
 
-from processing.finance import (
-    BOOKED_COSTS_SCHEMA,
-    INVOICE_LINES_WORK_SCHEMA,
-    INVOICES_WORK_SCHEMA,
-    PROJECTS_SCHEMA,
-    SUPPLIERS_SCHEMA,
-    project_codes,
+from pyspark.sql.types import DateType, DecimalType, StringType
+
+from processing.finance import _spark_schema, project_codes
+
+# The frames processing.finance.run hands to assign: contract columns plus the working columns it keeps.
+INVOICES_WORK_SCHEMA = _spark_schema("invoices", [("business_date", DateType())])
+INVOICE_LINES_WORK_SCHEMA = _spark_schema(
+    "invoice_lines", [("source_file", StringType()), ("business_date", DateType())]
 )
+BOOKED_COSTS_SCHEMA = _spark_schema("booked_costs")
+PROJECTS_SCHEMA = _spark_schema("projects")
+SUPPLIERS_SCHEMA = _spark_schema("suppliers")
 
 
 def _make_base_dfs(spark, invoices_data, lines_data, booked_data, projects_data=None, suppliers_data=None):
@@ -58,9 +62,7 @@ def test_pdf_only_completed_from_booking(spark) -> None:
         "export_week": "2025-W10",
         "source_file": "/raw/accounting/money_export_2025-W10.csv",
     }
-    inv_df, ln_df, bk_df, pr_df, sp_df = _make_base_dfs(
-        spark, [inv_row], [], [booked_row]
-    )
+    inv_df, ln_df, bk_df, pr_df, sp_df = _make_base_dfs(spark, [inv_row], [], [booked_row])
     out_inv, out_ln = project_codes.assign(inv_df, ln_df, bk_df, pr_df, sp_df)
 
     res_inv = out_inv.collect()[0]
@@ -73,6 +75,11 @@ def test_pdf_only_completed_from_booking(spark) -> None:
     res_ln = out_ln.collect()
     assert len(res_ln) == 1
     assert res_ln[0]["description"] == "booked from PDF"
+    assert res_ln[0]["amount_net"] == Decimal("1000.00")
+    assert res_ln[0]["vat_amount"] == Decimal("210.00")
+    assert res_ln[0]["business_date"] == date(2025, 3, 10)
+    assert out_ln.schema["quantity"].dataType == DecimalType(12, 3)
+    assert out_ln.schema["vat_rate"].dataType == DecimalType(4, 2)
 
 
 def test_project_code_from_booked_cost(spark) -> None:
@@ -109,9 +116,7 @@ def test_project_code_from_booked_cost(spark) -> None:
         "export_week": "2025-W10",
         "source_file": "/raw/accounting/money_export_2025-W10.csv",
     }
-    inv_df, ln_df, bk_df, pr_df, sp_df = _make_base_dfs(
-        spark, [inv_row], [], [booked_row]
-    )
+    inv_df, ln_df, bk_df, pr_df, sp_df = _make_base_dfs(spark, [inv_row], [], [booked_row])
     out_inv, _ = project_codes.assign(inv_df, ln_df, bk_df, pr_df, sp_df)
     r = out_inv.collect()[0]
     assert r["project_code"] == "FVE-2025-02"
@@ -282,9 +287,7 @@ def test_category_falls_back_to_supplier(spark) -> None:
         "bank_code": "0100",
         "source_file": "s.csv",
     }
-    inv_df, ln_df, bk_df, pr_df, sp_df = _make_base_dfs(
-        spark, [inv], [], [], [], [supp]
-    )
+    inv_df, ln_df, bk_df, pr_df, sp_df = _make_base_dfs(spark, [inv], [], [], [], [supp])
     out_inv, _ = project_codes.assign(inv_df, ln_df, bk_df, pr_df, sp_df)
     r = out_inv.collect()[0]
     assert r["category"] == "CABLES"
@@ -338,9 +341,7 @@ def test_lines_inherit_code(spark) -> None:
         "export_week": "2025-W10",
         "source_file": "m.csv",
     }
-    inv_df, ln_df, bk_df, pr_df, sp_df = _make_base_dfs(
-        spark, [inv], [ln], [bk]
-    )
+    inv_df, ln_df, bk_df, pr_df, sp_df = _make_base_dfs(spark, [inv], [ln], [bk])
     _, out_ln = project_codes.assign(inv_df, ln_df, bk_df, pr_df, sp_df)
     res_ln = out_ln.collect()[0]
     assert res_ln["project_code"] == "FVE-2025-01"

@@ -6,6 +6,23 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-15 - Tasks 20.1 and 20: Project codes and finance data-quality checks (Riya; fixes by Jan)
+- Merged: Riya's `processing/finance/project_codes.py` (`assign`: PDF-only invoices completed from their booking;
+  rules BOOKED / SINGLE_ACTIVE / NONE in `project_rule`; category from the booking, else the supplier; lines
+  inherit) and `processing/finance/dq_checks.py` (`dedupe` before project codes; `run`: MISSING_VS, NO_PROJECT
+  from accounting and isdoc, OVERRUN above 115%) with their tests, taken from PR #40 (not merged). Fixes:
+  issues are DataFrames with the `dq.ISSUE_COLUMNS` the hooks in `processing.finance.run` expect (the job itself
+  stays as merged in Task 13; only the call of the new `fill_project_codes` is added); issues carry
+  `project_code` (DUPLICATE: the kept copy's); an unbooked PDF-only invoice without a project gives NO_PROJECT as
+  the task says; the synthetic PDF line uses the contract types; tests build their frames from `common.schemas`;
+  `test_planted_problems_found_exactly` reads `out/ledger/planted_finance.csv` and needs an exact match apart
+  from the two allowed kinds of extra rows; two Task 13 run tests count the new line and issues
+- Checked: pytest -m "not integration" 177 passed, 1 skipped; ruff clean. On the desktop stack (raw zone of the
+  planted scale-1 data): finance step 173 s, invoices 4,669 (BOOKED 4,633, SINGLE_ACTIVE 2, NONE 34); finance
+  issues DUPLICATE 5, MISSING_VS 10, NO_PROJECT accounting 25 and isdoc 9 (issue dates 23-31 Oct, allowed),
+  OVERRUN 7 (6 planted + FVE-2025-08/INVERTERS, allowed), PARSE_ERROR 2; `pytest -m integration
+  tests/processing/test_dq_checks.py` passed (and fails with a planted row removed or added)
+
 ### 2026-11-15 - Task 17: Review fixes to the dataset statistics and the x10 dataset (Jan)
 - Merged: `generators/scale.py` runs on the stack's Python 3.10 (`timezone.utc`; `from datetime import UTC` broke
   the import, so `pytest -m "not integration"` stopped at collection); paths and seed from `common.config`

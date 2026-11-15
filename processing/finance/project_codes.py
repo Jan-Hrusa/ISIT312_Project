@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 from decimal import Decimal
+
 from pyspark.sql import DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql import types as T
 from pyspark.sql.window import Window
 
-DEC_14_2 = T.DecimalType(14, 2)
-DEC_14_3 = T.DecimalType(14, 3)
-DEC_5_2 = T.DecimalType(5, 2)
+from common import schemas
+
+# Hive types of the contract columns (Spark casts accept them as strings).
+_LINE_TYPES = dict(schemas.CLEAN_TABLES["invoice_lines"])
+MONEY = schemas.MONEY
 
 
 def assign(
@@ -28,9 +31,7 @@ def assign(
         F.col("export_week").asc_nulls_last(), F.col("source_file").asc_nulls_last()
     )
     booked_dedup = (
-        booked.withColumn("_rn", F.row_number().over(booked_win))
-        .filter(F.col("_rn") == 1)
-        .drop("_rn")
+        booked.withColumn("_rn", F.row_number().over(booked_win)).filter(F.col("_rn") == 1).drop("_rn")
     )
 
     b_ref = booked_dedup.select(
@@ -38,21 +39,17 @@ def assign(
         F.col("vs").alias("_b_vs"),
         F.col("issue_date").alias("_b_issue_date"),
         F.col("due_date").alias("_b_due_date"),
-        F.col("amount").cast(DEC_14_2).alias("_b_net"),
-        F.col("amount_gross").cast(DEC_14_2).alias("_b_gross"),
+        F.col("amount").cast(MONEY).alias("_b_net"),
+        F.col("amount_gross").cast(MONEY).alias("_b_gross"),
         F.col("project_code").alias("_b_project_code"),
         F.col("category").alias("_b_category"),
     )
 
-    inv_b = invoices.join(
-        b_ref, invoices["invoice_id"] == b_ref["_b_doc_ref"], "left"
-    )
+    inv_b = invoices.join(b_ref, invoices["invoice_id"] == b_ref["_b_doc_ref"], "left")
     is_booked_pdf = (~F.col("has_isdoc")) & F.col("_b_doc_ref").isNotNull()
 
     completed_inv = (
-        inv_b.withColumn(
-            "vs", F.when(is_booked_pdf, F.col("_b_vs")).otherwise(F.col("vs"))
-        )
+        inv_b.withColumn("vs", F.when(is_booked_pdf, F.col("_b_vs")).otherwise(F.col("vs")))
         .withColumn(
             "issue_date",
             F.when(is_booked_pdf, F.col("_b_issue_date")).otherwise(F.col("issue_date")),
@@ -71,9 +68,9 @@ def assign(
         )
         .withColumn(
             "total_vat",
-            F.when(
-                is_booked_pdf, (F.col("_b_gross") - F.col("_b_net")).cast(DEC_14_2)
-            ).otherwise(F.col("total_vat")),
+            F.when(is_booked_pdf, (F.col("_b_gross") - F.col("_b_net")).cast(MONEY)).otherwise(
+                F.col("total_vat")
+            ),
         )
     )
 
@@ -81,29 +78,30 @@ def assign(
         F.col("invoice_id"),
         F.lit(1).cast(T.IntegerType()).alias("line_no"),
         F.lit("booked from PDF").alias("description"),
-        F.lit(Decimal("1.000")).cast(DEC_14_3).alias("quantity"),
-        F.col("total_net").cast(DEC_14_2).alias("unit_price"),
-        F.col("total_net").cast(DEC_14_2).alias("amount_net"),
-        F.lit(Decimal("21.00")).cast(DEC_5_2).alias("vat_rate"),
-        F.col("total_vat").cast(DEC_14_2).alias("vat_amount"),
+        F.lit(Decimal("1.000")).cast(_LINE_TYPES["quantity"]).alias("quantity"),
+        F.col("total_net").cast(_LINE_TYPES["unit_price"]).alias("unit_price"),
+        F.col("total_net").cast(_LINE_TYPES["amount_net"]).alias("amount_net"),
+        F.lit(Decimal("21.00")).cast(_LINE_TYPES["vat_rate"]).alias("vat_rate"),
+        F.col("total_vat").cast(_LINE_TYPES["vat_amount"]).alias("vat_amount"),
         F.lit(None).cast(T.StringType()).alias("category"),
         F.lit(None).cast(T.StringType()).alias("project_code"),
         F.col("source_file"),
+        *([F.col("business_date")] if "business_date" in invoice_cols else []),
     )
+    # The line DataFrame may carry working columns beyond the contract (e.g. business_date); fill the rest
+    # with typed NULLs so the union keeps the lines' types.
     for extra_col in line_cols:
         if extra_col not in synth_lines.columns:
-            synth_lines = synth_lines.withColumn(extra_col, F.lit(None))
+            synth_lines = synth_lines.withColumn(
+                extra_col, F.lit(None).cast(lines.schema[extra_col].dataType)
+            )
     synth_lines = synth_lines.select(*line_cols)
 
     booked_pdf_ids = completed_inv.filter(is_booked_pdf).select("invoice_id")
-    base_lines = lines.join(
-        booked_pdf_ids, on="invoice_id", how="left_anti"
-    ).unionByName(synth_lines)
+    base_lines = lines.join(booked_pdf_ids, on="invoice_id", how="left_anti").unionByName(synth_lines)
 
     booked_invoices_pool = (
-        completed_inv.filter(
-            F.col("_b_project_code").isNotNull() & F.col("issue_date").isNotNull()
-        )
+        completed_inv.filter(F.col("_b_project_code").isNotNull() & F.col("issue_date").isNotNull())
         .select(
             F.col("supplier_ico").alias("_pool_ico"),
             F.col("issue_date").alias("_pool_issue_date"),
