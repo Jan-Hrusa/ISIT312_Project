@@ -15,22 +15,10 @@ def fixture_inputs(root: Path) -> dict[str, list[str]]:
             (root / "master/projects.csv").as_uri(),
             (root / "master/suppliers.csv").as_uri(),
         ],
-        "budgets": [
-            p.as_uri()
-            for p in sorted((root / "drive/budgets").glob("*.xlsx"))
-        ],
-        "isdoc": [
-            p.as_uri()
-            for p in sorted((root / "mailbox/invoices").glob("*.isdoc"))
-        ],
-        "invoice_pdf": [
-            p.as_uri()
-            for p in sorted((root / "mailbox/invoices").glob("*.pdf"))
-        ],
-        "accounting": [
-            p.as_uri()
-            for p in sorted((root / "drive/accounting").glob("*.csv"))
-        ],
+        "budgets": [p.as_uri() for p in sorted((root / "drive/budgets").glob("*.xlsx"))],
+        "isdoc": [p.as_uri() for p in sorted((root / "mailbox/invoices").glob("*.isdoc"))],
+        "invoice_pdf": [p.as_uri() for p in sorted((root / "mailbox/invoices").glob("*.pdf"))],
+        "accounting": [p.as_uri() for p in sorted((root / "drive/accounting").glob("*.csv"))],
     }
 
 
@@ -92,12 +80,14 @@ def bank_data(finance_data):
     ]
 
     columns = [name for name, _ in CLEAN_TABLES["bank_transactions"]]
-    from pyspark.sql.types import _parse_datatype_string, StructField, StructType
+    from pyspark.sql.types import StructField, StructType, _parse_datatype_string
 
-    schema = StructType([
-        StructField(name, _parse_datatype_string(dtype), True)
-        for name, dtype in CLEAN_TABLES["bank_transactions"]
-    ])
+    schema = StructType(
+        [
+            StructField(name, _parse_datatype_string(dtype), True)
+            for name, dtype in CLEAN_TABLES["bank_transactions"]
+        ]
+    )
 
     from datetime import date
     from decimal import Decimal
@@ -141,14 +131,15 @@ def payment_data(bank_data):
     columns = [name for name, _ in CLEAN_TABLES["invoice_status"]]
     from datetime import date
     from decimal import Decimal
-    from pyspark.sql.types import (
-        StructField, StructType, _parse_datatype_string
-    )
 
-    schema = StructType([
-        StructField(name, _parse_datatype_string(dtype), True)
-        for name, dtype in CLEAN_TABLES["invoice_status"]
-    ])
+    from pyspark.sql.types import StructField, StructType, _parse_datatype_string
+
+    schema = StructType(
+        [
+            StructField(name, _parse_datatype_string(dtype), True)
+            for name, dtype in CLEAN_TABLES["invoice_status"]
+        ]
+    )
 
     for row in rows:
         row["paid_amount"] = Decimal(row["paid_amount"])
@@ -189,14 +180,15 @@ def warehouse_data(payment_data):
     columns = [name for name, _ in CLEAN_TABLES["payment_orders"]]
     from datetime import date
     from decimal import Decimal
-    from pyspark.sql.types import (
-        StructField, StructType, _parse_datatype_string
-    )
 
-    schema = StructType([
-        StructField(name, _parse_datatype_string(dtype), True)
-        for name, dtype in CLEAN_TABLES["payment_orders"]
-    ])
+    from pyspark.sql.types import StructField, StructType, _parse_datatype_string
+
+    schema = StructType(
+        [
+            StructField(name, _parse_datatype_string(dtype), True)
+            for name, dtype in CLEAN_TABLES["payment_orders"]
+        ]
+    )
 
     row["order_date"] = date.fromisoformat(row["order_date"])
     row["due_date"] = date.fromisoformat(row["due_date"])
@@ -219,16 +211,12 @@ def test_unknown_project_row(warehouse_data, monkeypatch, tmp_path):
     spark = warehouse_data
 
     monkeypatch.setattr(config, "DW_DB", "fve_dw_test_unknown")
-    monkeypatch.setattr(
-        config, "LAKE_DW", (tmp_path / "warehouse").as_uri()
-    )
+    monkeypatch.setattr(config, "LAKE_DW", (tmp_path / "warehouse").as_uri())
 
     run_file(spark, Path("warehouse/ddl/fve_dw.sql"))
     run_file(spark, Path("warehouse/etl/load_dims.sql"))
 
-    unknown = spark.sql(
-        f"SELECT * FROM {config.DW_DB}.dim_project WHERE project_key = -1"
-    ).collect()
+    unknown = spark.sql(f"SELECT * FROM {config.DW_DB}.dim_project WHERE project_key = -1").collect()
 
     assert len(unknown) == 1
     assert unknown[0]["project_code"] == "UNKNOWN"
@@ -237,15 +225,14 @@ def test_unknown_project_row(warehouse_data, monkeypatch, tmp_path):
 def test_payment_amount_positive(warehouse_data, monkeypatch, tmp_path):
     """Only debit transactions become positive warehouse payments."""
     from decimal import Decimal
+
     from common import config
     from warehouse.sql import run_file
 
     spark = warehouse_data
 
     monkeypatch.setattr(config, "DW_DB", "fve_dw_test_payment")
-    monkeypatch.setattr(
-        config, "LAKE_DW", (tmp_path / "warehouse").as_uri()
-    )
+    monkeypatch.setattr(config, "LAKE_DW", (tmp_path / "warehouse").as_uri())
 
     run_file(spark, Path("warehouse/ddl/fve_dw.sql"))
     run_file(spark, Path("warehouse/etl/load_dims.sql"))
@@ -266,9 +253,7 @@ def test_checks_pass_on_fixture(warehouse_data, monkeypatch, tmp_path):
     spark = warehouse_data
 
     monkeypatch.setattr(config, "DW_DB", "fve_dw_test_checks")
-    monkeypatch.setattr(
-        config, "LAKE_DW", (tmp_path / "warehouse").as_uri()
-    )
+    monkeypatch.setattr(config, "LAKE_DW", (tmp_path / "warehouse").as_uri())
 
     counts = run(spark)
 
@@ -289,9 +274,7 @@ def test_loads_are_idempotent(warehouse_data, monkeypatch, tmp_path):
     spark = warehouse_data
 
     monkeypatch.setattr(config, "DW_DB", "fve_dw_test_idempotent")
-    monkeypatch.setattr(
-        config, "LAKE_DW", (tmp_path / "warehouse").as_uri()
-    )
+    monkeypatch.setattr(config, "LAKE_DW", (tmp_path / "warehouse").as_uri())
 
     first_counts = run(spark)
     second_counts = run(spark)
@@ -309,9 +292,7 @@ def test_check_fails_on_broken_fixture(warehouse_data, monkeypatch, tmp_path):
     spark = warehouse_data
 
     monkeypatch.setattr(config, "DW_DB", "fve_dw_test_broken")
-    monkeypatch.setattr(
-        config, "LAKE_DW", (tmp_path / "warehouse").as_uri()
-    )
+    monkeypatch.setattr(config, "LAKE_DW", (tmp_path / "warehouse").as_uri())
 
     run(spark)
 
@@ -350,9 +331,11 @@ def test_check_fails_on_broken_fixture(warehouse_data, monkeypatch, tmp_path):
 
     assert "payment_tx_unique_check" in failures
 
+
 def test_runner_rejects_failed_checks():
     """The runner raises RuntimeError when a warehouse check fails."""
     from unittest.mock import MagicMock, patch
+
     from warehouse.etl.run import run
 
     spark = MagicMock()
@@ -364,9 +347,12 @@ def test_runner_rejects_failed_checks():
         }
     ]
 
-    with patch("warehouse.etl.run.run_file"), patch(
-        "warehouse.etl.run.named_queries",
-        return_value={"payment_tx_unique_check": "SELECT broken_check"},
+    with (
+        patch("warehouse.etl.run.run_file"),
+        patch(
+            "warehouse.etl.run.named_queries",
+            return_value={"payment_tx_unique_check": "SELECT broken_check"},
+        ),
     ):
         with pytest.raises(
             RuntimeError,

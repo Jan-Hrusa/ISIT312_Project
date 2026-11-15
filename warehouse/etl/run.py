@@ -40,9 +40,7 @@ def run(spark) -> dict[str, int]:
             failures.append(name)
 
     if failures:
-        raise RuntimeError(
-            "warehouse checks failed: " + ", ".join(failures)
-        )
+        raise RuntimeError("warehouse checks failed: " + ", ".join(failures))
 
     # 4. Return row counts.
     tables = [
@@ -57,10 +55,7 @@ def run(spark) -> dict[str, int]:
         "fact_payment_order",
     ]
 
-    counts = {
-        table: spark.table(f"{config.DW_DB}.{table}").count()
-        for table in tables
-    }
+    counts = {table: spark.table(f"{config.DW_DB}.{table}").count() for table in tables}
     counts["checks_failed"] = 0
 
     return counts
