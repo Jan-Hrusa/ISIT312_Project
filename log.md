@@ -222,3 +222,8 @@ One entry per merged task (or part with its own checkpoint), newest first:
 - Merged: AGENTS.md sections 2 and 3: agents read the ClickUp guide page, then the task, then Drive 00 and 02, then README and contracts
 - Checked: docs only; no code changed
 
+### 2026-11-14 – Task 20.1: Full-data finance processing and project codes (Riya)
+- Implemented `processing/finance/project_codes.py` (`assign` completing PDF-only invoices from `booked_costs` and assigning `BOOKED`, `SINGLE_ACTIVE`, and `NONE` rules with supplier category fallback).
+
+### 2026-11-15 – Task 20: Finance data-quality checks and full pipeline (Riya)
+- Implemented `processing/finance/dq_checks.py` (`dedupe` and `run` for `DUPLICATE`, `MISSING_VS`, `NO_PROJECT`, `PARSE_ERROR`, and `OVERRUN` > 115% threshold) and wired `processing.finance.run`.
