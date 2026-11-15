@@ -1,4 +1,3 @@
-
 -- name: q1_budget_vs_actual
 -- Budget versus actual spending by project and category.
 -- Budget and invoice facts are aggregated separately to avoid fan-out joins.
@@ -50,8 +49,8 @@ totals AS (
 )
 
 SELECT
-    p.project_code,
-    c.category_code,
+    p.project_code AS project_code,
+    c.category_code AS category_code,
     SUM(t.budget) AS budget,
     SUM(t.spent) AS spent,
     SUM(t.budget) - SUM(t.spent) AS difference,

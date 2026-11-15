@@ -1,4 +1,3 @@
-
 -- name: v1_project_list
 -- Main dashboard project list with budget, actual spending and traffic lights.
 -- Budget and invoice facts are aggregated independently to avoid fan-out joins.

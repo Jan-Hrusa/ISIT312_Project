@@ -1,6 +1,6 @@
-
 -- name: q5_cost_per_mwp
--- Spending per MWp for COMPLETED projects, by project and signed year.
+-- Spending per MWp for COMPLETED projects: one row per project and one row per signed year
+-- (project_code NULL; total spending of the year's projects divided by their total MWp).
 
 WITH project_spend AS (
     SELECT
@@ -8,22 +8,30 @@ WITH project_spend AS (
         SUM(amount_net) AS total_spent
     FROM ${DW_DB}.fact_invoice_line
     GROUP BY project_key
+),
+
+completed AS (
+    SELECT
+        p.project_code,
+        p.signed_year,
+        p.mwp,
+        COALESCE(s.total_spent, CAST(0 AS DECIMAL(14,2))) AS total_spent
+    FROM ${DW_DB}.dim_project p
+    LEFT JOIN project_spend s
+        ON p.project_key = s.project_key
+    WHERE p.status = 'COMPLETED'
 )
 
 SELECT
-    p.project_code,
-    p.signed_year,
-    p.mwp,
-    COALESCE(s.total_spent, CAST(0 AS DECIMAL(14,2))) AS total_spent,
+    project_code,
+    signed_year,
+    SUM(mwp) AS mwp,
+    SUM(total_spent) AS total_spent,
     CASE
-        WHEN p.mwp > 0
-        THEN ROUND(
-            COALESCE(s.total_spent, 0) / p.mwp,
-            2
-        )
+        WHEN SUM(mwp) > 0
+        THEN ROUND(SUM(total_spent) / SUM(mwp), 2)
         ELSE NULL
     END AS cost_per_mwp
-FROM ${DW_DB}.dim_project p
-LEFT JOIN project_spend s
-    ON p.project_key = s.project_key
-WHERE p.status = 'COMPLETED';
+FROM completed
+GROUP BY signed_year, project_code
+GROUPING SETS ((signed_year, project_code), (signed_year));

@@ -1,7 +1,8 @@
-
 -- name: q4_overrun_rank
 -- Rank categories by how often COMPLETED projects exceed their budgets.
 -- Ranking prioritises the number of projects over budget, then average overrun.
+-- avg_overrun_pct is the average over the projects that are over budget in the category (0 when none
+-- is): averaged over every project it would shrink towards 0 as the number of projects grows.
 
 WITH budget_by_category AS (
     SELECT
@@ -43,7 +44,7 @@ overruns AS (
         CASE
             WHEN budget > 0 AND spent > budget
             THEN (spent - budget) * 100.0 / budget
-            ELSE 0
+            ELSE NULL
         END AS overrun_pct
     FROM category_results r
     JOIN ${DW_DB}.dim_project p
@@ -55,14 +56,14 @@ category_summary AS (
     SELECT
         category_key,
         SUM(over_budget) AS projects_over,
-        AVG(overrun_pct) AS avg_overrun_pct
+        COALESCE(AVG(overrun_pct), 0) AS avg_overrun_pct
     FROM overruns
     GROUP BY category_key
 )
 
 SELECT
-    c.category_code,
-    s.projects_over,
+    c.category_code AS category_code,
+    s.projects_over AS projects_over,
     ROUND(s.avg_overrun_pct, 2) AS avg_overrun_pct,
     RANK() OVER (
         ORDER BY s.projects_over DESC, s.avg_overrun_pct DESC
