@@ -6,9 +6,23 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-15 - Task 18: Review fixes to the photo packing (Jan)
+- Merged: `ingest/seqfile.py` writes uncompressed records (`CompressionType.NONE`; Hadoop's default zlib per record
+  made the files 39% smaller on the synthetic JPEGs and contradicted the docstring); `ingest/media_pack.py` packs
+  the days on 8 threads (each daily file waits 75-95 ms for HDFS to create and close it) and, when a day fails,
+  appends the rows of the days already written to `ingest_log` before raising (they were left unlogged in the
+  write-once raw zone); rows stay in day order. Three tests: `test_records_are_not_compressed`,
+  `test_rows_come_in_day_order`, `test_failed_day_leaves_no_unlogged_file`
+- Checked: tests/ingest 27 passed (the new compression and failed-day tests fail on the PR #41 version); pytest -m
+  "not integration" 189 passed, 1 skipped; ruff clean. Stack, scratch root: 30,876 scale-1 photos collected in
+  94 s (565 s before) into 2,158 daily files of 238.9 MB, all read back equal to the log, a second collect skips
+  all. Desktop stack: `python -m ingest.collect --sources photos` -> `hdfs dfs -count /lake/raw/photos` 2,158
+  files; ingest_log 30,876 photo rows (Drive Screenshots/media/T18_validate_photos_packed.png)
+
 ### 2026-11-15 - Task 18: Photo packing into SequenceFiles (Muhammad)
 - Merged: ingest/seqfile.py (write_seq: one real SequenceFile through the Hadoop API, key Text = photo name, value BytesWritable = bytes; read_seq), ingest/media_pack.py (pack: photos grouped by business date into <LAKE_RAW>/photos/<yyyy>/<mm>/<yyyy-MM-dd>.seq, a day already packed gets <yyyy-MM-dd>__<ingest ts>.seq, one ingest_log row per photo with every column), tests/ingest/test_media_pack.py; collect.py already loads ingest.media_pack, so it is unchanged
-- Checked: not run in the client container (no Docker on my laptop, Jan validates); ruff check and format clean; the grouping checked on the 11 fixture photos with Spark stubbed out (7 daily files)
+- Checked: not run in the client container by Muhammad (no Docker on his laptop); ruff check and format clean; the grouping checked on the 11 fixture photos with Spark stubbed out (7 daily files). In the review (Jan, stack image): tests/ingest 24 passed; all 30,876 scale-1 photos packed on the stack into 2,158 daily files and read back byte for byte
+
 ### 2026-11-15 - Tasks 20.1 and 20: Project codes and finance data-quality checks (Riya; fixes by Jan)
 - Merged: Riya's `processing/finance/project_codes.py` (`assign`: PDF-only invoices completed from their booking;
   rules BOOKED / SINGLE_ACTIVE / NONE in `project_rule`; category from the booking, else the supplier; lines

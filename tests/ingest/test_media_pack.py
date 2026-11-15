@@ -197,3 +197,56 @@ def test_write_seq_refuses_existing_file(spark, lake_raw):
 def test_empty_batch_writes_nothing(spark, lake_raw):
     assert pack(spark, [], "20261114093000", RUN_1) == []
     assert not (lake_raw / "photos").exists()
+
+
+def test_records_are_not_compressed(spark, lake_raw):
+    # Header: "SEQ", version, key class and value class (each a 1-byte length + name), then the two flags
+    # "compressed" and "block compressed". Hadoop's default would be per-record zlib.
+    path = f"{config.LAKE_RAW}/photos/2026/05/2026-05-20.seq"
+    payload = bytes(range(256)) * 40
+    write_seq(spark, path, [("a.jpg", payload)])
+
+    header = (lake_raw / "photos/2026/05/2026-05-20.seq").read_bytes()
+    pos = 4
+    classes = []
+    for _ in range(2):
+        length = header[pos]
+        classes.append(header[pos + 1 : pos + 1 + length].decode())
+        pos += 1 + length
+    assert classes == ["org.apache.hadoop.io.Text", "org.apache.hadoop.io.BytesWritable"]
+    assert (header[pos], header[pos + 1]) == (0, 0)
+    assert payload in header
+
+
+def test_rows_come_in_day_order(spark, sources_tree, lake_raw):
+    photos = _fixture_photos(sources_tree)
+    rows = pack(spark, list(reversed(photos)), "20261114093000", RUN_1)
+
+    assert [(r["business_date"], r["seq_key"]) for r in rows] == sorted(
+        (p["business_date"], Path(p["original_path"]).name) for p in photos
+    )
+
+
+def test_failed_day_leaves_no_unlogged_file(clean_db, sources_tree):
+    # A photo of the last day changed after collect hashed it: that day fails, but every daily file already
+    # written is in ingest_log (collect logs only what pack returns, and pack returns nothing on an error).
+    spark = clean_db
+    photos = _fixture_photos(sources_tree)
+    last_day = max(p["business_date"] for p in photos)
+    for photo in photos:
+        if photo["business_date"] == last_day:
+            photo["sha256"] = "0" * 64
+
+    with pytest.raises(ValueError, match="changed since it was hashed"):
+        pack(spark, photos, "20261114093000", RUN_1)
+
+    raw = Path(config.LAKE_RAW.removeprefix("file://"))
+    on_disk = sorted(p.relative_to(raw).as_posix() for p in (raw / "photos").rglob("*.seq"))
+    logged = sorted(
+        {r.raw_path.removeprefix(f"{config.LAKE_RAW}/") for r in read_table(spark, "ingest_log").collect()}
+    )
+    assert on_disk and on_disk == logged
+    assert f"photos/{last_day:%Y}/{last_day:%m}/{last_day:%Y-%m-%d}.seq" not in on_disk
+    good = [p for p in photos if p["business_date"] != last_day]
+    # The fixture's 7 days fit in one round of threads, so every good day was started and written.
+    assert read_table(spark, "ingest_log").count() == len(good)
