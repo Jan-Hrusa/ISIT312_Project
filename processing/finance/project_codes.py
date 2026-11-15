@@ -44,7 +44,6 @@ def assign(
         F.col("category").alias("_b_category"),
     )
 
-    # 0. Complete PDF-only invoices (has_isdoc = false) from booked_costs
     inv_b = invoices.join(
         b_ref, invoices["invoice_id"] == b_ref["_b_doc_ref"], "left"
     )
@@ -101,7 +100,6 @@ def assign(
         booked_pdf_ids, on="invoice_id", how="left_anti"
     ).unionByName(synth_lines)
 
-    # 1 & 2. Pool of supplier's BOOKED invoices for SINGLE_ACTIVE fallback
     booked_invoices_pool = (
         completed_inv.filter(
             F.col("_b_project_code").isNotNull() & F.col("issue_date").isNotNull()
