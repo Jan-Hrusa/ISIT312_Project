@@ -13,9 +13,13 @@ One entry per merged task (or part with its own checkpoint), newest first:
   error inside an existing module fails the step; one line per step, also in `<OUT_DIR>/pipeline_<UTC>.log`;
   the first failure stops with exit 1, an unknown step gives exit 2; `--dataset` sets `FVE_DATASET` before
   `common` is imported. tests/test_run_pipeline.py: the six named tests plus a broken-import and a dry-run test
-- Checked: tests/test_run_pipeline.py 8 passed; pytest -m "not integration" 208 passed, 1 skipped; ruff clean;
-  `run_pipeline.py --all --dry-run` in the stack image: collect, bank, finance would run, the other four skipped.
-  The run on the stack follows with Task 21.1 (fresh stack)
+- Checked: tests/test_run_pipeline.py 8 passed; pytest -m "not integration" 208 passed, 1 skipped; ruff clean.
+  Task 21.1 on a fresh desktop stack (`down -v`, core + hbase, scale-1 data regenerated): `run_pipeline.py --all`
+  OK in 1,197 s: collect 52,055 files (929 s), bank 4,965 transactions / 4,682 orders (66 s), finance 4,669
+  invoices (195 s), matching/media/warehouse/catalogue SKIPPED; `pytest -m integration` 1 passed; all 14 clean
+  tables match common/schemas.py; ingest_log = generated files per source; dq_issues = the planted counts (OVERRUN
+  7 incl. the accepted FVE-2025-08/INVERTERS, NO_PROJECT isdoc 9 dated 23-31 Oct). Drive
+  Screenshots/platform/T21_run_pipeline_all.png
 
 ### 2026-11-16 - Task 16: Missing raw files, log entry and Validate screenshot (Jan)
 - Merged: `processing.bank.run` lists each parent folder of the input files once (`common.hdfs.ls`) and turns a
