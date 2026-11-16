@@ -6,6 +6,16 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-16 - Task 19: Photo filing and HBase load (Aryen)
+- Merged: `processing/media` (`run(spark)`: photos from the daily SequenceFiles filed by GPS and date, nearest
+  project centre wins, +-30 days around construction; videos and documents by folder, doc type and version from the
+  name; `media_files`, `documents` and the NO_GPS, UNASSIGNED_PHOTO and WRONG_VERSION issues), `hbase/load.py`
+  (`run(spark)`: full reload of `media_catalog` with thumbnails), tests/processing/test_media.py, tests/hbase/test_load.py
+- Checked: pytest -m "not integration" 221 passed; ruff clean. Stack, scale-1 data: `run_pipeline.py --steps
+  media,catalogue` OK in 567 s: 30,876 photos (27,479 GPS, 3,397 UNASSIGNED), 333 videos, 569 documents; issues
+  NO_GPS 3,088, UNASSIGNED_PHOTO 309, WRONG_VERSION 1 (FVE-2022-08); HBase 31,778 rows, prefix counts per project
+  equal to the tables for all 84; `pytest -m integration` test_planted_media_found passed
+
 ### 2026-11-16 - Task 21: Pipeline runner (Jan)
 - Merged: `run_pipeline.py` (`--all | --steps a,b`, `--dry-run`, `--dataset main|x10`): the seven steps in the
   fixed order (collect, bank, finance, matching, media, warehouse, catalogue), each module imported when its turn
