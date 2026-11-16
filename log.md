@@ -164,6 +164,9 @@ One entry per merged task (or part with its own checkpoint), newest first:
 ### 2026-11-14 - Task 7: Media generator (Muhammad)
 - Merged: generators/media (photos with EXIF and GPS, videos, documents, drawings, planted_media.csv) and tests/generators/test_media_generator.py
 - Checked: same as above; a full scale-1 run gave 27,448 photos (2,745 without GPS, 5 wrong site), 328 videos, 316 documents, 249 drawings
+### 2026-11-14 - Task 16: Bank parsers (Obaid)
+- Merged: processing/bank (GPC, STA/MT940, TXT and KPC parsers; Spark run(spark, inputs=None) writing bank_transactions, bank_tx_details and payment_orders; TXT companion pairing and file-level PARSE_ERROR handling), tests/processing/test_bank.py (10 tests)
+- Checked: 10 Task 16 tests passed. Non-integration suite passed (196 passed, 1 skipped, 1 deselected). Ruff lint and formatting passed. Full HDFS raw-zone processing succeeded with SPARK_MASTER=local[2]. Full-dataset Hive table counts verified: 4,965 bank transactions, 4,965 transaction details, 4,682 payment orders, and exactly 1 PARSE_ERROR. Bank transaction counts: RB 3,561, UCB 427, KB 472, CS 505.
 
 ### 2026-11-12 - Task 17.1: Review fixes to the planted finance problems (Jan)
 - Merged: MISSING_VS picks only invoices due at least 6 days before DATA_END, so the bank generator pays all of them with an empty VS and Task 25 sees each as OVERDUE with an unmatched payment on DATA_END (one invoice was due 14 Nov 2026); new test test_missing_vs_invoices_are_due_in_time_to_be_paid (scale 1 and 2); whitespace line after Jayden's log entry removed
