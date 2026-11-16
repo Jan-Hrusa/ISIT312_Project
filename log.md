@@ -6,10 +6,15 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
-### 2026-11-16 - Task 16: Log entry and Validate screenshot (Jan)
-- Merged: Obaid's Task 16 entry moved to the top of this file (it sat between the 14 and 12 Nov entries) and dated
-  15 Nov, the day of the work
-- Checked: docs only. Task 16 Validate on the desktop stack with the merged code: `processing.bank.run` in 61 s ->
+### 2026-11-16 - Task 16: Missing raw files, log entry and Validate screenshot (Jan)
+- Merged: `processing.bank.run` lists each parent folder of the input files once (`common.hdfs.ls`) and turns a
+  listed file that no longer exists into a `PARSE_ERROR` ("file not found") instead of failing the whole job
+  (`binaryFiles` raised on one missing path); new test `test_missing_file_gives_parse_error_issue`. Obaid's Task
+  16 entry moved to the top of this file (it sat between the 14 and 12 Nov entries) and dated 15 Nov
+- Checked: tests/processing/test_bank.py 11 passed (the new test fails on the PR #44 version); pytest -m "not
+  integration" 200 passed, 1 skipped; ruff clean. Desktop stack, scratch database: the full run plus two missing
+  paths (one in an existing folder, one in a missing folder) gave the same table counts in 67 s and 3 issues (the
+  planted GPC, 2 x file not found). Task 16 Validate with the PR #44 code: `processing.bank.run` in 61 s ->
   bank_transactions 4,965 (CS 505, KB 472, RB 3,561, UCB 427), bank_tx_details 4,965, payment_orders 4,682, one
   PARSE_ERROR (the planted broken RB GPC); beeline output in Drive Screenshots/bank/T16_validate_bank_counts.png
 
