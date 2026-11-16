@@ -6,6 +6,17 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-16 - Task 16: Log entry and Validate screenshot (Jan)
+- Merged: Obaid's Task 16 entry moved to the top of this file (it sat between the 14 and 12 Nov entries) and dated
+  15 Nov, the day of the work
+- Checked: docs only. Task 16 Validate on the desktop stack with the merged code: `processing.bank.run` in 61 s ->
+  bank_transactions 4,965 (CS 505, KB 472, RB 3,561, UCB 427), bank_tx_details 4,965, payment_orders 4,682, one
+  PARSE_ERROR (the planted broken RB GPC); beeline output in Drive Screenshots/bank/T16_validate_bank_counts.png
+
+### 2026-11-15 - Task 16: Bank parsers (Obaid)
+- Merged: processing/bank (GPC, STA/MT940, TXT and KPC parsers; Spark run(spark, inputs=None) writing bank_transactions, bank_tx_details and payment_orders; TXT companion pairing and file-level PARSE_ERROR handling), tests/processing/test_bank.py (10 tests)
+- Checked: 10 Task 16 tests passed. Non-integration suite passed (196 passed, 1 skipped, 1 deselected). Ruff lint and formatting passed. Full HDFS raw-zone processing succeeded with SPARK_MASTER=local[2]. Full-dataset Hive table counts verified: 4,965 bank transactions, 4,965 transaction details, 4,682 payment orders, and exactly 1 PARSE_ERROR. Bank transaction counts: RB 3,561, UCB 427, KB 472, CS 505.
+
 ### 2026-11-15 - Task 18: Review fixes to the photo packing (Jan)
 - Merged: `ingest/seqfile.py` writes uncompressed records (`CompressionType.NONE`; Hadoop's default zlib per record
   made the files 39% smaller on the synthetic JPEGs and contradicted the docstring); `ingest/media_pack.py` packs
@@ -164,9 +175,6 @@ One entry per merged task (or part with its own checkpoint), newest first:
 ### 2026-11-14 - Task 7: Media generator (Muhammad)
 - Merged: generators/media (photos with EXIF and GPS, videos, documents, drawings, planted_media.csv) and tests/generators/test_media_generator.py
 - Checked: same as above; a full scale-1 run gave 27,448 photos (2,745 without GPS, 5 wrong site), 328 videos, 316 documents, 249 drawings
-### 2026-11-14 - Task 16: Bank parsers (Obaid)
-- Merged: processing/bank (GPC, STA/MT940, TXT and KPC parsers; Spark run(spark, inputs=None) writing bank_transactions, bank_tx_details and payment_orders; TXT companion pairing and file-level PARSE_ERROR handling), tests/processing/test_bank.py (10 tests)
-- Checked: 10 Task 16 tests passed. Non-integration suite passed (196 passed, 1 skipped, 1 deselected). Ruff lint and formatting passed. Full HDFS raw-zone processing succeeded with SPARK_MASTER=local[2]. Full-dataset Hive table counts verified: 4,965 bank transactions, 4,965 transaction details, 4,682 payment orders, and exactly 1 PARSE_ERROR. Bank transaction counts: RB 3,561, UCB 427, KB 472, CS 505.
 
 ### 2026-11-12 - Task 17.1: Review fixes to the planted finance problems (Jan)
 - Merged: MISSING_VS picks only invoices due at least 6 days before DATA_END, so the bank generator pays all of them with an empty VS and Task 25 sees each as OVERDUE with an unmatched payment on DATA_END (one invoice was due 14 Nov 2026); new test test_missing_vs_invoices_are_due_in_time_to_be_paid (scale 1 and 2); whitespace line after Jayden's log entry removed
