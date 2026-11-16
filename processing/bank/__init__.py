@@ -108,6 +108,20 @@ def _issue(source: str, path: str, detail: str) -> tuple:
     return "PARSE_ERROR", source, path, None, detail
 
 
+def _existing(spark: SparkSession, paths: list[str]) -> set[str]:
+    """Path keys of the listed files that exist, found by listing each parent folder once.
+
+    `binaryFiles` fails the whole job on one missing path, so missing files are taken out before reading.
+    """
+    from common import hdfs
+
+    found = set()
+    for folder in {path.rsplit("/", 1)[0] for path in paths}:
+        if hdfs.exists(spark, folder):
+            found.update(_path_key(entry) for entry in hdfs.ls(spark, folder))
+    return found
+
+
 def _pair_details(pair: tuple) -> list[tuple]:
     tx_ids, (path, details) = pair[1]
     if tx_ids.keys() != details.keys():
@@ -144,7 +158,13 @@ def run(spark: SparkSession, inputs: dict[str, list[str]] | None = None) -> dict
         source, reference, _ = lookup.value[_path_key(key)]
         return _parse_file(source, reference, bytes(data))
 
-    batches = list(paths.values())
+    existing = _existing(spark, [path for _, _, path in paths.values()])
+    missing = [
+        _issue(source, reference, "file not found")
+        for key, (source, reference, _) in paths.items()
+        if key not in existing
+    ]
+    batches = [entry for key, entry in paths.items() if key in existing]
     files = [
         sc.binaryFiles(",".join(path for _, _, path in batches[start : start + _FILES_PER_PARTITION]))
         for start in range(0, len(batches), _FILES_PER_PARTITION)
@@ -168,7 +188,11 @@ def run(spark: SparkSession, inputs: dict[str, list[str]] | None = None) -> dict
             df = spark.createDataFrame(data, schema)
             tables.write_table(spark, df, table)
             counts[table] = df.count()
-        issues = rows("issue").union(paired.filter(lambda row: row[0] == "issue").values())
+        issues = (
+            rows("issue")
+            .union(paired.filter(lambda row: row[0] == "issue").values())
+            .union(sc.parallelize(missing, 1))
+        )
         counts["issues"] = dq.write_issues(spark, spark.createDataFrame(issues, dq.ISSUE_SCHEMA), job="bank")
         return counts
     finally:

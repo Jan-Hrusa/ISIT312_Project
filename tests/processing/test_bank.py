@@ -144,6 +144,28 @@ def test_bad_file_gives_parse_error_issue(sources, clean_db):
     )
 
 
+def test_missing_file_gives_parse_error_issue(sources, clean_db, tmp_path):
+    from common.tables import read_table
+
+    # A listed raw file that is gone (or whose whole folder is gone) must not stop the job.
+    missing = (tmp_path / "26999_2101234567_CZK.gpc").as_uri()
+    missing_folder = (tmp_path / "gone" / "PO_2026-05-20_RB.kpc").as_uri()
+    inputs = {
+        "bank_gpc": [(sources / RB).as_uri(), missing],
+        "kpc": [(sources / ORDER).as_uri(), missing_folder],
+    }
+    counts = run(clean_db, inputs)
+    assert counts == {"bank_transactions": 5, "bank_tx_details": 0, "payment_orders": 4, "issues": 2}
+    issues = {
+        (issue.issue_type, issue.source, issue.record_ref, issue.detail)
+        for issue in read_table(clean_db, "dq_issues").collect()
+    }
+    assert issues == {
+        ("PARSE_ERROR", "bank_gpc", missing, "file not found"),
+        ("PARSE_ERROR", "kpc", missing_folder, "file not found"),
+    }
+
+
 def test_totals_mismatch_rejects_file(sources):
     gpc_text = (sources / RB).read_text(encoding="ascii").replace("00000027769500", "00000027769501", 1)
     with pytest.raises(BankParseError, match="^totals mismatch$"):
