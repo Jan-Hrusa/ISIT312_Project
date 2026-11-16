@@ -6,6 +6,17 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-16 - Task 21: Pipeline runner (Jan)
+- Merged: `run_pipeline.py` (`--all | --steps a,b`, `--dry-run`, `--dataset main|x10`): the seven steps in the
+  fixed order (collect, bank, finance, matching, media, warehouse, catalogue), each module imported when its turn
+  comes; a step whose module or `run()` is not merged yet prints `SKIPPED <step>: not merged yet`, an import
+  error inside an existing module fails the step; one line per step, also in `<OUT_DIR>/pipeline_<UTC>.log`;
+  the first failure stops with exit 1, an unknown step gives exit 2; `--dataset` sets `FVE_DATASET` before
+  `common` is imported. tests/test_run_pipeline.py: the six named tests plus a broken-import and a dry-run test
+- Checked: tests/test_run_pipeline.py 8 passed; pytest -m "not integration" 208 passed, 1 skipped; ruff clean;
+  `run_pipeline.py --all --dry-run` in the stack image: collect, bank, finance would run, the other four skipped.
+  The run on the stack follows with Task 21.1 (fresh stack)
+
 ### 2026-11-16 - Task 16: Missing raw files, log entry and Validate screenshot (Jan)
 - Merged: `processing.bank.run` lists each parent folder of the input files once (`common.hdfs.ls`) and turns a
   listed file that no longer exists into a `PARSE_ERROR` ("file not found") instead of failing the whole job
