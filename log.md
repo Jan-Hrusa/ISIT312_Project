@@ -6,6 +6,16 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-16 - Task 19: Review fixes to the photo filing (Jan)
+- Merged: `processing/media/exif.py` reads EXIF without importing the generator; `UNASSIGNED_PHOTO` issues carry
+  the nearest project in `project_code` (`NO_GPS` stays NULL); `test_planted_media_found` stops the test sessions
+  first and stops its own; new tests for the EXIF reader and the key of a photo without capture time
+  (1970-01-01, accepted); contracts sections 7 and 8 and `hbase/schema.md` state both rules
+- Checked: ruff clean; pytest -m "not integration" 221 passed; new tests red on the PR #47 code. Desktop stack,
+  scale-1 lake: `run_pipeline.py --steps media,catalogue` OK in 353 s (media_files 31,209, documents 569, issues
+  3,398, HBase 31,778 rows); prefix counts equal the tables for all 84 project codes; `pytest -m integration`
+  2 passed
+
 ### 2026-11-16 - Task 19: Photo filing and HBase load (Aryen)
 - Merged: `processing/media` (`run(spark)`: photos from the daily SequenceFiles filed by GPS and date, nearest
   project centre wins, +-30 days around construction; videos and documents by folder, doc type and version from the

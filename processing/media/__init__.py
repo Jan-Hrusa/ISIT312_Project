@@ -137,9 +137,11 @@ def _photo_record(key: str, data: bytes, sha: str, raw_path: str, sites: list[fi
     if meta.lat is None or meta.lon is None:
         issue = ("NO_GPS", "photos", file_id, None, f"{key} taken {taken}")
     elif filed.project_code == config.UNASSIGNED:
+        # The issue carries the nearest project so the "to fix" list can show whose photo it probably is;
+        # the photo itself stays UNASSIGNED in media_files (decision 16 Nov, contracts section 7).
         nearest = filing.nearest_project(meta.lat, meta.lon, sites)
         where = f"{filed.distance_m:.0f} m from {nearest}" if nearest else "no signed project"
-        issue = ("UNASSIGNED_PHOTO", "photos", file_id, None, f"{key} taken {taken}, {where}")
+        issue = ("UNASSIGNED_PHOTO", "photos", file_id, nearest, f"{key} taken {taken}, {where}")
     return row, issue
 
 

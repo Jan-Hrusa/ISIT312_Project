@@ -4,17 +4,20 @@ from __future__ import annotations
 
 import csv
 import io
+import subprocess
+import sys
 from dataclasses import asdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+import piexif
 import pytest
 from PIL import Image
 
 from common import config, tables
 from common.projects import load_projects
 from ingest.seqfile import write_seq
-from processing.media import documents, filing, run, thumbs
+from processing.media import documents, exif, filing, run, thumbs
 
 FILED_AT = datetime(2026, 5, 20, 10, 0, tzinfo=timezone.utc)
 # FVE-2026-02 of the samples: centre 49.331000, 14.165000, radius 500 m, construction 2026-03-02 - 2027-01-29.
@@ -33,6 +36,15 @@ EXPECTED_PHOTOS = {
     "IMG_20260916_131500_00001.jpg": ("FVE-2026-02", None),
     "IMG_20260415_140000_00002.jpg": ("UNASSIGNED", "NO_GPS"),
     "IMG_20260520_151000_00004.jpg": ("UNASSIGNED", "UNASSIGNED_PHOTO"),
+}
+# Issue project_code per photo (decision 16 Nov): the nearest site for UNASSIGNED_PHOTO, NULL for NO_GPS.
+ISSUE_PROJECT = {
+    "IMG_20260520_101800_00002.jpg": None,
+    "IMG_20260415_140000_00002.jpg": None,
+    "IMG_20260520_143000_00003.jpg": "FVE-2026-02",
+    "IMG_20260610_110000_00001.jpg": "FVE-2019-02",
+    "IMG_20260705_120000_00001.jpg": "FVE-2019-02",
+    "IMG_20260520_151000_00004.jpg": "FVE-2026-02",
 }
 
 
@@ -174,6 +186,34 @@ def test_thumbnail_size(fixtures_dir):
     assert Image.open(io.BytesIO(thumbs.thumbnail(buf.getvalue()))).size == (96, 72)
 
 
+def test_exif_read_without_the_generator():
+    """The EXIF reader stands on its own: a JPEG written here with piexif (not the Task 7 generator) reads
+    back, S/W references give negative degrees, and importing the reader loads no generator module."""
+    gps = {
+        piexif.GPSIFD.GPSLatitudeRef: b"S",
+        piexif.GPSIFD.GPSLatitude: ((49, 1), (19, 1), (516_000, 10_000)),
+        piexif.GPSIFD.GPSLongitudeRef: b"W",
+        piexif.GPSIFD.GPSLongitude: ((14, 1), (9, 1), (540_000, 10_000)),
+    }
+    ifds = {
+        "0th": {piexif.ImageIFD.Make: b"Acme", piexif.ImageIFD.Model: b"Cam 1"},
+        "Exif": {piexif.ExifIFD.DateTimeOriginal: b"2026:05:20 10:15:00"},
+        "GPS": gps,
+    }
+    buf = io.BytesIO()
+    Image.new("RGB", (32, 24), "grey").save(buf, format="JPEG", exif=piexif.dump(ifds))
+    meta = exif.read(buf.getvalue())
+    assert meta.taken_at == datetime(2026, 5, 20, 10, 15, tzinfo=timezone.utc)
+    assert (round(meta.lat, 6), round(meta.lon, 6), meta.device) == (-49.331, -14.165, "Acme Cam 1")
+    assert exif.read(b"not a jpeg") == (None, None, None, None)
+
+    code = "import sys, processing.media.exif; print(any(m.startswith('generators') for m in sys.modules))"
+    out = subprocess.run(
+        [sys.executable, "-c", code], capture_output=True, text=True, check=True, cwd=config.REPO_ROOT
+    )
+    assert out.stdout.strip() == "False"
+
+
 def test_run_on_samples(clean_db, sources_tree, tmp_path):
     """Every sample photo, video and document as tests/fixtures/media/README.md expects."""
     write_projects(clean_db, sources_tree)
@@ -206,10 +246,14 @@ def test_run_on_samples(clean_db, sources_tree, tmp_path):
     issues = clean_db.table(f"{config.CLEAN_DB}.dq_issues").where("job = 'media'").collect()
     expected = {(media[n].file_id, issue) for n, (_p, issue) in EXPECTED_PHOTOS.items() if issue is not None}
     assert {(r.record_ref, r.issue_type) for r in issues} == expected
+    # project_code of a photo issue: NULL without GPS, the nearest site's project for UNASSIGNED_PHOTO.
+    by_ref = {r.record_ref: r.project_code for r in issues}
+    for name, project in ISSUE_PROJECT.items():
+        assert by_ref[media[name].file_id] == project, name
 
 
 @pytest.mark.integration
-def test_planted_media_found():
+def test_planted_media_found(_spark_sessions):
     """After a scale-1 pipeline run: every planted media problem is in dq_issues (WRONG_SITE counted as
     UNASSIGNED_PHOTO)."""
     planted_csv = config.LEDGER_DIR / "planted_media.csv"
@@ -217,22 +261,31 @@ def test_planted_media_found():
         pytest.skip(f"no {planted_csv}: run the media generator and the pipeline first")
     from common.spark import get_spark
 
+    # This test reads the stack's metastore: stop the test sessions first, or get_spark returns one of them.
+    _spark_sessions.stop()
     spark = get_spark("test-planted-media")
-    if not spark.catalog.tableExists(f"{config.CLEAN_DB}.dq_issues"):
-        pytest.skip(f"no {config.CLEAN_DB}.dq_issues: run the pipeline first")
-    with planted_csv.open(encoding="utf-8", newline="") as f:
-        planted = [r["problem"] for r in csv.DictReader(f)]
-    expected = {
-        "NO_GPS": planted.count("NO_GPS"),
-        "UNASSIGNED_PHOTO": planted.count("WRONG_SITE"),
-        "WRONG_VERSION": planted.count("WRONG_VERSION"),
-    }
-    found = {
-        r.issue_type: r["count"]
-        for r in spark.table(f"{config.CLEAN_DB}.dq_issues")
-        .where("job = 'media'")
-        .groupBy("issue_type")
-        .count()
-        .collect()
-    }
-    assert {t: found.get(t, 0) for t in expected} == expected
+    try:
+        if not spark.catalog.tableExists(f"{config.CLEAN_DB}.dq_issues"):
+            # Also seen when unit tests with a Hive test session ran earlier in the same process: the JVM
+            # keeps that metastore, so run this test with `pytest -m integration`.
+            pytest.skip(
+                f"no {config.CLEAN_DB}.dq_issues: run the pipeline first, and this test with -m integration"
+            )
+        with planted_csv.open(encoding="utf-8", newline="") as f:
+            planted = [r["problem"] for r in csv.DictReader(f)]
+        expected = {
+            "NO_GPS": planted.count("NO_GPS"),
+            "UNASSIGNED_PHOTO": planted.count("WRONG_SITE"),
+            "WRONG_VERSION": planted.count("WRONG_VERSION"),
+        }
+        found = {
+            r.issue_type: r["count"]
+            for r in spark.table(f"{config.CLEAN_DB}.dq_issues")
+            .where("job = 'media'")
+            .groupBy("issue_type")
+            .count()
+            .collect()
+        }
+        assert {t: found.get(t, 0) for t in expected} == expected
+    finally:
+        spark.stop()

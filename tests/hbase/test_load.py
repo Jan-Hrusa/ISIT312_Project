@@ -5,6 +5,7 @@ from __future__ import annotations
 import socket
 import uuid
 from collections import Counter
+from datetime import datetime, timezone
 
 import pytest
 
@@ -28,6 +29,30 @@ def test_original_name_from_raw_path():
         "site_layout_v2.dwg"
     )
     assert load._original_name("/tmp/sources/drive/projects/FVE-2026-02/contract.docx") == "contract.docx"
+
+
+def test_photo_without_time_keyed_first(fixtures_dir):
+    """A photo whose EXIF has no capture time is keyed at 1970-01-01 00:00:00 (rule accepted 16 Nov), so it
+    sorts before every dated photo of its project and has no meta:taken_at cell."""
+    data = (fixtures_dir / "sources" / "mailbox" / "photos" / "IMG_20260415_093000_00001.jpg").read_bytes()
+    photo = {
+        "file_id": "00c7ce529644981b",
+        "taken_at": None,
+        "lat": None,
+        "lon": None,
+        "size_bytes": len(data),
+        "device": None,
+        "original_name": "IMG_20260415_093000_00001.jpg",
+        "filing_rule": "NONE",
+        "project_code": config.UNASSIGNED,
+        "raw_path": "/lake/raw/photos/2026/04/2026-04-15.seq",
+        "seq_key": "IMG_20260415_093000_00001.jpg",
+    }
+    key, cells = load._photo_row(photo, data)
+    assert key == f"{config.UNASSIGNED}#PHOTO#19700101000000#00c7ce529644981b".encode()
+    dated = load._photo_row({**photo, "taken_at": datetime(2016, 1, 1, tzinfo=timezone.utc)}, data)[0]
+    assert key < dated
+    assert b"meta:taken_at" not in cells and b"thumb:jpg" in cells
 
 
 @pytest.mark.skipif(
