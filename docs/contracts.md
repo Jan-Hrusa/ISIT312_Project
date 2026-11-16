@@ -200,8 +200,8 @@ Jobs (`common.dq.JOBS`): `ingest`, `bank`, `finance`, `matching`, `media`.
 | `OVERRUN` | finance | 20 | a category spent more than 115% of its budget line |
 | `UNMATCHED_PAYMENT` | matching | 25.1 | a debit matching no invoice; `detail` names a suggested invoice when one fits |
 | `ORDER_NOT_CLEARED` | matching | 25.1 | a KPC payment order that no bank debit cleared |
-| `NO_GPS` | media | 19 | a photo without GPS position |
-| `UNASSIGNED_PHOTO` | media | 19 | a photo with GPS but no project site in reach on its date |
+| `NO_GPS` | media | 19 | a photo without GPS position (`project_code` NULL) |
+| `UNASSIGNED_PHOTO` | media | 19 | a photo with GPS but no project site in reach on its date (`project_code` = the project whose site centre is nearest; the photo itself stays `UNASSIGNED`) |
 | `WRONG_VERSION` | media | 19 | a project's final drawing is older than a numbered version |
 
 ## 8. Warehouse and catalogue
@@ -236,7 +236,8 @@ categories is needed.
 **HBase `media_catalog`** (`config.HBASE_TABLE`, Thrift at `config.HBASE_HOST:HBASE_PORT`; design Task 12, load
 Task 19): row key `<project_code>#<KIND>#<yyyyMMddHHmmss>#<file_id>`, KIND `PHOTO`, `VIDEO`, `DOC`, `DRAWING`;
 unfiled items under project `UNASSIGNED`. The key time is `taken_at` (UTC) for photos; videos, documents and
-drawings only have a date (the date in the video's name, `file_date`) and are keyed at 00:00:00 of it. Families:
+drawings only have a date (the date in the video's name, `file_date`) and are keyed at 00:00:00 of it; a
+photo whose EXIF has no capture time is keyed at `19700101000000`, so it sorts first. Families:
 `meta` (taken_at, lat, lon, size_bytes, device, original_name, ext, filing_rule), `loc` (raw_path, seq_key), `doc`
 (doc_type, version, is_final, title, file_date), `thumb` (`jpg` = 96x72 JPEG thumbnail of photos). Values are
 UTF-8 strings written by `hbase.catalogue.cells` (formats in `hbase/schema.md`); `filing_rule` and `doc_type`

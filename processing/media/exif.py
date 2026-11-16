@@ -3,6 +3,9 @@
 DateTimeOriginal holds the UTC time (the contract keeps every timestamp in UTC); a photo without a position
 has no GPS IFD at all. Anything unreadable comes back as None, so one damaged photo never stops the job: it is
 filed as having no time or position.
+
+The EXIF time format and the degrees/minutes/seconds conversion are kept here rather than imported from the
+generator: the lake job reads any camera's EXIF and must not depend on the synthetic-data code.
 """
 
 from __future__ import annotations
@@ -12,7 +15,7 @@ from typing import NamedTuple
 
 import piexif
 
-from generators.media.exif import EXIF_TIME_FORMAT, from_dms
+EXIF_TIME_FORMAT = "%Y:%m:%d %H:%M:%S"
 
 
 class PhotoExif(NamedTuple):
@@ -49,6 +52,14 @@ def _position(ifds: dict) -> tuple[float | None, float | None]:
     except (KeyError, TypeError, ValueError, ZeroDivisionError):
         return None, None
     return lat, lon
+
+
+def from_dms(dms, ref: bytes | str) -> float:
+    """EXIF degrees, minutes, seconds rationals and a reference (N/S/E/W) -> signed decimal degrees."""
+    (dn, dd), (mn, md), (sn, sd) = dms
+    value = dn / dd + mn / md / 60 + sn / sd / 3600
+    ref = ref.decode() if isinstance(ref, bytes) else ref
+    return -value if ref in ("S", "W") else value
 
 
 def _device(ifds: dict) -> str | None:

@@ -49,7 +49,9 @@ Create it with `python -m hbase.create_table` (`--drop` recreates it empty). In 
 - `KIND`: `PHOTO`, `VIDEO`, `DOC` or `DRAWING`. Drawings are their own kind, not a `DOC` with a type, so
   that "the drawings of a project" is a prefix of their own.
 - Timestamp: when the photo was taken (EXIF, UTC). Videos, documents and drawings only have a date (the
-  date in the video's name, the document's file date): their key carries that date at 00:00:00.
+  date in the video's name, the document's file date): their key carries that date at 00:00:00. A photo
+  whose EXIF has no capture time is keyed at `19700101000000` (1970-01-01 00:00:00), so it sorts before
+  every dated photo of its project; it has no `meta:taken_at` cell.
 - `file_id`: the first 16 hex characters of the file's SHA-256, as everywhere in the lake. It makes the key
   unique when two photos are taken in the same second.
 
