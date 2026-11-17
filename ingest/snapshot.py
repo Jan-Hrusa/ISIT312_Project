@@ -33,8 +33,7 @@ def prune(spark: SparkSession, keep: int = DEFAULT_KEEP) -> None:
         raise ValueError("keep must be non-negative")
 
     snapshots = sorted(
-        name for name in hdfs.list_snapshots(spark, config.LAKE_RAW)
-        if name.startswith(SNAPSHOT_PREFIX)
+        name for name in hdfs.list_snapshots(spark, config.LAKE_RAW) if name.startswith(SNAPSHOT_PREFIX)
     )
 
     for name in snapshots[:-keep] if keep else snapshots:

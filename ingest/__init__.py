@@ -9,6 +9,7 @@ from pyspark.sql import SparkSession
 
 def run(spark: SparkSession) -> dict[str, int]:
     """Collect new files, snapshot the raw zone and prune old snapshots."""
+    from common import lake
     from ingest import snapshot
     from ingest.collect import collect
 
@@ -20,7 +21,7 @@ def run(spark: SparkSession) -> dict[str, int]:
     if snapshot.config.DATASET != "x10":
         snapshot.ensure_snapshottable(spark)
 
-        if snapshot.take(spark, ingested_at.strftime("%Y%m%d%H%M%S")):
+        if snapshot.take(spark, ingested_at.strftime(lake.INGEST_TS_FORMAT)):
             snapshot_count = 1
             snapshot.prune(spark)
 
