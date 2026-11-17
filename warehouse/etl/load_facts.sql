@@ -66,8 +66,13 @@ FROM ${CLEAN_DB}.bank_transactions t
 LEFT JOIN ${DW_DB}.dim_bank_account a
     ON t.bank = a.bank
    AND t.account = a.account
-LEFT JOIN ${CLEAN_DB}.invoice_status st
-    ON array_contains(st.tx_ids, t.tx_id)
+-- one row per (invoice, tx_id): an equi-join instead of searching every invoice's tx_ids array
+LEFT JOIN (
+    SELECT invoice_id, days_late, tx_id
+    FROM ${CLEAN_DB}.invoice_status
+    LATERAL VIEW explode(tx_ids) paid AS tx_id
+) st
+    ON st.tx_id = t.tx_id
 LEFT JOIN ${CLEAN_DB}.invoices i
     ON st.invoice_id = i.invoice_id
 LEFT JOIN ${DW_DB}.dim_project p
@@ -91,19 +96,28 @@ SELECT
     st.invoice_id,
     COALESCE(p.project_key, -1) AS project_key,
     o.amount,
-    CASE
-        WHEN array_contains(st.uncleared_order_ids, o.order_id) THEN CAST(0 AS TINYINT)
-        WHEN array_contains(st.order_ids, o.order_id) THEN CAST(1 AS TINYINT)
-        ELSE CAST(NULL AS TINYINT)
-    END AS cleared,
+    st.cleared,
     YEAR(o.order_date) AS order_year
 FROM ${CLEAN_DB}.payment_orders o
 LEFT JOIN ${DW_DB}.dim_bank_account a
     ON o.bank = a.bank
    AND o.account = a.account
-LEFT JOIN ${CLEAN_DB}.invoice_status st
-    ON array_contains(st.order_ids, o.order_id)
-    OR array_contains(st.uncleared_order_ids, o.order_id)
+-- one row per (invoice, order_id): 0 when the order is in uncleared_order_ids, 1 when it is only in order_ids;
+-- an order matching no invoice gets no row here, so cleared stays NULL
+LEFT JOIN (
+    SELECT invoice_id, order_id, MIN(cleared) AS cleared
+    FROM (
+        SELECT invoice_id, order_id, CAST(1 AS TINYINT) AS cleared
+        FROM ${CLEAN_DB}.invoice_status
+        LATERAL VIEW explode(order_ids) matched AS order_id
+        UNION ALL
+        SELECT invoice_id, order_id, CAST(0 AS TINYINT) AS cleared
+        FROM ${CLEAN_DB}.invoice_status
+        LATERAL VIEW explode(uncleared_order_ids) uncleared AS order_id
+    ) orders_per_invoice
+    GROUP BY invoice_id, order_id
+) st
+    ON st.order_id = o.order_id
 LEFT JOIN ${CLEAN_DB}.invoices i
     ON st.invoice_id = i.invoice_id
 LEFT JOIN ${DW_DB}.dim_project p
@@ -113,5 +127,3 @@ LEFT JOIN ${CLEAN_DB}.suppliers cs
    AND o.counterparty_bank_code = cs.bank_code
 LEFT JOIN ${DW_DB}.dim_supplier s
     ON cs.ico = s.ico;
-
--- Payment orders with invoice matching and clearing status

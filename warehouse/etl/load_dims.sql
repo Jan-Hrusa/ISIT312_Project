@@ -53,27 +53,27 @@ SELECT
     'Unknown supplier',
     'UNKNOWN';
 
--- Cost category dimension
+-- Cost category dimension (the codes of common/config.CATEGORIES; keys by code, as every surrogate key)
 INSERT OVERWRITE TABLE ${DW_DB}.dim_cost_category
 SELECT
-    category_key,
+    CAST(ROW_NUMBER() OVER (ORDER BY category_code) AS INT) AS category_key,
     category_code,
     category_name,
     group_name
 FROM VALUES
-    (1, 'PANELS', 'Panels', 'technology'),
-    (2, 'INVERTERS', 'Inverters', 'technology'),
-    (3, 'BATTERIES', 'Batteries', 'technology'),
-    (4, 'STRUCTURES', 'Mounting structures', 'construction'),
-    (5, 'CABLES', 'Cables', 'construction'),
-    (6, 'EARTHWORKS', 'Earthworks', 'construction'),
-    (7, 'GRID', 'Grid connection', 'construction'),
-    (8, 'DESIGN', 'Design', 'services'),
-    (9, 'SURVEY', 'Survey', 'services'),
-    (10, 'OTHER', 'Other', 'services')
-AS categories(category_key, category_code, category_name, group_name);
+    ('PANELS', 'Panels', 'technology'),
+    ('INVERTERS', 'Inverters', 'technology'),
+    ('BATTERIES', 'Batteries', 'technology'),
+    ('STRUCTURES', 'Mounting structures', 'construction'),
+    ('CABLES', 'Cables', 'construction'),
+    ('EARTHWORKS', 'Earthworks', 'construction'),
+    ('GRID', 'Grid connection', 'construction'),
+    ('DESIGN', 'Design', 'services'),
+    ('SURVEY', 'Survey', 'services'),
+    ('OTHER', 'Other', 'services')
+AS categories(category_code, category_name, group_name);
 
--- Date dimension: 2016-01-01 through 2026-12-31
+-- Date dimension: 2016-01-01 through 2026-12-31; iso_week = ISO week-year and week as YYYY-Www (contracts)
 INSERT OVERWRITE TABLE ${DW_DB}.dim_date
 SELECT
     CAST(date_format(full_date, 'yyyyMMdd') AS INT) AS date_key,
@@ -85,7 +85,7 @@ SELECT
     YEAR(full_date) AS year,
     concat(
            CAST(YEAR(date_add(full_date, 4 - ((dayofweek(full_date) + 5) % 7 + 1))) AS STRING),
-           '-',
+           '-W',
            lpad(CAST(weekofyear(full_date) AS STRING), 2, '0')
        ) AS iso_week
 FROM (
@@ -98,18 +98,18 @@ FROM (
     ) AS full_date
 ) dates;
 
--- Bank account dimension
+-- Bank account dimension (the company accounts of common/config.BANKS; keys by account number)
 INSERT OVERWRITE TABLE ${DW_DB}.dim_bank_account
 SELECT
-    account_key,
+    CAST(ROW_NUMBER() OVER (ORDER BY account) AS INT) AS account_key,
     bank,
     bank_name,
     account,
     bank_code,
     currency
 FROM VALUES
-    (1, 'RB', 'Raiffeisenbank', '2101234567', '5500', 'CZK'),
-    (2, 'UCB', 'UniCredit Bank', '1387654321', '2700', 'CZK'),
-    (3, 'KB', 'Komerční banka', '1234567890', '0100', 'CZK'),
-    (4, 'CS', 'Česká spořitelna', '2900112233', '0800', 'CZK')
-AS accounts(account_key, bank, bank_name, account, bank_code, currency);
+    ('RB', 'Raiffeisenbank', '2101234567', '5500', 'CZK'),
+    ('UCB', 'UniCredit Bank', '1387654321', '2700', 'CZK'),
+    ('KB', 'Komerční banka', '1234567890', '0100', 'CZK'),
+    ('CS', 'Česká spořitelna', '2900112233', '0800', 'CZK')
+AS accounts(bank, bank_name, account, bank_code, currency);
