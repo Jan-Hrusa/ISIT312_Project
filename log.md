@@ -6,6 +6,12 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-17 - Task 25.1: Contract wording for UNMATCHED_PAYMENT (Jan)
+- Merged: `docs/contracts.md` section 7 states the Task 9 rule the matching job follows: `UNMATCHED_PAYMENT`
+  only when a suggested invoice fits (it read "a debit matching no invoice"); no code change
+- Checked: review of PR #49 on the desktop scale-1 data: all 25 debits matching no invoice have a suggestion
+  (15 wrong VS, 10 no VS), so the output is the same under both readings
+
 ### 2026-11-17 - Task 25.1: Matching job (Mudabbir)
 - Merged: `processing/matching/job.py` writes `fve_clean.invoice_status` and the `matching` issues with Task 9's
   rules; `spark.locality.wait 0s` in `docker/conf/spark-defaults.conf` (local mode hung on mixed-locality stages)
