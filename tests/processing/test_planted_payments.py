@@ -202,6 +202,13 @@ def lake(clean_db):
                 "/lake/raw/invoices/2026/08/copy.isdoc",
             ),
             ("PARSE_ERROR", "isdoc", "/lake/raw/invoices/2026/08/broken.isdoc", None, "not XML"),
+            (
+                "MISSING_VS",
+                "isdoc",
+                "12345678-202600001",
+                "FVE-2026-03",
+                "no variable symbol in /lake/raw/invoices/2026/08/202600001.isdoc",
+            ),
         ],
         "media": [
             ("NO_GPS", "photos", "f0", None, "IMG_0000.jpg taken 2026-09-04"),
@@ -236,10 +243,11 @@ def test_to_fix_queries_parse(lake):
         "wrong_versions",
         "duplicates",
         "parse_errors",
+        "missing_vs",
     ]
     counts = {(r.issue_type, r.job): r.issues for r in to_fix["issue_counts"]}
     assert counts[("NO_PROJECT", "finance")] == 2
-    assert sum(counts.values()) == 9
+    assert sum(counts.values()) == 10
     (payment,) = to_fix["unmatched_payments"]
     assert (payment.tx_id, payment.amount, payment.suggested_invoice) == (
         "KB-20260912-0001",
@@ -268,6 +276,14 @@ def test_to_fix_queries_parse(lake):
         "/lake/raw/invoices/2026/08/copy.isdoc",
     )
     assert [r.raw_path for r in to_fix["parse_errors"]] == ["/lake/raw/invoices/2026/08/broken.isdoc"]
+    # The invoice without a VS, with the debit the matching job suggested for it.
+    (missing,) = to_fix["missing_vs"]
+    assert (missing.invoice_id, missing.supplier, missing.status, missing.suggested_payment) == (
+        "12345678-202600001",
+        "Panely s.r.o.",
+        "OVERDUE",
+        "KB-20260912-0001",
+    )
 
     overdue = _run(lake, OVERDUE, supplier=SUPPLIER["name"])
 
@@ -303,6 +319,10 @@ def test_notes_match_sql_files():
         assert [p["text"] for p in paragraphs] == expected, note_file.name
         for p in note["paragraphs"]:
             assert "results" not in p and p["status"] == "READY", (note_file.name, p.get("title"))
+        # The REFRESH paragraph must cover every table the queries read, or the Thrift Server shows old data.
+        refreshed = set(re.findall(r"REFRESH TABLE fve_clean\.(\w+);", refresh["text"]))
+        queried = {t for q in queries.values() for t in re.findall(r"fve_clean\.(\w+)", q)}
+        assert queried <= refreshed, (note_file.name, sorted(queried - refreshed))
         for query in queries.values():
             select_list = query.split("\nFROM ", 1)[0]
             assert not re.findall(r"^\s+[a-z]+\.[a-z_]+,?$", select_list, re.MULTILINE), query[:60]

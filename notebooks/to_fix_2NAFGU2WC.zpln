@@ -2,7 +2,7 @@
   "paragraphs": [
     {
       "title": "Obnovit tabulky (Refresh tables after a pipeline run)",
-      "text": "%sparksql\nREFRESH TABLE fve_clean.dq_issues;\nREFRESH TABLE fve_clean.bank_transactions;\nREFRESH TABLE fve_clean.payment_orders;\nREFRESH TABLE fve_clean.invoices;\nREFRESH TABLE fve_clean.booked_costs;\nREFRESH TABLE fve_clean.suppliers;\nREFRESH TABLE fve_clean.media_files;",
+      "text": "%sparksql\nREFRESH TABLE fve_clean.dq_issues;\nREFRESH TABLE fve_clean.bank_transactions;\nREFRESH TABLE fve_clean.payment_orders;\nREFRESH TABLE fve_clean.invoices;\nREFRESH TABLE fve_clean.invoice_status;\nREFRESH TABLE fve_clean.booked_costs;\nREFRESH TABLE fve_clean.suppliers;\nREFRESH TABLE fve_clean.media_files;",
       "user": "anonymous",
       "dateUpdated": "2026-11-17 10:50:47.916",
       "progress": 0,
@@ -736,6 +736,39 @@
       "jobName": "paragraph_1794911184728_265438844",
       "id": "paragraph_1794911184728_265438844",
       "dateCreated": "2026-11-17 10:26:24.728",
+      "status": "READY"
+    },
+    {
+      "title": "Faktury bez variabilního symbolu (Invoices without a variable symbol, with the payment that probably paid them)",
+      "text": "%sparksql\nSELECT\n    i.record_ref AS invoice_id,\n    s.name AS supplier,\n    v.number AS number,\n    v.issue_date AS issue_date,\n    v.due_date AS due_date,\n    v.total_gross AS total_gross,\n    st.status AS status,\n    p.tx_id AS suggested_payment,\n    i.project_code AS project_code,\n    i.detail AS detail\nFROM fve_clean.dq_issues i\nLEFT JOIN fve_clean.invoices v\n    ON v.invoice_id \u003d i.record_ref\nLEFT JOIN fve_clean.suppliers s\n    ON s.ico \u003d v.supplier_ico\nLEFT JOIN fve_clean.invoice_status st\n    ON st.invoice_id \u003d i.record_ref\nLEFT JOIN (\n    SELECT\n        record_ref AS tx_id,\n        regexp_extract(detail, \u0027suggested match: ([^ ]+)\u0027, 1) AS invoice_id\n    FROM fve_clean.dq_issues\n    WHERE issue_type \u003d \u0027UNMATCHED_PAYMENT\u0027\n) p\n    ON p.invoice_id \u003d i.record_ref\nWHERE i.issue_type \u003d \u0027MISSING_VS\u0027\nORDER BY due_date, invoice_id",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 13:20:00.000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794921600000_9000000001",
+      "id": "paragraph_1794921600000_9000000001",
+      "dateCreated": "2026-11-17 13:20:00.000",
       "status": "READY"
     }
   ],

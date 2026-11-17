@@ -133,3 +133,35 @@ SELECT
 FROM ${CLEAN_DB}.dq_issues
 WHERE issue_type = 'PARSE_ERROR'
 ORDER BY job, raw_path;
+
+-- name: missing_vs
+-- 9. Invoices without a variabilní symbol (MISSING_VS): bank payments can't be matched to them by VS, so each
+-- row also shows the payment the matching job suggests for the invoice (from its UNMATCHED_PAYMENT `detail`).
+SELECT
+    i.record_ref AS invoice_id,
+    s.name AS supplier,
+    v.number AS number,
+    v.issue_date AS issue_date,
+    v.due_date AS due_date,
+    v.total_gross AS total_gross,
+    st.status AS status,
+    p.tx_id AS suggested_payment,
+    i.project_code AS project_code,
+    i.detail AS detail
+FROM ${CLEAN_DB}.dq_issues i
+LEFT JOIN ${CLEAN_DB}.invoices v
+    ON v.invoice_id = i.record_ref
+LEFT JOIN ${CLEAN_DB}.suppliers s
+    ON s.ico = v.supplier_ico
+LEFT JOIN ${CLEAN_DB}.invoice_status st
+    ON st.invoice_id = i.record_ref
+LEFT JOIN (
+    SELECT
+        record_ref AS tx_id,
+        regexp_extract(detail, 'suggested match: ([^ ]+)', 1) AS invoice_id
+    FROM ${CLEAN_DB}.dq_issues
+    WHERE issue_type = 'UNMATCHED_PAYMENT'
+) p
+    ON p.invoice_id = i.record_ref
+WHERE i.issue_type = 'MISSING_VS'
+ORDER BY due_date, invoice_id;
