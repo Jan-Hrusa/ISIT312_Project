@@ -35,6 +35,7 @@ def collect(
     sources_dir: Path | str | None = None,
     sources: list[str] | None = None,
     dry_run: bool = False,
+    ingested_at: datetime | None = None,
 ) -> dict[str, dict[str, int]]:
     """Collect the new files of `sources` (source keys of `config.RAW_SOURCES`; None = all) from
     `sources_dir` (None = `config.SOURCES_DIR`) and return `{source: {"new", "skipped", "bytes"}}`.
@@ -52,7 +53,7 @@ def collect(
     if unknown:
         raise ValueError(f"unknown source: {', '.join(unknown)}")
 
-    ingested_at = _now()
+    ingested_at = ingested_at or _now()
     run_id = ingested_at.strftime(lake.INGEST_TS_FORMAT)
     if not dry_run:
         _ensure_tables(spark)

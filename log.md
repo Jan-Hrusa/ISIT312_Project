@@ -82,6 +82,9 @@ One entry per merged task (or part with its own checkpoint), newest first:
 ### 2026-11-15 - Task 16: Bank parsers (Obaid)
 - Merged: processing/bank (GPC, STA/MT940, TXT and KPC parsers; Spark run(spark, inputs=None) writing bank_transactions, bank_tx_details and payment_orders; TXT companion pairing and file-level PARSE_ERROR handling), tests/processing/test_bank.py (10 tests)
 - Checked: 10 Task 16 tests passed. Non-integration suite passed (196 passed, 1 skipped, 1 deselected). Ruff lint and formatting passed. Full HDFS raw-zone processing succeeded with SPARK_MASTER=local[2]. Full-dataset Hive table counts verified: 4,965 bank transactions, 4,965 transaction details, 4,682 payment orders, and exactly 1 PARSE_ERROR. Bank transaction counts: RB 3,561, UCB 427, KB 472, CS 505.
+### 2026-11-17 - Task 14: Collection job, ingest log and snapshots (Ryan)
+- Implemented: ingest/snapshot.py (enable raw-zone snapshots, create `raw-<run_id>` snapshots, retain newest 30); ingest/restore_demo.py (delete and restore a project's raw documents from the newest snapshot, verify HDFS checksums); ingest.run integrates collection, snapshot creation and pruning; shared UTC ingestion timestamp; x10 snapshot exclusion; snapshot tests and updated collection tests
+- Checked: full collection 52,055 files; second run 0 new and 52,055 skipped; snapshot created on both runs; restore demo restored 7 files with matching checksums; pytest tests/ingest: 30 passed; git diff --check clean
 
 ### 2026-11-15 - Task 18: Review fixes to the photo packing (Jan)
 - Merged: `ingest/seqfile.py` writes uncompressed records (`CompressionType.NONE`; Hadoop's default zlib per record

@@ -331,8 +331,27 @@ def test_sources_filter(clean_db, sources_tree, clock):
 def test_run_returns_the_totals(clean_db, sources_tree, clock, no_packer, monkeypatch):
     spark = clean_db
     monkeypatch.setattr(config, "SOURCES_DIR", sources_tree)
-    collected = sum(len(f) for s, f in _files_per_source(sources_tree).items() if s != "photos")
 
-    assert ingest.run(spark) == {"files_new": collected, "files_skipped": 0}
+    # Mock HDFS snapshot operations because this test uses a local filesystem.
+    monkeypatch.setattr("ingest.snapshot.config.DATASET", "main")
+    monkeypatch.setattr("ingest.snapshot.ensure_snapshottable", lambda spark: None)
+    monkeypatch.setattr("ingest.snapshot.take", lambda spark, run_id: "/fake/snapshot")
+    monkeypatch.setattr("ingest.snapshot.prune", lambda spark: None)
+
+    collected = sum(
+        len(f) for s, f in _files_per_source(sources_tree).items() if s != "photos"
+    )
+
+    assert ingest.run(spark) == {
+        "files_new": collected,
+        "files_skipped": 0,
+        "snapshot": 1,
+    }
+
     clock(RUN_2)
-    assert ingest.run(spark) == {"files_new": 0, "files_skipped": collected}
+
+    assert ingest.run(spark) == {
+        "files_new": 0,
+        "files_skipped": collected,
+        "snapshot": 1,
+    }
