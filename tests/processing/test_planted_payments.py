@@ -2,6 +2,8 @@
 after a full pipeline run."""
 
 import csv
+import json
+import re
 from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -16,6 +18,9 @@ from warehouse.sql import named_queries
 QUERIES = Path(__file__).resolve().parents[2] / "warehouse" / "queries"
 TO_FIX = QUERIES / "to_fix.sql"
 OVERDUE = QUERIES / "overdue_by_supplier.sql"
+NOTEBOOKS = QUERIES.parents[1] / "notebooks"
+TO_FIX_NOTE = NOTEBOOKS / "to_fix_2NAFGU2WC.zpln"
+OVERDUE_NOTE = NOTEBOOKS / "overdue_by_supplier_2N9ESAMYY.zpln"
 
 SUPPLIER = {
     "ico": "12345678",
@@ -283,6 +288,24 @@ def test_to_fix_queries_parse(lake):
     ]
     by_ico = _run(lake, OVERDUE, supplier=SUPPLIER["ico"])["supplier_invoices"]
     assert len(by_ico) == 4
+
+
+def test_notes_match_sql_files():
+    """Each Zeppelin note runs exactly the queries of its .sql file, in order, after its hidden REFRESH
+    paragraph; it is committed without results (Zeppelin adds them again when it runs); and every column has
+    a plain name, so HiveServer2 shows the same headers as Spark (no `t.value_date`)."""
+    for sql_file, note_file in ((TO_FIX, TO_FIX_NOTE), (OVERDUE, OVERDUE_NOTE)):
+        note = json.loads(note_file.read_text(encoding="utf-8"))
+        refresh, *paragraphs = note["paragraphs"]
+        assert refresh["text"].startswith("%sparksql\nREFRESH TABLE "), note_file.name
+        queries = named_queries(sql_file, CLEAN_DB="fve_clean", supplier="${supplier=}")
+        expected = [f"%sparksql\n{q}" for q in queries.values()]
+        assert [p["text"] for p in paragraphs] == expected, note_file.name
+        for p in note["paragraphs"]:
+            assert "results" not in p and p["status"] == "READY", (note_file.name, p.get("title"))
+        for query in queries.values():
+            select_list = query.split("\nFROM ", 1)[0]
+            assert not re.findall(r"^\s+[a-z]+\.[a-z_]+,?$", select_list, re.MULTILINE), query[:60]
 
 
 @pytest.mark.integration

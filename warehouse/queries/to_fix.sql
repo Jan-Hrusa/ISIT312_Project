@@ -15,16 +15,16 @@ ORDER BY issues DESC, issue_type, job;
 -- name: unmatched_payments
 -- 2. Debits that paid no invoice by VS, with the invoice the matching job suggests (from `detail`).
 SELECT
-    t.value_date,
-    t.bank,
+    t.value_date AS value_date,
+    t.bank AS bank,
     i.record_ref AS tx_id,
     -t.amount AS amount,
-    t.counterparty_account,
-    t.counterparty_bank_code,
-    t.vs,
+    t.counterparty_account AS counterparty_account,
+    t.counterparty_bank_code AS counterparty_bank_code,
+    t.vs AS vs,
     NULLIF(regexp_extract(i.detail, 'suggested match: ([^ ]+)', 1), '') AS suggested_invoice,
-    i.project_code,
-    i.detail
+    i.project_code AS project_code,
+    i.detail AS detail
 FROM ${CLEAN_DB}.dq_issues i
 LEFT JOIN ${CLEAN_DB}.bank_transactions t
     ON t.tx_id = i.record_ref
@@ -34,12 +34,12 @@ ORDER BY value_date, tx_id;
 -- name: no_project
 -- 3. Invoices (`isdoc`) and booked costs (`accounting`) without a project code.
 SELECT
-    i.source,
-    i.record_ref,
+    i.source AS source,
+    i.record_ref AS record_ref,
     s.name AS supplier,
     COALESCE(v.issue_date, b.issue_date) AS issue_date,
     COALESCE(v.total_gross, b.amount_gross) AS amount_gross,
-    i.detail
+    i.detail AS detail
 FROM ${CLEAN_DB}.dq_issues i
 LEFT JOIN ${CLEAN_DB}.invoices v
     ON i.source = 'isdoc' AND v.invoice_id = i.record_ref
@@ -61,16 +61,16 @@ ORDER BY source, issue_date, record_ref;
 -- name: orders_not_cleared
 -- 4. Payment orders (KPC) that no bank debit cleared, with the invoice they were for (from `detail`).
 SELECT
-    o.order_date,
-    o.due_date,
-    o.bank,
+    o.order_date AS order_date,
+    o.due_date AS due_date,
+    o.bank AS bank,
     i.record_ref AS order_id,
-    o.amount,
-    o.counterparty_account,
-    o.counterparty_bank_code,
-    o.vs,
+    o.amount AS amount,
+    o.counterparty_account AS counterparty_account,
+    o.counterparty_bank_code AS counterparty_bank_code,
+    o.vs AS vs,
     NULLIF(regexp_extract(i.detail, 'for invoice ([^ ]+)', 1), '') AS invoice_id,
-    i.project_code
+    i.project_code AS project_code
 FROM ${CLEAN_DB}.dq_issues i
 LEFT JOIN ${CLEAN_DB}.payment_orders o
     ON o.order_id = i.record_ref
@@ -82,13 +82,13 @@ ORDER BY due_date, order_id;
 -- the project whose site centre is nearest). UNASSIGNED_PHOTO first: Zeppelin truncates long results (100 KB),
 -- and NO_GPS (about 3,000 photos) would push the photos with a nearest project out of view.
 SELECT
-    i.issue_type,
-    m.original_name,
-    m.taken_at,
-    m.lat,
-    m.lon,
+    i.issue_type AS issue_type,
+    m.original_name AS original_name,
+    m.taken_at AS taken_at,
+    m.lat AS lat,
+    m.lon AS lon,
     i.project_code AS nearest_project,
-    i.detail
+    i.detail AS detail
 FROM ${CLEAN_DB}.dq_issues i
 LEFT JOIN ${CLEAN_DB}.media_files m
     ON m.file_id = i.record_ref
@@ -110,11 +110,11 @@ ORDER BY project_code;
 SELECT
     i.record_ref AS invoice_id,
     s.name AS supplier,
-    v.number,
-    v.total_gross,
+    v.number AS number,
+    v.total_gross AS total_gross,
     v.source_file AS kept_file,
     i.detail AS dropped_file,
-    i.project_code
+    i.project_code AS project_code
 FROM ${CLEAN_DB}.dq_issues i
 LEFT JOIN ${CLEAN_DB}.invoices v
     ON v.invoice_id = i.record_ref
