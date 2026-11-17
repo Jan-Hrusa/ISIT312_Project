@@ -6,6 +6,16 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-17 - Task 25: Review fixes to the notebooks (Jan)
+- Merged: both Zeppelin notes committed without results (to_fix 155 KB -> 31 KB; Zeppelin adds them back when it
+  runs, so don't commit a run); explicit column aliases in `to_fix.sql` and `overdue_by_supplier.sql`, so
+  HiveServer2 shows the same headers as Spark (`value_date`, not `t.value_date`); the notes' SQL regenerated
+  from the .sql files; `test_notes_match_sql_files` (also: every queried table refreshed); "to fix" paragraph 9
+  `missing_vs` (invoices without a VS, with the payment the matching job suggests; REFRESH invoice_status added)
+- Checked: ruff clean; pytest -m "not integration" 228 passed, 2 skipped; the new test fails on the PR #51
+  notes. Desktop stack (core + zeppelin): both notes run in Zeppelin, every paragraph SUCCESS with the review's
+  row counts, paragraph 9 = the 10 planted NO_VS invoices and their payments; beeline headers without prefixes
+
 ### 2026-11-17 - Task 25: "To fix" notebook and overdue view (Mudabbir)
 - Merged: `warehouse/queries/to_fix.sql` (8 queries) and `overdue_by_supplier.sql` (2, supplier form); Zeppelin
   notes `to_fix` and `overdue_by_supplier` (`%sparksql`, hidden REFRESH paragraph); `test_planted_payments.py`

@@ -6,7 +6,7 @@
 -- Supplier, number of overdue invoices, open amount (gross - paid), oldest due date, average days late.
 SELECT
     s.name AS supplier,
-    s.ico,
+    s.ico AS ico,
     COUNT(*) AS overdue_invoices,
     SUM(v.total_gross - st.paid_amount) AS open_amount,
     MIN(v.due_date) AS oldest_due_date,
@@ -23,17 +23,17 @@ ORDER BY open_amount DESC, supplier;
 -- name: supplier_invoices
 -- One supplier's invoices (name or IČO from the form), newest due date first.
 SELECT
-    v.invoice_id,
-    v.number,
-    v.issue_date,
-    v.due_date,
-    v.total_gross,
-    st.status,
-    st.paid_amount,
+    v.invoice_id AS invoice_id,
+    v.number AS number,
+    v.issue_date AS issue_date,
+    v.due_date AS due_date,
+    v.total_gross AS total_gross,
+    st.status AS status,
+    st.paid_amount AS paid_amount,
     v.total_gross - st.paid_amount AS open_amount,
-    st.paid_date,
-    st.days_late,
-    v.project_code
+    st.paid_date AS paid_date,
+    st.days_late AS days_late,
+    v.project_code AS project_code
 FROM ${CLEAN_DB}.invoices v
 JOIN ${CLEAN_DB}.suppliers s
     ON s.ico = v.supplier_ico
