@@ -338,9 +338,7 @@ def test_run_returns_the_totals(clean_db, sources_tree, clock, no_packer, monkey
     monkeypatch.setattr("ingest.snapshot.take", lambda spark, run_id: "/fake/snapshot")
     monkeypatch.setattr("ingest.snapshot.prune", lambda spark: None)
 
-    collected = sum(
-        len(f) for s, f in _files_per_source(sources_tree).items() if s != "photos"
-    )
+    collected = sum(len(f) for s, f in _files_per_source(sources_tree).items() if s != "photos")
 
     assert ingest.run(spark) == {
         "files_new": collected,

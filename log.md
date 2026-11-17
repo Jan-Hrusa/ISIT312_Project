@@ -6,6 +6,23 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-17 - Task 14: Review fixes to the restore demo (Jan)
+- Merged: `ingest/restore_demo.py` picks the newest snapshot and compares its files and HDFS checksums with the
+  live folder before deleting; with no snapshot, a raw zone that isn't snapshottable yet or a snapshot that
+  differs it stops with "Nothing was deleted" (PR #53 deleted first and then found no snapshot). It prints every
+  `hadoop fs` command and the file lists with checksums (before, snapshot, after; flushed, so piped output keeps
+  its order). Five tests in `tests/ingest/test_snapshot.py` (restore, refusal without a snapshot and with a
+  differing one, `take` name, `take` for x10); `ingest.run` uses `lake.INGEST_TS_FORMAT`; ruff on Ryan's files
+- Checked: ruff clean; pytest -m "not integration" 236 passed, 2 skipped; the refusal tests fail on the PR #53
+  code. Scratch HDFS lake: restore OK; no snapshot, not snapshottable and a differing snapshot all stop with the
+  folder untouched. Desktop stack, scale-1 data: collect twice (0 new, 52,055 skipped each; 967 s and 413 s), a
+  snapshot after each run; restore demo on FVE-2016-01: 7 files restored, checksums match; screenshots in Drive
+  `Screenshots/platform/T14_*.png`
+
+### 2026-11-17 - Task 14: Collection job, ingest log and snapshots (Ryan)
+- Merged: ingest/snapshot.py (enable raw-zone snapshots, create `raw-<run_id>` snapshots, retain newest 30); ingest/restore_demo.py (delete and restore a project's raw documents from the newest snapshot, verify HDFS checksums); ingest.run integrates collection, snapshot creation and pruning; shared UTC ingestion timestamp; x10 snapshot exclusion; snapshot tests and updated collection tests
+- Checked: full collection 52,055 files; second run 0 new and 52,055 skipped; snapshot created on both runs; restore demo restored 7 files with matching checksums; pytest tests/ingest: 30 passed; git diff --check clean
+
 ### 2026-11-17 - Task 25: Review fixes to the notebooks (Jan)
 - Merged: both Zeppelin notes committed without results (to_fix 155 KB -> 31 KB; Zeppelin adds them back when it
   runs, so don't commit a run); explicit column aliases in `to_fix.sql` and `overdue_by_supplier.sql`, so
@@ -82,9 +99,6 @@ One entry per merged task (or part with its own checkpoint), newest first:
 ### 2026-11-15 - Task 16: Bank parsers (Obaid)
 - Merged: processing/bank (GPC, STA/MT940, TXT and KPC parsers; Spark run(spark, inputs=None) writing bank_transactions, bank_tx_details and payment_orders; TXT companion pairing and file-level PARSE_ERROR handling), tests/processing/test_bank.py (10 tests)
 - Checked: 10 Task 16 tests passed. Non-integration suite passed (196 passed, 1 skipped, 1 deselected). Ruff lint and formatting passed. Full HDFS raw-zone processing succeeded with SPARK_MASTER=local[2]. Full-dataset Hive table counts verified: 4,965 bank transactions, 4,965 transaction details, 4,682 payment orders, and exactly 1 PARSE_ERROR. Bank transaction counts: RB 3,561, UCB 427, KB 472, CS 505.
-### 2026-11-17 - Task 14: Collection job, ingest log and snapshots (Ryan)
-- Implemented: ingest/snapshot.py (enable raw-zone snapshots, create `raw-<run_id>` snapshots, retain newest 30); ingest/restore_demo.py (delete and restore a project's raw documents from the newest snapshot, verify HDFS checksums); ingest.run integrates collection, snapshot creation and pruning; shared UTC ingestion timestamp; x10 snapshot exclusion; snapshot tests and updated collection tests
-- Checked: full collection 52,055 files; second run 0 new and 52,055 skipped; snapshot created on both runs; restore demo restored 7 files with matching checksums; pytest tests/ingest: 30 passed; git diff --check clean
 
 ### 2026-11-15 - Task 18: Review fixes to the photo packing (Jan)
 - Merged: `ingest/seqfile.py` writes uncompressed records (`CompressionType.NONE`; Hadoop's default zlib per record
