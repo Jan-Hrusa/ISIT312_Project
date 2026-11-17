@@ -6,6 +6,25 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-17 - Task 26: Review fixes to the warehouse loads (Jan)
+- Merged: `dim_date.iso_week` as `YYYY-Www` (contracts section 8; was `YYYY-WW`); `dim_cost_category` and
+  `dim_bank_account` keys by `ROW_NUMBER()` over the code / account number like every surrogate key (were the
+  config order); `fact_payment` and `fact_payment_order` link invoices through exploded `tx_ids` / `order_ids`
+  (equi-joins instead of `array_contains` over every invoice; same rows, 0.8 s instead of 7.4 s on x10-sized
+  inputs); stray comment at the end of `load_facts.sql` removed. `test_check_fails_on_broken_fixture` now loses a
+  line on the way (an invoice line without its invoice) and expects the RuntimeError; Gokulsanjay's duplicate
+  test kept as `test_duplicate_payment_fails_unique_check`; new `test_order_cleared_flags`, `test_iso_week_format`,
+  `test_static_dimensions_match_config`
+- Checked: ruff clean; pytest tests/warehouse 28 passed; pytest -m "not integration" 246 passed, 2 skipped; the
+  iso_week and config tests fail on the PR #54 SQL. Desktop stack, full data: `run_pipeline --steps warehouse`
+  OK in 96.6 s, five checks green (net 2,312,351,039.07, budgets 2,641,905,917.00, 4,672 payments = debits),
+  cleared NULL 25 / 0 10 / 1 4,647 (as before the change); v1 red = the 6 planted + FVE-2025-08; 125
+  fact_payment partitions in beeline. Screenshots in Drive `Screenshots/warehouse/T26_*.png`
+
+### 2026-11-17 - Task 26: Warehouse loads and checks (Gokulsanjay)
+- Merged: warehouse/etl/load_dims.sql (5 dimensions), load_facts.sql (4 facts), checks.sql (5 validation checks), run.py (ETL runner with row counts and RuntimeError on failed checks), tests/warehouse/test_etl.py (6 automated tests).
+- Checked: pytest tests/warehouse/ — 13 passed (7 DDL and 6 ETL); synthetic finance, bank transaction, invoice-status and payment-order fixtures; verified idempotency, positive payment amounts, UNKNOWN project, validation checks and error handling. Full pipeline on the full dataset (PR #54 screenshot): warehouse OK in 81.4 s, five checks green, row counts equal to the clean zone.
+
 ### 2026-11-17 - Task 14: Review fixes to the restore demo (Jan)
 - Merged: `ingest/restore_demo.py` picks the newest snapshot and compares its files and HDFS checksums with the
   live folder before deleting; with no snapshot, a raw zone that isn't snapshottable yet or a snapshot that
@@ -370,8 +389,3 @@ One entry per merged task (or part with its own checkpoint), newest first:
 - Merged: AGENTS.md sections 2 and 3: agents read the ClickUp guide page, then the task, then Drive 00 and 02, then README and contracts
 - Checked: docs only; no code changed
 
-
-### 2026-11-15 - Task 26: Warehouse loads and checks (Gokulsanjay)
-- Implemented: warehouse/etl/load_dims.sql (5 dimensions), load_facts.sql (4 facts), checks.sql (5 validation checks), run.py (ETL runner with row counts and RuntimeError on failed checks), tests/warehouse/test_etl.py (6 automated tests).
-- Checked: pytest tests/warehouse/ — 13 passed (7 DDL and 6 ETL); synthetic finance, bank transaction, invoice-status and payment-order fixtures; verified idempotency, positive payment amounts, UNKNOWN project, validation checks and error handling.
-- Pending: Full dataset validation and final payment reconciliation after Tasks 16 and 25.1 are integrated.
