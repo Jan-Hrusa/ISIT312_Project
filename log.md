@@ -6,6 +6,11 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-17 - Task 25: "To fix" notebook and overdue view (Mudabbir)
+- Merged: `warehouse/queries/to_fix.sql` (8 queries) and `overdue_by_supplier.sql` (2, supplier form); Zeppelin
+  notes `to_fix` and `overdue_by_supplier` (`%sparksql`, hidden REFRESH paragraph); `test_planted_payments.py`
+- Checked: `pytest -m "not integration"`, ruff, `test_planted_payment_problems_found` on full data; both notes run
+
 ### 2026-11-17 - Task 25.1: Contract wording for UNMATCHED_PAYMENT (Jan)
 - Merged: `docs/contracts.md` section 7 states the Task 9 rule the matching job follows: `UNMATCHED_PAYMENT`
   only when a suggested invoice fits (it read "a debit matching no invoice"); no code change
