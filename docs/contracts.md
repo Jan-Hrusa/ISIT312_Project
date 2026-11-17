@@ -198,7 +198,7 @@ Jobs (`common.dq.JOBS`): `ingest`, `bank`, `finance`, `matching`, `media`.
 | `MISSING_VS` | finance | 20 | an invoice without a variabilní symbol in the ISDOC and the booking |
 | `NO_PROJECT` | finance | 20 | no project rule matched and the invoice has no booking at all (`source` `isdoc`), or a booked cost without project (`source` `accounting`) |
 | `OVERRUN` | finance | 20 | a category spent more than 115% of its budget line |
-| `UNMATCHED_PAYMENT` | matching | 25.1 | a debit matching no invoice; `detail` names a suggested invoice when one fits |
+| `UNMATCHED_PAYMENT` | matching | 25.1 | a debit to a supplier's account that matches no invoice by VS, raised only when an invoice of that supplier that is not paid fits it (same amount ±0.01, value date within due date ±10 days, Task 9); `record_ref` = tx_id, `detail` names that suggested invoice (the one with the closest due date if several fit). A debit with no such invoice gives no issue |
 | `ORDER_NOT_CLEARED` | matching | 25.1 | a KPC payment order that no bank debit cleared |
 | `NO_GPS` | media | 19 | a photo without GPS position (`project_code` NULL) |
 | `UNASSIGNED_PHOTO` | media | 19 | a photo with GPS but no project site in reach on its date (`project_code` = the project whose site centre is nearest; the photo itself stays `UNASSIGNED`) |
