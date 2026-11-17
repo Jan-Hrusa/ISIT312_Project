@@ -6,6 +6,11 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-17 - Task 25.1: Matching job (Mudabbir)
+- Merged: `processing/matching/job.py` writes `fve_clean.invoice_status` and the `matching` issues with Task 9's
+  rules; `spark.locality.wait 0s` in `docker/conf/spark-defaults.conf` (local mode hung on mixed-locality stages)
+- Checked: `pytest -m "not integration"`, ruff; full data: 4,669 invoices, match rate 97.3%, 359/359 planted cases
+
 ### 2026-11-16 - Task 19: Review fixes to the photo filing (Jan)
 - Merged: `processing/media/exif.py` reads EXIF without importing the generator; `UNASSIGNED_PHOTO` issues carry
   the nearest project in `project_code` (`NO_GPS` stays NULL); `test_planted_media_found` stops the test sessions
