@@ -6,6 +6,15 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-17 - Task 25: Review fixes to the notebooks (Jan)
+- Merged: both Zeppelin notes committed without results (to_fix 155 KB -> 31 KB; Zeppelin adds them back when it
+  runs, so don't commit a run); explicit column aliases in `to_fix.sql` and `overdue_by_supplier.sql`, so
+  HiveServer2 shows the same headers as Spark (`value_date`, not `t.value_date`); the notes' SQL regenerated
+  from the .sql files; `test_notes_match_sql_files`
+- Checked: ruff clean; pytest -m "not integration" 228 passed, 2 skipped; the new test fails on the PR #51 notes. Desktop stack
+  (core + zeppelin): both notes run in Zeppelin, every paragraph SUCCESS with the review's row counts; beeline
+  headers without prefixes
+
 ### 2026-11-17 - Task 25: "To fix" notebook and overdue view (Mudabbir)
 - Merged: `warehouse/queries/to_fix.sql` (8 queries) and `overdue_by_supplier.sql` (2, supplier form); Zeppelin
   notes `to_fix` and `overdue_by_supplier` (`%sparksql`, hidden REFRESH paragraph); `test_planted_payments.py`
@@ -234,7 +243,7 @@ One entry per merged task (or part with its own checkpoint), newest first:
 
 ### 2026-11-12 - Task 17.1: Review fixes to the planted finance problems (Jan)
 - Merged: MISSING_VS picks only invoices due at least 6 days before DATA_END, so the bank generator pays all of them with an empty VS and Task 25 sees each as OVERDUE with an unmatched payment on DATA_END (one invoice was due 14 Nov 2026); new test test_missing_vs_invoices_are_due_in_time_to_be_paid (scale 1 and 2); whitespace line after Jayden's log entry removed
-- Checked: pytest -m "not integration" passed; ruff check and format clean; the new test fails on the old planted.py; scale-1 run of the finance and bank generators: Task 9's match_invoice on the parsed bank files gives 10 NO_VS invoices OVERDUE with 10 UNMATCHED_PAYMENT, 10 ORDER_NOT_CLEARED, 15 WRONG_VS
+- Checked: pytest -m "not integration" 228 passed, 2 skipped; ruff check and format clean; the new test fails on the old planted.py; scale-1 run of the finance and bank generators: Task 9's match_invoice on the parsed bank files gives 10 NO_VS invoices OVERDUE with 10 UNMATCHED_PAYMENT, 10 ORDER_NOT_CLEARED, 15 WRONG_VS
 
 ### 2026-11-12 - Task 17.1: Planted finance problems (Jayden)
 - Merged: generators/finance_docs/planted.py (OVERRUN 6, NO_PROJECT 25, DUPLICATE 5, MISSING_VS 10, PARSE_ERROR 2, counts x scale), planted.apply called from __main__.py (CLI plants by default, --no-planted switches it off), resent and truncated ISDOC files, out/ledger/planted_finance.csv, tests/generators/test_planted.py
@@ -242,7 +251,7 @@ One entry per merged task (or part with its own checkpoint), newest first:
 
 ### 2026-11-12 - Task 6: Review fixes to the bank generator (Jan)
 - Merged: STA statements write `:28:` (decision of 12 Nov); an invoice without VS in the ledger (Task 17.1's MISSING_VS) is ordered and paid with an empty VS, written as `0` in the KPC item (docs/formats/kpc.md), so the generator no longer stops on it; WRONG_VS pays with two digits of the VS swapped (a VS no invoice uses), and planted_payments.csv names both; planted cases only on invoices due at least 6 days before DATA_END, so all 10 ORDER_NOT_CLEARED and every OVERDUE show on DATA_END; Obaid's log entry added
-- Checked: pytest -m "not integration" passed; ruff check and format clean; scale-1 run with 10 empty VS: Task 9's match_invoice on the parsed files gives exactly the planted statuses (10 ORDER_NOT_CLEARED, 15 + 10 UNMATCHED_PAYMENT); finance and bank generators run with Task 17.1 (PR #25) merged
+- Checked: pytest -m "not integration" 228 passed, 2 skipped; ruff check and format clean; scale-1 run with 10 empty VS: Task 9's match_invoice on the parsed files gives exactly the planted statuses (10 ORDER_NOT_CLEARED, 15 + 10 UNMATCHED_PAYMENT); finance and bank generators run with Task 17.1 (PR #25) merged
 
 ### 2026-11-12 - Task 6: Bank generator (Obaid)
 - Merged: generators/bank (payment plan, statements with carried balances, GPC, STA, TXT and KPC writers, planted_payments.csv) and tests/generators/test_bank_generator.py
@@ -250,7 +259,7 @@ One entry per merged task (or part with its own checkpoint), newest first:
 
 ### 2026-11-12 - Task 10: Review fixes to the warehouse DDL (Jan)
 - Merged: tests/warehouse/test_ddl.py uses conftest's spark_hive (its own SparkSession reached the stack's metastore in the client container and stopped the shared test session) and checks every table's partitions and location; warehouse/sql.py: run_file(spark, path, **params), ${...} in comment lines no longer fails; ruff fixes; Screenshots/ removed from the repo (moved to the Drive folder Screenshots/warehouse/) and ignored; README physical design: the queries each partition column serves, Lab 5 B1-B5, the validation on the stack; Gokulsanjay's log entry added
-- Checked: pytest -m "not integration" passed; tests/warehouse also pass in the client configuration with the stack down; ruff check and format clean; DDL on the Docker stack: 9 tables in fve_dw
+- Checked: pytest -m "not integration" 228 passed, 2 skipped; tests/warehouse also pass in the client configuration with the stack down; ruff check and format clean; DDL on the Docker stack: 9 tables in fve_dw
 
 ### 2026-11-12 - Task 10: Warehouse DDL, SQL runner and physical design (Gokulsanjay)
 - Merged: warehouse/ddl/fve_dw.sql (the nine external ORC tables of contracts section 8 with their partitions), warehouse/sql.py (render, named_queries, run_file), warehouse/etl/__init__.py, the physical design section of warehouse/design/README.md, tests/warehouse/test_ddl.py
@@ -258,7 +267,7 @@ One entry per merged task (or part with its own checkpoint), newest first:
 
 ### 2026-11-12 - Task 13: Review fixes to the finance parsers (Jan)
 - Merged: processing.finance.run parses the files on the executors (one binaryFiles call per 200 files, so one partition each; only parse issues and ISDOC names reach the driver), because it ran out of Java heap on the scale-1 data; a file whose date can't be read no longer gets a made-up date; ruff check and format fixes in processing/finance and tests/processing/test_finance.py; test_run_on_fixtures expects exactly 9 lines; new test_run_reads_only_listed_files; Riya's log entry moved here from processing/finance/log.md
-- Checked: pytest -m "not integration" passed; ruff check and format clean; run() on the generator's scale-1 output (9,488 files): 4,655 invoices (466 PDF-only), 12,746 lines, 4,644 booked costs, 0 issues, in about a minute; Task 13 Validate on the Docker stack: SELECT COUNT(*) FROM fve_clean.invoices = 4
+- Checked: pytest -m "not integration" 228 passed, 2 skipped; ruff check and format clean; run() on the generator's scale-1 output (9,488 files): 4,655 invoices (466 PDF-only), 12,746 lines, 4,644 booked costs, 0 issues, in about a minute; Task 13 Validate on the Docker stack: SELECT COUNT(*) FROM fve_clean.invoices = 4
 
 ### 2026-11-12 - Task 13: Finance parsers (Riya)
 - Merged: processing/finance: parsers for projects, suppliers, budgets, ISDOC, PDF-only invoices and the Money S3 export, and run(spark, inputs=None) writing the six clean tables and the finance dq_issues; tests/processing/test_finance.py
@@ -266,15 +275,15 @@ One entry per merged task (or part with its own checkpoint), newest first:
 
 ### 2026-11-12 - Task 6.1: Review fixes to the bank sample files (Jan)
 - Merged: MT940 statement tag `:28:` as in Česká spořitelna's specification (Jan's decision) in the STA fixture, its README and test, and docs/formats/sta.md (Task 16 accepts `:28:` and `:28C:`); the Air Bank specification linked in docs/formats/gpc.md; Obaid's log.md entry says what was merged and checked
-- Checked: pytest -m "not integration" passed; ruff check and format clean
+- Checked: pytest -m "not integration" 228 passed, 2 skipped; ruff check and format clean
 
 ### 2026-11-12 - Task 6.1: Bank sample files (Obaid)
 - Merged: docs/formats/gpc.md, sta.md, kpc.md, txt.md (field positions from the RB ABO and ČS MT940 specs); bank samples in tests/fixtures/sources (RB GPC with the 4 Task 5.1 invoice debits and 1 credit, a broken RB GPC, ČS STA, RB KPC with 4 orders, a TXT per statement), tests/fixtures/mtimes_bank.csv, tests/fixtures/bank/README.md, tests/generators/test_bank_fixtures.py
-- Checked: test_bank_fixtures_match_readme passed; pytest -m "not integration" passed; ruff check and format clean (in Jan's review, on the branch rebased on integration)
+- Checked: test_bank_fixtures_match_readme passed; pytest -m "not integration" 228 passed, 2 skipped; ruff check and format clean (in Jan's review, on the branch rebased on integration)
 
 ### 2026-11-12 - Task 5.1: Review fixes to the finance sample set (Jan)
 - Merged: the three ISDOC fixtures regenerated with the merged generator (isdoc.to_xml) from their own values, so their invoice lines carry the ISDOC 6.0.2 elements of PR #16 (LineExtensionTaxAmount, UnitPriceTaxInclusive, schema order); test_finance_fixtures_match_readme also checks that the line VAT adds up to the invoice VAT; whitespace line in log.md removed
-- Checked: pytest -m "not integration" passed; ruff check and format clean; only those line elements differ from the merged fixtures, totals unchanged
+- Checked: pytest -m "not integration" 228 passed, 2 skipped; ruff check and format clean; only those line elements differ from the merged fixtures, totals unchanged
 
 ### 2026-11-11 - Task 5.1: Finance sample set (Jayden)
 - Merged: tests/fixtures/sources/ finance sample set (3 projects, 5 suppliers, FVE-2026-02 budget with all 10 categories, 3 ISDOC + PDF invoices with 1, 3 and 5 lines and 1 PDF-only, money_export_2026-W20.csv), tests/fixtures/out/ledger/invoice_ledger.csv, tests/fixtures/mtimes_finance.csv, tests/fixtures/finance/README.md with the expected values
@@ -282,7 +291,7 @@ One entry per merged task (or part with its own checkpoint), newest first:
 
 ### 2026-11-11 - Task 5: Review fixes to the finance generator (Jan)
 - Merged: generators/finance_docs/isdoc.py: invoice-line elements named and ordered as in the ISDOC 6.0.2 schema (LineExtensionTaxAmount instead of LineExtensionAmountTax, new UnitPriceTaxInclusive); test_isdoc_parses_and_totals_match_lines checks the names and their order; log.md entries in date order
-- Checked: pytest -m "not integration" passed; ruff check and format clean; generator run at scale 1 twice, same bytes
+- Checked: pytest -m "not integration" 228 passed, 2 skipped; ruff check and format clean; generator run at scale 1 twice, same bytes
 
 ### 2026-11-11 - Task 5: Finance sample set and full generator (Jayden)
 - Merged: generators/finance_docs (master, budgets, plan, isdoc, pdf_invoice, money_export, ledger, util, __main__): projects, suppliers, budgets, ISDOC + PDF invoices, weekly accounting export and invoice_ledger.csv from one seeded rng; tests/generators/test_finance_docs.py
