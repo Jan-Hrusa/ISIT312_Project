@@ -283,30 +283,51 @@ def test_loads_are_idempotent(warehouse_data, monkeypatch, tmp_path):
     assert second_counts["checks_failed"] == 0
 
 
+def _rewrite_clean_table(spark, table: str, change) -> None:
+    """Overwrite a clean table with `change(rows)`; rows are collected first (Spark can't overwrite input)."""
+    from common import config
+
+    current = spark.table(f"{config.CLEAN_DB}.{table}")
+    schema = current.schema
+    rows = [row.asDict() for row in current.collect()]
+    new_rows = change(rows)
+    df = spark.createDataFrame([tuple(r[f.name] for f in schema.fields) for r in new_rows], schema)
+    tables.write_table(spark, df, table)
+
+
 def test_check_fails_on_broken_fixture(warehouse_data, monkeypatch, tmp_path):
-    """Warehouse checks must reject duplicate payment transaction IDs."""
+    """A line lost on the way (its invoice is missing, so the load's join drops it) fails the run."""
     from common import config
     from warehouse.etl.run import run
-    from warehouse.sql import named_queries
 
     spark = warehouse_data
 
     monkeypatch.setattr(config, "DW_DB", "fve_dw_test_broken")
     monkeypatch.setattr(config, "LAKE_DW", (tmp_path / "warehouse").as_uri())
 
+    def add_orphan_line(rows):
+        orphan = dict(rows[0], invoice_id="99999999-NOINVOICE", line_no=1)
+        return rows + [orphan]
+
+    _rewrite_clean_table(spark, "invoice_lines", add_orphan_line)
+
+    with pytest.raises(RuntimeError, match="warehouse checks failed: invoice_amount_check"):
+        run(spark)
+
+
+def test_duplicate_payment_fails_unique_check(warehouse_data, monkeypatch, tmp_path):
+    """A transaction loaded twice fails the uniqueness check."""
+    from common import config
+    from warehouse.etl.run import run
+    from warehouse.sql import named_queries
+
+    spark = warehouse_data
+
+    monkeypatch.setattr(config, "DW_DB", "fve_dw_test_duplicate")
+    monkeypatch.setattr(config, "LAKE_DW", (tmp_path / "warehouse").as_uri())
+
     run(spark)
 
-    # Insert a duplicate payment to deliberately violate uniqueness.
-    spark.sql(f"""
-        INSERT INTO {config.DW_DB}.fact_payment
-        PARTITION (pay_year=2026, pay_month=5)
-        SELECT tx_id, account_key, date_key, supplier_key,
-               invoice_id, project_key, amount, days_late
-        FROM {config.DW_DB}.fact_payment
-        WHERE 1 = 0
-    """)
-
-    # Create a duplicate using an existing payment record.
     payment = spark.table(f"{config.DW_DB}.fact_payment").first()
     assert payment is not None
 
@@ -329,7 +350,90 @@ def test_check_fails_on_broken_fixture(warehouse_data, monkeypatch, tmp_path):
         if result["ok"] is not True:
             failures.append(name)
 
-    assert "payment_tx_unique_check" in failures
+    # the copy also breaks the row count against the bank debits
+    assert failures == ["payment_count_check", "payment_tx_unique_check"]
+
+
+def test_order_cleared_flags(warehouse_data, monkeypatch, tmp_path):
+    """cleared = 1 for a matched order, 0 for an uncleared one, NULL for an order matching no invoice."""
+    from common import config
+    from warehouse.sql import run_file
+
+    spark = warehouse_data
+
+    monkeypatch.setattr(config, "DW_DB", "fve_dw_test_cleared")
+    monkeypatch.setattr(config, "LAKE_DW", (tmp_path / "warehouse").as_uri())
+
+    def add_uncleared(rows):
+        return [dict(r, order_ids=["ORD001", "ORD002"], uncleared_order_ids=["ORD002"]) for r in rows]
+
+    def add_orders(rows):
+        return rows + [dict(rows[0], order_id="ORD002"), dict(rows[0], order_id="ORD003")]
+
+    _rewrite_clean_table(spark, "invoice_status", add_uncleared)
+    _rewrite_clean_table(spark, "payment_orders", add_orders)
+
+    run_file(spark, Path("warehouse/ddl/fve_dw.sql"))
+    run_file(spark, Path("warehouse/etl/load_dims.sql"))
+    run_file(spark, Path("warehouse/etl/load_facts.sql"))
+
+    rows = spark.table(f"{config.DW_DB}.fact_payment_order").collect()
+    cleared = {r["order_id"]: r["cleared"] for r in rows}
+
+    assert len(rows) == 3
+    assert cleared == {"ORD001": 1, "ORD002": 0, "ORD003": None}
+    assert {r["order_id"]: r["invoice_id"] for r in rows}["ORD003"] is None
+
+
+def test_iso_week_format(warehouse_data, monkeypatch, tmp_path):
+    """dim_date.iso_week is the ISO week-year and week as YYYY-Www (contracts section 8)."""
+    from common import config
+    from warehouse.sql import run_file
+
+    spark = warehouse_data
+
+    monkeypatch.setattr(config, "DW_DB", "fve_dw_test_iso_week")
+    monkeypatch.setattr(config, "LAKE_DW", (tmp_path / "warehouse").as_uri())
+
+    run_file(spark, Path("warehouse/ddl/fve_dw.sql"))
+    run_file(spark, Path("warehouse/etl/load_dims.sql"))
+
+    weeks = {
+        r["date_key"]: r["iso_week"]
+        for r in spark.sql(
+            f"SELECT date_key, iso_week FROM {config.DW_DB}.dim_date "
+            "WHERE date_key IN (20160101, 20210104, 20261102, 20261231)"
+        ).collect()
+    }
+
+    assert weeks == {20160101: "2015-W53", 20210104: "2021-W01", 20261102: "2026-W45", 20261231: "2026-W53"}
+
+
+def test_static_dimensions_match_config(warehouse_data, monkeypatch, tmp_path):
+    """The VALUES lists in load_dims.sql equal common/config CATEGORIES and BANKS; keys follow the codes."""
+    from common import config
+    from warehouse.sql import run_file
+
+    spark = warehouse_data
+
+    monkeypatch.setattr(config, "DW_DB", "fve_dw_test_static")
+    monkeypatch.setattr(config, "LAKE_DW", (tmp_path / "warehouse").as_uri())
+
+    run_file(spark, Path("warehouse/ddl/fve_dw.sql"))
+    run_file(spark, Path("warehouse/etl/load_dims.sql"))
+
+    categories = spark.table(f"{config.DW_DB}.dim_cost_category").orderBy("category_key").collect()
+    assert {
+        r["category_code"]: (r["category_name"], r["group_name"]) for r in categories
+    } == config.CATEGORIES
+    assert [r["category_code"] for r in categories] == sorted(config.CATEGORIES)
+    assert [r["category_key"] for r in categories] == list(range(1, len(config.CATEGORIES) + 1))
+
+    accounts = spark.table(f"{config.DW_DB}.dim_bank_account").orderBy("account_key").collect()
+    assert {r["bank"]: (r["bank_name"], r["bank_code"], r["account"], r["currency"]) for r in accounts} == {
+        code: (b.name, b.bank_code, b.account, config.CURRENCY) for code, b in config.BANKS.items()
+    }
+    assert [r["account"] for r in accounts] == sorted(b.account for b in config.BANKS.values())
 
 
 def test_runner_rejects_failed_checks():
