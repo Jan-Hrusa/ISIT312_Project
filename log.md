@@ -6,6 +6,23 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-18 - Task 30.1: Review fixes to the Zeppelin dashboard (Jan)
+- Merged: `notebooks/management_dashboard_2N8K6MZZH.zpln` rebuilt so that every paragraph wraps the merged query
+  file and only adds Czech (English) labels, the 🔴 🟡 🟢 light from the Task 11 rule and the project filter: V1
+  = `v1_project_list.sql` (was its own query: gross spend against net budgets, red above 100 %, so every
+  completed project was red), V2 = `q1_budget_vs_actual.sql` for the chosen project with its total row (the total
+  carries the project's V1 light), V3/V4 = the new files, spending curve = `q3`, across projects = `q5`, `q4`,
+  `q2`. Note forms `$${project}`, `$${category}`, `$${supplier}` in every drill-down paragraph (each repeats its
+  default: Zeppelin leaves a bare `$${x}` empty until the form is used); budget-vs-spent chart with two number
+  series; titles on, code hidden, committed without results. New tests `test_dashboard_note_reuses_query_files`
+  and `test_dashboard_note_on_sample` in `tests/warehouse/test_dashboard_queries.py`
+- Checked: ruff clean; tests/warehouse/test_dashboard_queries.py 3 passed (both new tests fail on the PR #58
+  note); pytest -m "not integration" 253 passed, 5 skipped (on integration with PR #57/#59). Desktop stack, full data, the note imported into Zeppelin as a
+  scratch copy (deleted afterwards): all 11 paragraphs SUCCESS; V1 83 projects, red 7 = the 6 planted overruns +
+  FVE-2025-08 (decision 15 Nov), amber 10, green 66; forms FVE-2020-04 / CABLES / 50972274: CABLES 122.48 % red,
+  total row red, 3 suppliers (same rows as V3 in beeline), 2 invoices. Screenshots in Drive
+  `Screenshots/dashboard/T30.1_*.png`
+
 ### 2026-11-18 - Task 32.1: Review fixes to the search note and E3 (Jan)
 - Merged: search note paragraph 1 prints the thumbnails as their own result (`print("\n%html ...")`; before, Zeppelin
   appended them to the photo table as one more row); `benchmarks/e3/scale_q2.py` (Q2 with the photo rows copied
@@ -28,10 +45,13 @@ One entry per merged task (or part with its own checkpoint), newest first:
   E3 medians Q1 HBase 0.108 s / Hive 0.353 s, Q2 HBase 1.009 s / Hive 1.690 s, same rows in both stores
 
 ### 2026-11-18 - Task 30.1: Management dashboard (Maysoon)
-- Added: Zeppelin management dashboard notebook; V3 category-to-supplier query; V4 supplier-invoice query; dashboard query tests
-- Built: P0 table refresh, P1 project overview and chart, P2 dashboard filters, P3 project detail, P4 supplier breakdown, P5 invoice details, P6 monthly spending curve, P7 cross-project analysis
-- Checked: test_dashboard_queries.py (1 passed); manually verified dashboard SQL results in Zeppelin
-- Note: P3-P5 currently use fixed test filter values; shared filter integration still needs verification
+- Merged: Zeppelin note `management_dashboard` (refresh, project list and chart, filters, project detail, supplier
+  breakdown, invoice details, monthly spending curve, cross-project analysis); `warehouse/queries/
+  v3_category_suppliers.sql` and `v4_supplier_invoices.sql`; `tests/warehouse/test_dashboard_queries.py`
+  (`test_v3_v4_on_sample`)
+- Checked: test_dashboard_queries.py 1 passed; pytest -m "not integration" 247 passed, 2 skipped; ruff clean; the
+  note run in Zeppelin on the full data (screenshots in Drive `Screenshots/dashboard/Planted_Overruns_*.png`)
+
 ### 2026-11-17 - Task 26: Review fixes to the warehouse loads (Jan)
 - Merged: `dim_date.iso_week` as `YYYY-Www` (contracts section 8; was `YYYY-WW`); `dim_cost_category` and
   `dim_bank_account` keys by `ROW_NUMBER()` over the code / account number like every surrogate key (were the
