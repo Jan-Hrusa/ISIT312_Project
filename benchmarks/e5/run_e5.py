@@ -60,7 +60,11 @@ def execute_query(
 
             start = perf_counter()
             cursor.execute(sql)
-            rows = cursor.fetchall()
+            rows = (
+                []
+                if sql.lstrip().upper().startswith(("DROP ", "CREATE "))
+                else cursor.fetchall()
+            )
             seconds = perf_counter() - start
             return seconds, rows
         finally:

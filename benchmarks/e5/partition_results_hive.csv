@@ -1,0 +1,7 @@
+statement,engine,seconds,rows,result
+drop_flat,hive,0.082,0,
+create_flat,hive,48.899,0,
+partitioned,hive,58.454,1,"[(11759, Decimal('2087597535.64'))]"
+unpartitioned,hive,58.63,1,"[(11759, Decimal('2087597535.64'))]"
+explain_partitioned,hive,0.457,120,
+explain_unpartitioned,hive,0.323,126,
