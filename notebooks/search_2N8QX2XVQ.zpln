@@ -1,0 +1,111 @@
+{
+  "paragraphs": [
+    {
+      "title": "Fotky stavby za období (Photos of a project between two dates)",
+      "text": "%python\n# Fotky stavby za období: jeden rozsah klíčů v HBase (photos of a project between two dates: one HBase range scan)\nimport base64\nfrom datetime import date\n\nimport pandas as pd\n\nfrom hbase import search\n\nproject \u003d z.input(\"project\", \"FVE-2026-02\")\nstart \u003d date.fromisoformat(z.input(\"from\", \"2026-06-01\"))\nend \u003d date.fromisoformat(z.input(\"to\", \"2026-06-30\"))\nrows \u003d search.photos(project, start, end)\nprint(f\"{project}, {start} - {end}: {len(rows)} fotek (photos)\")\nz.show(pd.DataFrame(\n    [{\"taken_at\": (r[\"taken_at\"].strftime(\"%Y-%m-%d %H:%M:%S\") if r[\"taken_at\"] else None), \"lat\": r[\"lat\"], \"lon\": r[\"lon\"], \"size\": r[\"size_bytes\"], \"name\": r[\"original_name\"]}\n     for r in rows],\n    columns\u003d[\"taken_at\", \"lat\", \"lon\", \"size\", \"name\"],\n))\nthumbs \u003d \"\".join(\n    f\"\u003cimg src\u003d\u0027data:image/jpeg;base64,{base64.b64encode(r[\u0027thumb\u0027]).decode()}\u0027 title\u003d\u0027{r[\u0027original_name\u0027]}\u0027 \"\n    \"style\u003d\u0027margin:4px;border:1px solid #ccc\u0027\u003e\"\n    for r in rows[:6] if r[\"thumb\"]\n)\nprint(\"%html \u003cp\u003ePrvních 6 náhledů (first 6 thumbnails, stored in HBase):\u003c/p\u003e\" + thumbs)\n",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 15:23:00.519",
+      "progress": 0,
+      "config": {},
+      "settings": {
+        "params": {},
+        "forms": {
+          "project": {
+            "type": "TextBox",
+            "name": "project",
+            "displayName": "project",
+            "defaultValue": "FVE-2026-02",
+            "hidden": false
+          },
+          "from": {
+            "type": "TextBox",
+            "name": "from",
+            "displayName": "from",
+            "defaultValue": "2026-06-01",
+            "hidden": false
+          },
+          "to": {
+            "type": "TextBox",
+            "name": "to",
+            "displayName": "to",
+            "defaultValue": "2026-06-30",
+            "hidden": false
+          }
+        }
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795015354284_1755702936",
+      "id": "paragraph_1795015354284_1755702936",
+      "dateCreated": "2026-11-18 15:22:34.285",
+      "dateStarted": "2026-11-18 15:23:00.574",
+      "dateFinished": "2026-11-18 15:23:00.709",
+      "status": "FINISHED"
+    },
+    {
+      "title": "Poslední výkres (Latest drawing of a project)",
+      "text": "%python\n# Poslední výkres stavby: prefix \u003cprojekt\u003e#DRAWING# (the latest drawing of a project: one prefix scan)\nfrom hbase import search\n\nproject \u003d z.input(\"drawing_project\", \"FVE-2022-08\")\nfinal, warning \u003d search.latest_drawing(project)\nif final is None:\n    print(f\"%html \u003cp\u003e\u003cb\u003e{project}\u003c/b\u003e: žádný finální výkres (no final drawing)\u003c/p\u003e\")\nelse:\n    html \u003d (\n        f\"\u003cp\u003e\u003cb\u003e{project}\u003c/b\u003e: {final[\u0027original_name\u0027]} (verze {final[\u0027version\u0027]}, {final[\u0027file_date\u0027]})\u003cbr\u003e\"\n        f\"\u003ccode\u003e{final[\u0027raw_path\u0027]}\u003c/code\u003e\u003c/p\u003e\"\n    )\n    if warning:\n        html +\u003d f\"\u003cp style\u003d\u0027color:#b00020;font-weight:bold;font-size:1.1em\u0027\u003e{warning}\u003c/p\u003e\"\n    else:\n        html +\u003d \"\u003cp style\u003d\u0027color:#2e7d32\u0027\u003e✔ final je nejnovější verze (final is the newest version)\u003c/p\u003e\"\n    print(\"%html \" + html)\n",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 15:22:34.307",
+      "progress": 0,
+      "config": {},
+      "settings": {
+        "params": {},
+        "forms": {
+          "drawing_project": {
+            "type": "TextBox",
+            "name": "drawing_project",
+            "displayName": "drawing_project",
+            "defaultValue": "FVE-2022-08",
+            "hidden": false
+          }
+        }
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795015354291_1882058241",
+      "id": "paragraph_1795015354291_1882058241",
+      "dateCreated": "2026-11-18 15:22:34.291",
+      "dateStarted": "2026-11-18 15:23:00.776",
+      "dateFinished": "2026-11-18 15:23:00.844",
+      "status": "FINISHED"
+    },
+    {
+      "title": "Nezařazené (Unassigned photos and files)",
+      "text": "%python\n# Nezařazené fotky a soubory: prefix UNASSIGNED# (items filed to no project: one prefix scan per kind)\nimport pandas as pd\n\nfrom hbase import catalogue, search\n\ncounts \u003d {kind: len(search.unassigned(kind, limit\u003dNone)) for kind in catalogue.KINDS}\nprint(\"Počty podle druhu (counts by kind): \" + \", \".join(f\"{k} {n}\" for k, n in counts.items()))\nnewest \u003d search.unassigned(limit\u003d20)\nz.show(pd.DataFrame(\n    [{\"kind\": r[\"kind\"], \"taken_at\": (r[\"taken_at\"].strftime(\"%Y-%m-%d %H:%M:%S\") if r[\"taken_at\"] else None), \"name\": r[\"original_name\"], \"lat\": r[\"lat\"], \"lon\": r[\"lon\"],\n      \"device\": r[\"device\"]} for r in newest],\n    columns\u003d[\"kind\", \"taken_at\", \"name\", \"lat\", \"lon\", \"device\"],\n))\n",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 15:23:00.548",
+      "progress": 0,
+      "config": {},
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795015354307_1614661891",
+      "id": "paragraph_1795015354307_1614661891",
+      "dateCreated": "2026-11-18 15:22:34.309",
+      "dateStarted": "2026-11-18 15:23:00.878",
+      "dateFinished": "2026-11-18 15:23:02.163",
+      "status": "FINISHED"
+    }
+  ],
+  "name": "search",
+  "id": "2N8QX2XVQ",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.11.2",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false
+  },
+  "info": {
+    "inIsolatedMode": false,
+    "isRunning": false
+  }
+}

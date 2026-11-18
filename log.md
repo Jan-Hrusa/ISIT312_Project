@@ -6,6 +6,17 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-18 - Task 32.1: Search notebook and experiment E3 (Aryen)
+- Merged: `hbase/search.py` (`photos` range scan, `latest_drawing` with the v2-newer-than-final warning,
+  `unassigned` newest first), Zeppelin note `search` (`notebooks/search_2N8QX2XVQ.zpln`: photos + 6 thumbnails,
+  latest drawing, unassigned counts + 20 newest), `benchmarks/e3/` (`run_e3.py`, `results.csv`, `README.md`),
+  tests/hbase/test_search.py; `processing/media` writes `media_files` and `documents` as one file each (was one
+  tiny ORC file per daily SequenceFile, 2,158, which made every Hive query on media_files take minutes)
+- Checked: pytest -m "not integration" 251 passed (the three named tests against a test table); ruff clean;
+  `pytest -m integration tests/processing/test_media.py tests/hbase` 2 passed (Q1 same rows in both stores); on
+  the stack with scale-1 data the note runs on the full catalogue, the warning shows for FVE-2022-08 only (83 projects checked);
+  E3 medians Q1 HBase 0.108 s / Hive 0.353 s, Q2 HBase 1.009 s / Hive 1.690 s, same rows in both stores
+
 ### 2026-11-17 - Task 26: Review fixes to the warehouse loads (Jan)
 - Merged: `dim_date.iso_week` as `YYYY-Www` (contracts section 8; was `YYYY-WW`); `dim_cost_category` and
   `dim_bank_account` keys by `ROW_NUMBER()` over the code / account number like every surrogate key (were the
