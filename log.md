@@ -6,6 +6,16 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-18 - Task 32.1: Review fixes to the search note and E3 (Jan)
+- Merged: search note paragraph 1 prints the thumbnails as their own result (`print("\n%html ...")`; before, Zeppelin
+  appended them to the photo table as one more row); `benchmarks/e3/scale_q2.py` (Q2 with the photo rows copied
+  1-10x into scratch stores, metadata only, dropped afterwards), `results_scale.csv`, README section "Q2 at more
+  photos"; tests/hbase/test_e3_scale.py
+- Checked: ruff clean; pytest -m "not integration" 255 passed with the core + hbase stack up; scale_q2 on the
+  desktop stack (scale-1 catalogue): Q2 medians HBase 0.228 / 0.461 / 1.151 / 2.257 / 2.274 s, Hive 1.406 / 1.247 /
+  1.420 / 1.573 / 1.263 s at 1 / 2 / 5 / 7 / 10x, so Hive wins from between 5x and 7x (5x HBase, 10x Hive in all three runs);
+  the note in Zeppelin: 146 rows + 6 thumbnails, the FVE-2022-08 warning, unassigned PHOTO 3,397
+
 ### 2026-11-18 - Task 32.1: Search notebook and experiment E3 (Aryen)
 - Merged: `hbase/search.py` (`photos` range scan, `latest_drawing` with the v2-newer-than-final warning,
   `unassigned` newest first), Zeppelin note `search` (`notebooks/search_2N8QX2XVQ.zpln`: photos + 6 thumbnails,
