@@ -6,6 +6,10 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-19 - Task 31: E5 Hive MapReduce vs Spark SQL benchmarks (Gokulsanjay)
+- Added: benchmarks/e5/run_e5.py and run_partition.py; results.csv with 30 benchmark executions across five queries; separate Hive and Spark partition-pruning results; four EXPLAIN execution plans
+- Checked: All five queries produced matching Hive and Spark row counts and SHA-256 fingerprints; Spark SQL achieved 33.39x to 61.79x speedups based on three-run averages; partition pruning confirmed in both engines; partitioned and unpartitioned queries returned identical results
+
 ### 2026-11-17 - Task 26: Review fixes to the warehouse loads (Jan)
 - Merged: `dim_date.iso_week` as `YYYY-Www` (contracts section 8; was `YYYY-WW`); `dim_cost_category` and
   `dim_bank_account` keys by `ROW_NUMBER()` over the code / account number like every surrogate key (were the
