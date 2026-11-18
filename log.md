@@ -389,3 +389,7 @@ One entry per merged task (or part with its own checkpoint), newest first:
 - Merged: AGENTS.md sections 2 and 3: agents read the ClickUp guide page, then the task, then Drive 00 and 02, then README and contracts
 - Checked: docs only; no code changed
 
+
+### 2026-11-19 - Task 31: E5 Hive MapReduce vs Spark SQL benchmarks (Gokulsanjay)
+- Added: benchmarks/e5/run_e5.py and run_partition.py; results.csv with 30 benchmark executions across five queries; separate Hive and Spark partition-pruning results; four EXPLAIN execution plans
+- Checked: All five queries produced matching Hive and Spark row counts and SHA-256 fingerprints; Spark SQL achieved 33.39x to 61.79x speedups based on three-run averages; partition pruning confirmed in both engines; partitioned and unpartitioned queries returned identical results
