@@ -6,6 +6,27 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-18 - Task 32.1: Review fixes to the search note and E3 (Jan)
+- Merged: search note paragraph 1 prints the thumbnails as their own result (`print("\n%html ...")`; before, Zeppelin
+  appended them to the photo table as one more row); `benchmarks/e3/scale_q2.py` (Q2 with the photo rows copied
+  1-10x into scratch stores, metadata only, dropped afterwards), `results_scale.csv`, README section "Q2 at more
+  photos"; tests/hbase/test_e3_scale.py
+- Checked: ruff clean; pytest -m "not integration" 255 passed with the core + hbase stack up; scale_q2 on the
+  desktop stack (scale-1 catalogue): Q2 medians HBase 0.228 / 0.461 / 1.151 / 2.257 / 2.274 s, Hive 1.406 / 1.247 /
+  1.420 / 1.573 / 1.263 s at 1 / 2 / 5 / 7 / 10x, so Hive wins from between 5x and 7x (5x HBase, 10x Hive in all three runs);
+  the note in Zeppelin: 146 rows + 6 thumbnails, the FVE-2022-08 warning, unassigned PHOTO 3,397
+
+### 2026-11-18 - Task 32.1: Search notebook and experiment E3 (Aryen)
+- Merged: `hbase/search.py` (`photos` range scan, `latest_drawing` with the v2-newer-than-final warning,
+  `unassigned` newest first), Zeppelin note `search` (`notebooks/search_2N8QX2XVQ.zpln`: photos + 6 thumbnails,
+  latest drawing, unassigned counts + 20 newest), `benchmarks/e3/` (`run_e3.py`, `results.csv`, `README.md`),
+  tests/hbase/test_search.py; `processing/media` writes `media_files` and `documents` as one file each (was one
+  tiny ORC file per daily SequenceFile, 2,158, which made every Hive query on media_files take minutes)
+- Checked: pytest -m "not integration" 251 passed (the three named tests against a test table); ruff clean;
+  `pytest -m integration tests/processing/test_media.py tests/hbase` 2 passed (Q1 same rows in both stores); on
+  the stack with scale-1 data the note runs on the full catalogue, the warning shows for FVE-2022-08 only (83 projects checked);
+  E3 medians Q1 HBase 0.108 s / Hive 0.353 s, Q2 HBase 1.009 s / Hive 1.690 s, same rows in both stores
+
 ### 2026-11-18 - Task 30.1: Management dashboard (Maysoon)
 - Added: Zeppelin management dashboard notebook; V3 category-to-supplier query; V4 supplier-invoice query; dashboard query tests
 - Built: P0 table refresh, P1 project overview and chart, P2 dashboard filters, P3 project detail, P4 supplier breakdown, P5 invoice details, P6 monthly spending curve, P7 cross-project analysis

@@ -60,7 +60,11 @@ def run(spark: SparkSession, inputs: dict | None = None) -> dict[str, int]:
         issues = photo_rdd.flatMap(lambda r: [r[1]] if r[1] is not None else []).collect()
         media = spark.createDataFrame(media_rows, _schema("media_files"))
         videos = spark.createDataFrame(_videos(spark, inputs), _schema("media_files"))
-        media = media.unionByName(videos)
+        # The photo RDD has one partition per daily SequenceFile (2,158 at scale 1), which would write as many
+        # tiny ORC files; Hive's local MapReduce then runs one map task per file (minutes for any query, E3).
+        # The rows are small (no image bytes), so one file holds them; repartition keeps the EXIF reading
+        # parallel, where coalesce would pull it into a single task.
+        media = media.unionByName(videos).repartition(1)
 
         docs = _documents(spark, inputs)
         issues += [
@@ -69,7 +73,7 @@ def run(spark: SparkSession, inputs: dict | None = None) -> dict[str, int]:
         ]
         docs_df = spark.createDataFrame(
             [tuple(d[c] for c, _ in schemas.CLEAN_TABLES["documents"]) for d in docs], _schema("documents")
-        )
+        ).repartition(1)
 
         tables.write_table(spark, media, "media_files")
         tables.write_table(spark, docs_df, "documents")
