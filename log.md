@@ -6,6 +6,11 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-18 - Task 30.1: Management dashboard (Maysoon)
+- Added: Zeppelin management dashboard notebook; V3 category-to-supplier query; V4 supplier-invoice query; dashboard query tests
+- Built: P0 table refresh, P1 project overview and chart, P2 dashboard filters, P3 project detail, P4 supplier breakdown, P5 invoice details, P6 monthly spending curve, P7 cross-project analysis
+- Checked: test_dashboard_queries.py (1 passed); manually verified dashboard SQL results in Zeppelin
+- Note: P3-P5 currently use fixed test filter values; shared filter integration still needs verification
 ### 2026-11-17 - Task 26: Review fixes to the warehouse loads (Jan)
 - Merged: `dim_date.iso_week` as `YYYY-Www` (contracts section 8; was `YYYY-WW`); `dim_cost_category` and
   `dim_bank_account` keys by `ROW_NUMBER()` over the code / account number like every surrogate key (were the
