@@ -1,0 +1,1575 @@
+{
+  "paragraphs": [
+    {
+      "text": "%sparksql\nREFRESH TABLE fve_dw.dim_project;\nREFRESH TABLE fve_dw.dim_supplier;\nREFRESH TABLE fve_dw.dim_cost_category;\nREFRESH TABLE fve_dw.dim_date;\nREFRESH TABLE fve_dw.dim_bank_account;\nREFRESH TABLE fve_dw.fact_budget_line;\nREFRESH TABLE fve_dw.fact_invoice_line;\nREFRESH TABLE fve_dw.fact_payment;\nREFRESH TABLE fve_dw.fact_payment_order;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 15:07:44.004",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "1": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "2": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "3": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "4": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "5": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "6": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "7": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "8": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "Result\n"
+          },
+          {
+            "type": "TABLE",
+            "data": "Result\n"
+          },
+          {
+            "type": "TABLE",
+            "data": "Result\n"
+          },
+          {
+            "type": "TABLE",
+            "data": "Result\n"
+          },
+          {
+            "type": "TABLE",
+            "data": "Result\n"
+          },
+          {
+            "type": "TABLE",
+            "data": "Result\n"
+          },
+          {
+            "type": "TABLE",
+            "data": "Result\n"
+          },
+          {
+            "type": "TABLE",
+            "data": "Result\n"
+          },
+          {
+            "type": "TABLE",
+            "data": "Result\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795012519678_886367104",
+      "id": "paragraph_1795012519678_886367104",
+      "dateCreated": "2026-11-18 14:35:19.679",
+      "dateStarted": "2026-11-18 14:41:07.495",
+      "dateFinished": "2026-11-18 14:41:07.966",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%sparksql\nWITH budgets AS (\n    SELECT\n        project_key,\n        SUM(budget_amount) AS total_budget\n    FROM fve_dw.fact_budget_line\n    GROUP BY project_key\n),\nspending AS (\n    SELECT\n        project_key,\n        SUM(amount_gross) AS total_spent\n    FROM fve_dw.fact_invoice_line\n    GROUP BY project_key\n)\nSELECT\n    p.project_code AS `Projekt`,\n    p.name AS `Název projektu`,\n    p.status AS `Stav`,\n    COALESCE(b.total_budget, 0) AS `Rozpočet`,\n    COALESCE(s.total_spent, 0) AS `Skutečné náklady`,\n    CASE\n        WHEN b.total_budget IS NULL OR b.total_budget \u003d 0\n            THEN \u0027⚪ Bez rozpočtu\u0027\n        WHEN COALESCE(s.total_spent, 0) \u003e b.total_budget\n            THEN \u0027🔴 Překročen rozpočet\u0027\n        WHEN COALESCE(s.total_spent, 0) \u003e\u003d b.total_budget * 0.9\n            THEN \u0027🟡 Blízko rozpočtu\u0027\n        ELSE \u0027🟢 V pořádku\u0027\n    END AS `Rozpočtový stav`\nFROM fve_dw.dim_project p\nLEFT JOIN budgets b\n    ON p.project_key \u003d b.project_key\nLEFT JOIN spending s\n    ON p.project_key \u003d s.project_key\nORDER BY `Skutečné náklady` DESC;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 15:03:16.768",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 796.8,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {
+                    "columns": [
+                      {
+                        "name": "namespace0",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {
+                          "priority": 0.0,
+                          "direction": "asc"
+                        },
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      }
+                    ],
+                    "scrollFocus": {},
+                    "selection": [],
+                    "grouping": {
+                      "grouping": [],
+                      "aggregations": [],
+                      "rowExpandedStates": {}
+                    },
+                    "treeView": {},
+                    "pagination": {
+                      "paginationCurrentPage": 1.0,
+                      "paginationPageSize": 250.0
+                    }
+                  },
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Projekt": "string",
+                      "Název projektu": "string",
+                      "Stav": "string",
+                      "Rozpočet": "string",
+                      "Skutečné náklady": "string",
+                      "Rozpočtový stav": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                },
+                "stackedAreaChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                },
+                "lineChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "Projekt",
+                  "index": 0.0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [
+                {
+                  "name": "Rozpočtový stav",
+                  "index": 5.0,
+                  "aggr": "sum"
+                },
+                {
+                  "name": "Skutečné náklady",
+                  "index": 4.0,
+                  "aggr": "sum"
+                }
+              ],
+              "values": []
+            },
+            "helium": {}
+          },
+          "2": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "3": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "4": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "5": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "7": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": true
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "8": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "10": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "Projekt\tNázev projektu\tStav\tRozpočet\tSkutečné náklady\tRozpočtový stav\nFVE-2017-06\tFVE Rychnov nad Kněžnou 1\tCOMPLETED\t50255620.00\t54833904.14\t🔴 Překročen rozpočet\nFVE-2019-07\tFVE Písek 1\tCOMPLETED\t48400018.00\t54157880.64\t🔴 Překročen rozpočet\nFVE-2018-09\tFVE Kutná Hora 2\tCOMPLETED\t44847054.00\t51387135.83\t🔴 Překročen rozpočet\nFVE-2020-01\tFVE Jičín 1\tCOMPLETED\t45398033.00\t50949972.29\t🔴 Překročen rozpočet\nFVE-2016-04\tFVE Zlín 1\tCOMPLETED\t45195887.00\t50565130.32\t🔴 Překročen rozpočet\nFVE-2022-04\tFVE Zlín 2\tCOMPLETED\t43143567.00\t48415099.95\t🔴 Překročen rozpočet\nFVE-2020-04\tFVE Třeboň 1\tCOMPLETED\t40978031.00\t47642534.12\t🔴 Překročen rozpočet\nFVE-2017-02\tFVE Klatovy 1\tCOMPLETED\t42103840.00\t47388023.99\t🔴 Překročen rozpočet\nFVE-2019-03\tFVE Turnov 1\tCOMPLETED\t41381398.00\t47344521.20\t🔴 Překročen rozpočet\nFVE-2019-08\tFVE Mladá Boleslav 3\tCOMPLETED\t43140076.00\t45749334.75\t🔴 Překročen rozpočet\nFVE-2022-03\tFVE Tachov 1\tCOMPLETED\t37947876.00\t44104974.11\t🔴 Překročen rozpočet\nFVE-2022-06\tFVE Prachatice 1\tCOMPLETED\t38847737.00\t43999338.86\t🔴 Překročen rozpočet\nFVE-2024-07\tFVE Trutnov 2\tCOMPLETED\t39723139.00\t43964045.11\t🔴 Překročen rozpočet\nFVE-2016-03\tFVE Třinec 1\tCOMPLETED\t35907844.00\t42596208.07\t🔴 Překročen rozpočet\nFVE-2022-08\tFVE Pelhřimov 4\tCOMPLETED\t36357304.00\t41418870.54\t🔴 Překročen rozpočet\nFVE-2018-02\tFVE Nymburk 1\tCOMPLETED\t37025536.00\t41297849.86\t🔴 Překročen rozpočet\nFVE-2016-01\tFVE Rokycany 1\tCOMPLETED\t36000849.00\t41197456.77\t🔴 Překročen rozpočet\nFVE-2021-08\tFVE Ústí nad Orlicí 1\tCOMPLETED\t35639308.00\t40344028.02\t🔴 Překročen rozpočet\nFVE-2024-09\tFVE Litomyšl 2\tCOMPLETED\t35520579.00\t40337992.85\t🔴 Překročen rozpočet\nFVE-2021-03\tFVE Chrudim 2\tCOMPLETED\t36639524.00\t40069073.41\t🔴 Překročen rozpočet\nFVE-2025-05\tFVE Vyškov 1\tCOMPLETED\t36961820.00\t39920574.54\t🔴 Překročen rozpočet\nFVE-2024-06\tFVE Svitavy 1\tCOMPLETED\t36841504.00\t39745972.08\t🔴 Překročen rozpočet\nFVE-2019-04\tFVE Karviná 1\tCOMPLETED\t34629326.00\t39179180.58\t🔴 Překročen rozpočet\nFVE-2018-01\tFVE Ostrava 1\tCOMPLETED\t35206213.00\t39114429.11\t🔴 Překročen rozpočet\nFVE-2024-04\tFVE Benešov 1\tCOMPLETED\t34820996.00\t39104927.72\t🔴 Překročen rozpočet\nFVE-2017-08\tFVE Strakonice 1\tCOMPLETED\t34183313.00\t38878774.42\t🔴 Překročen rozpočet\nFVE-2016-08\tFVE Žatec 1\tCOMPLETED\t35333134.00\t37884438.53\t🔴 Překročen rozpočet\nFVE-2023-04\tFVE Rakovník 2\tCOMPLETED\t35191303.00\t37787285.27\t🔴 Překročen rozpočet\nFVE-2016-07\tFVE Blansko 1\tCOMPLETED\t30884566.00\t35923545.68\t🔴 Překročen rozpočet\nFVE-2024-05\tFVE Děčín 1\tCOMPLETED\t32637246.00\t35804495.49\t🔴 Překročen rozpočet\nFVE-2019-09\tFVE Pelhřimov 1\tCOMPLETED\t30874037.00\t35366204.45\t🔴 Překročen rozpočet\nFVE-2019-06\tFVE Česká Lípa 1\tCOMPLETED\t31142569.00\t35038175.17\t🔴 Překročen rozpočet\nFVE-2016-05\tFVE Kladno 1\tCOMPLETED\t30830015.00\t35006769.91\t🔴 Překročen rozpočet\nFVE-2017-05\tFVE Chrudim 1\tCOMPLETED\t31846607.00\t35004853.11\t🔴 Překročen rozpočet\nFVE-2024-08\tFVE Karviná 3\tCOMPLETED\t30975284.00\t34815190.79\t🔴 Překročen rozpočet\nFVE-2018-08\tFVE Pardubice 1\tCOMPLETED\t30594453.00\t34770528.53\t🔴 Překročen rozpočet\nFVE-2021-05\tFVE Pelhřimov 2\tCOMPLETED\t31427684.00\t34633710.43\t🔴 Překročen rozpočet\nFVE-2021-09\tFVE Beroun 1\tCOMPLETED\t30887981.00\t34393995.67\t🔴 Překročen rozpočet\nFVE-2018-04\tFVE Hodonín 1\tCOMPLETED\t32354531.00\t34355286.71\t🔴 Překročen rozpočet\nFVE-2019-01\tFVE Přerov 2\tCOMPLETED\t31321312.00\t34263044.19\t🔴 Překročen rozpočet\nFVE-2023-06\tFVE Jablonec nad Nisou 1\tCOMPLETED\t30301960.00\t33989966.64\t🔴 Překročen rozpočet\nFVE-2020-08\tFVE Louny 1\tCOMPLETED\t29751276.00\t33431940.80\t🔴 Překročen rozpočet\nFVE-2016-06\tFVE Teplice 1\tCOMPLETED\t30712001.00\t33404222.15\t🔴 Překročen rozpočet\nFVE-2025-01\tFVE Znojmo 1\tCOMPLETED\t30340782.00\t33354169.37\t🔴 Překročen rozpočet\nFVE-2020-06\tFVE Jeseník 1\tCOMPLETED\t28999209.00\t33072104.81\t🔴 Překročen rozpočet\nFVE-2018-07\tFVE Valašské Meziříčí 1\tCOMPLETED\t30413779.00\t33001352.39\t🔴 Překročen rozpočet\nFVE-2019-05\tFVE Frýdek-Místek 1\tCOMPLETED\t28983042.00\t32797531.40\t🔴 Překročen rozpočet\nFVE-2017-03\tFVE Opava 1\tCOMPLETED\t28781811.00\t32679526.42\t🔴 Překročen rozpočet\nFVE-2025-07\tFVE Rychnov nad Kněžnou 3\tCOMPLETED\t28936396.00\t32668554.98\t🔴 Překročen rozpočet\nFVE-2024-01\tFVE Rychnov nad Kněžnou 2\tCOMPLETED\t29470469.00\t32525633.16\t🔴 Překročen rozpočet\nFVE-2022-02\tFVE Teplice 2\tCOMPLETED\t27785270.00\t32188753.56\t🔴 Překročen rozpočet\nFVE-2020-02\tFVE Kroměříž 1\tCOMPLETED\t28900227.00\t32130640.27\t🔴 Překročen rozpočet\nFVE-2021-06\tFVE Pelhřimov 3\tCOMPLETED\t27464634.00\t31839938.23\t🔴 Překročen rozpočet\nFVE-2021-07\tFVE Rakovník 1\tCOMPLETED\t27857378.00\t31566748.62\t🔴 Překročen rozpočet\nFVE-2023-07\tFVE Šumperk 1\tCOMPLETED\t28038093.00\t31386370.99\t🔴 Překročen rozpočet\nFVE-2022-01\tFVE Jihlava 1\tCOMPLETED\t27356673.00\t31260593.85\t🔴 Překročen rozpočet\nFVE-2024-02\tFVE Karviná 2\tCOMPLETED\t28174931.00\t31224272.92\t🔴 Překročen rozpočet\nFVE-2017-01\tFVE Most 1\tCOMPLETED\t28270012.00\t31120076.19\t🔴 Překročen rozpočet\nFVE-2022-05\tFVE Karlovy Vary 1\tCOMPLETED\t27018653.00\t30546890.45\t🔴 Překročen rozpočet\nFVE-2023-05\tFVE Sokolov 2\tCOMPLETED\t27053007.00\t30391565.22\t🔴 Překročen rozpočet\nFVE-2018-03\tFVE Přerov 1\tCOMPLETED\t26752811.00\t30021997.97\t🔴 Překročen rozpočet\nFVE-2023-03\tFVE Prostějov 1\tCOMPLETED\t26179964.00\t30006820.98\t🔴 Překročen rozpočet\nFVE-2017-09\tFVE Ústí nad Labem 1\tCOMPLETED\t25721891.00\t28801327.83\t🔴 Překročen rozpočet\nFVE-2020-07\tFVE Přerov 4\tCOMPLETED\t26150196.00\t28654052.23\t🔴 Překročen rozpočet\nFVE-2018-06\tFVE Mladá Boleslav 2\tCOMPLETED\t25069560.00\t28397805.51\t🔴 Překročen rozpočet\nFVE-2022-09\tFVE Jihlava 2\tCOMPLETED\t26329171.00\t28297526.23\t🔴 Překročen rozpočet\nFVE-2025-03\tFVE Ostrov 1\tCOMPLETED\t24946964.00\t27957848.99\t🔴 Překročen rozpočet\nFVE-2025-04\tFVE Jeseník 2\tCOMPLETED\t24370466.00\t27730207.48\t🔴 Překročen rozpočet\nFVE-2021-02\tFVE Žďár nad Sázavou 1\tCOMPLETED\t24248708.00\t26401504.87\t🔴 Překročen rozpočet\nFVE-2025-06\tFVE Strakonice 3\tCOMPLETED\t24556884.00\t26354391.57\t🔴 Překročen rozpočet\nFVE-2023-02\tFVE Sokolov 1\tCOMPLETED\t22746098.00\t26138726.20\t🔴 Překročen rozpočet\nFVE-2026-01\tFVE Písek 3\tACTIVE\t37369353.00\t25321312.27\t🟢 V pořádku\nFVE-2021-04\tFVE Hradec Králové 1\tCOMPLETED\t21489037.00\t24428542.48\t🔴 Překročen rozpočet\nFVE-2026-03\tFVE Rokycany 2\tACTIVE\t46204490.00\t23065530.12\t🟢 V pořádku\nFVE-2024-03\tFVE Bruntál 1\tCOMPLETED\t20911351.00\t23006131.78\t🔴 Překročen rozpočet\nFVE-2017-04\tFVE Trutnov 1\tCOMPLETED\t19718218.00\t21786311.99\t🔴 Překročen rozpočet\nFVE-2025-08\tFVE Liberec 1\tACTIVE\t20516049.00\t21483190.82\t🔴 Překročen rozpočet\nUNKNOWN\tUnknown project\tUNKNOWN\t0.00\t20572741.67\t⚪ Bez rozpočtu\nFVE-2022-07\tFVE Ústí nad Orlicí 2\tCOMPLETED\t16358009.00\t18274834.00\t🔴 Překročen rozpočet\nFVE-2026-02\tFVE Benešov 2\tACTIVE\t28942500.00\t7995879.33\t🟢 V pořádku\nFVE-2026-04\tFVE Blansko 2\tACTIVE\t18185171.00\t6221627.55\t🟢 V pořádku\nFVE-2026-05\tFVE Tachov 2\tACTIVE\t22185996.00\t3090775.99\t🟢 V pořádku\nFVE-2026-08\tFVE Tachov 3\tACTIVE\t38393501.00\t600061.30\t🟢 V pořádku\nFVE-2019-02\tFVE Přerov 3\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\nFVE-2021-01\tFVE Plzeň 1\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\nFVE-2018-05\tFVE Litomyšl 1\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\nFVE-2026-06\tFVE Ostrov 2\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\nFVE-2020-05\tFVE Most 2\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\nFVE-2026-07\tFVE Břeclav 1\tACTIVE\t26552812.00\t0.00\t🟢 V pořádku\nFVE-2017-07\tFVE Mladá Boleslav 1\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\nFVE-2025-09\tFVE Chomutov 1\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\nFVE-2023-08\tFVE Rakovník 3\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\nFVE-2020-03\tFVE Strakonice 2\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\nFVE-2025-02\tFVE Třinec 2\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\nFVE-2023-01\tFVE Písek 2\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\nFVE-2016-02\tFVE Kutná Hora 1\tNOT_SIGNED\t0.00\t0.00\t⚪ Bez rozpočtu\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794990469591_1987140355",
+      "id": "paragraph_1794990469591_1987140355",
+      "dateCreated": "2026-11-18 08:27:49.591",
+      "dateStarted": "2026-11-18 14:07:19.859",
+      "dateFinished": "2026-11-18 14:07:21.741",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%sparksql\nWITH budgets AS (\n    SELECT\n        project_key,\n        SUM(budget_amount) AS budget\n    FROM fve_dw.fact_budget_line\n    GROUP BY project_key\n),\nspending AS (\n    SELECT\n        project_key,\n        SUM(amount_gross) AS spent\n    FROM fve_dw.fact_invoice_line\n    GROUP BY project_key\n)\nSELECT\n    p.project_code AS project,\n    COALESCE(b.budget, 0) AS budget,\n    COALESCE(s.spent, 0) AS spent\nFROM fve_dw.dim_project p\nLEFT JOIN budgets b\n    ON p.project_key \u003d b.project_key\nLEFT JOIN spending s\n    ON p.project_key \u003d s.project_key\nORDER BY spent DESC\nLIMIT 10;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 15:07:39.049",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "multiBarChart",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "project": "string",
+                      "budget": "string",
+                      "spent": "string"
+                    },
+                    "updated": true
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "project",
+                  "index": 0.0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [
+                {
+                  "name": "budget",
+                  "index": 1.0,
+                  "aggr": "sum"
+                },
+                {
+                  "name": "spent",
+                  "index": 2.0,
+                  "aggr": "sum"
+                }
+              ],
+              "values": [
+                {
+                  "name": "budget",
+                  "index": 1.0,
+                  "aggr": "sum"
+                }
+              ]
+            },
+            "helium": {}
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "project\tbudget\tspent\nFVE-2017-06\t50255620.00\t54833904.14\nFVE-2019-07\t48400018.00\t54157880.64\nFVE-2018-09\t44847054.00\t51387135.83\nFVE-2020-01\t45398033.00\t50949972.29\nFVE-2016-04\t45195887.00\t50565130.32\nFVE-2022-04\t43143567.00\t48415099.95\nFVE-2020-04\t40978031.00\t47642534.12\nFVE-2017-02\t42103840.00\t47388023.99\nFVE-2019-03\t41381398.00\t47344521.20\nFVE-2019-08\t43140076.00\t45749334.75\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011009712_284770382",
+      "id": "paragraph_1795011009712_284770382",
+      "dateCreated": "2026-11-18 14:10:09.713",
+      "dateStarted": "2026-11-18 14:12:36.142",
+      "dateFinished": "2026-11-18 14:12:37.497",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%md\n### Dashboard filters\n\nProject: $${project\u003dFVE-2026-02}\n\nCategory: $${category\u003dPANELS,PANELS|INVERTERS|BATTERIES|STRUCTURES|CABLES|EARTHWORKS|GRID|DESIGN|SURVEY|OTHER}\n\nSupplier IČO: $${supplier\u003d}",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:14:10.198",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "HTML",
+            "data": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch3\u003eDashboard filters\u003c/h3\u003e\n\u003cp\u003eProject: FVE-2026-02\u003c/p\u003e\n\u003cp\u003eCategory: PANELS\u003c/p\u003e\n\u003cp\u003eSupplier IČO:\u003c/p\u003e\n\n\u003c/div\u003e"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011156142_985571766",
+      "id": "paragraph_1795011156142_985571766",
+      "dateCreated": "2026-11-18 14:12:36.142",
+      "dateStarted": "2026-11-18 14:14:10.196",
+      "dateFinished": "2026-11-18 14:14:12.387",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%sparksql\nWITH budget_by_category AS (\n    SELECT\n        project_key,\n        category_key,\n        SUM(budget_amount) AS budget\n    FROM fve_dw.fact_budget_line\n    GROUP BY project_key, category_key\n),\nspent_by_category AS (\n    SELECT\n        project_key,\n        category_key,\n        SUM(amount_net) AS spent\n    FROM fve_dw.fact_invoice_line\n    GROUP BY project_key, category_key\n),\ncombined AS (\n    SELECT project_key, category_key, budget,\n           CAST(0 AS DECIMAL(14,2)) AS spent\n    FROM budget_by_category\n\n    UNION ALL\n\n    SELECT project_key, category_key,\n           CAST(0 AS DECIMAL(14,2)) AS budget, spent\n    FROM spent_by_category\n),\ntotals AS (\n    SELECT\n        project_key,\n        category_key,\n        SUM(budget) AS budget,\n        SUM(spent) AS spent\n    FROM combined\n    GROUP BY project_key, category_key\n)\nSELECT\n    c.category_code AS `Kategorie`,\n    SUM(t.budget) AS `Rozpočet`,\n    SUM(t.spent) AS `Skutečné náklady`,\n    SUM(t.budget) - SUM(t.spent) AS `Zbývá`,\n    CASE\n        WHEN SUM(t.budget) \u003d 0 THEN NULL\n        ELSE ROUND(SUM(t.spent) * 100.0 / SUM(t.budget), 2)\n    END AS `Čerpání (%)`,\n    CASE\n        WHEN SUM(t.budget) \u003d 0 THEN \u0027⚪ Bez rozpočtu\u0027\n        WHEN SUM(t.spent) \u003e SUM(t.budget) THEN \u0027🔴 Překročen\u0027\n        WHEN SUM(t.spent) \u003e\u003d SUM(t.budget) * 0.9 THEN \u0027🟡 Blízko limitu\u0027\n        ELSE \u0027🟢 V pořádku\u0027\n    END AS `Stav`\nFROM totals t\nJOIN fve_dw.dim_project p\n    ON t.project_key \u003d p.project_key\nJOIN fve_dw.dim_cost_category c\n    ON t.category_key \u003d c.category_key\nWHERE p.project_code \u003d \u0027FVE-2026-02\u0027\nGROUP BY c.category_code\nORDER BY\n    CASE\n        WHEN SUM(t.spent) \u003e SUM(t.budget) THEN 0\n        WHEN SUM(t.budget) \u003e 0\n             AND SUM(t.spent) \u003e\u003d SUM(t.budget) * 0.9 THEN 1\n        ELSE 2\n    END,\n    SUM(t.spent) - SUM(t.budget) DESC;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:55:55.977",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {
+                    "columns": [
+                      {
+                        "name": "Kategorie0",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {
+                          "priority": 0.0,
+                          "direction": "desc"
+                        },
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Rozpočet1",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Skutečné náklady2",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Zbývá3",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Čerpání (%)4",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "Stav5",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      }
+                    ],
+                    "scrollFocus": {},
+                    "selection": [],
+                    "grouping": {
+                      "grouping": [],
+                      "aggregations": [],
+                      "rowExpandedStates": {}
+                    },
+                    "treeView": {},
+                    "pagination": {
+                      "paginationCurrentPage": 1.0,
+                      "paginationPageSize": 250.0
+                    }
+                  },
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Kategorie": "string",
+                      "Rozpočet": "string",
+                      "Skutečné náklady": "string",
+                      "Zbývá": "string",
+                      "Čerpání (%)": "string",
+                      "Stav": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "Kategorie",
+                  "index": 0.0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [],
+              "values": [
+                {
+                  "name": "Rozpočet",
+                  "index": 1.0,
+                  "aggr": "sum"
+                }
+              ]
+            },
+            "helium": {}
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "Kategorie\tRozpočet\tSkutečné náklady\tZbývá\tČerpání (%)\tStav\nSURVEY\t545803.00\t509886.77\t35916.23\t93.42\t🟡 Blízko limitu\nDESIGN\t1251156.00\t1103101.06\t148054.94\t88.17\t🟢 V pořádku\nEARTHWORKS\t2203091.00\t1742732.22\t460358.78\t79.10\t🟢 V pořádku\nOTHER\t928212.00\t0.00\t928212.00\t0.00\t🟢 V pořádku\nCABLES\t1654692.00\t0.00\t1654692.00\t0.00\t🟢 V pořádku\nSTRUCTURES\t3164221.00\t1080114.40\t2084106.60\t34.14\t🟢 V pořádku\nINVERTERS\t3556389.00\t800527.79\t2755861.21\t22.51\t🟢 V pořádku\nGRID\t2846518.00\t0.00\t2846518.00\t0.00\t🟢 V pořádku\nBATTERIES\t4197154.00\t0.00\t4197154.00\t0.00\t🟢 V pořádku\nPANELS\t8595264.00\t1371802.47\t7223461.53\t15.96\t🟢 V pořádku\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011250195_476579759",
+      "id": "paragraph_1795011250195_476579759",
+      "dateCreated": "2026-11-18 14:14:10.195",
+      "dateStarted": "2026-11-18 14:20:43.703",
+      "dateFinished": "2026-11-18 14:20:45.536",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%sparksql\nWITH invoice_totals AS (\n    SELECT\n        invoice_id,\n        supplier_key,\n        SUM(amount_gross) AS invoiced\n    FROM fve_dw.fact_invoice_line\n    WHERE project_key \u003d (\n        SELECT project_key\n        FROM fve_dw.dim_project\n        WHERE project_code \u003d \u0027FVE-2026-02\u0027\n    )\n    AND category_key \u003d (\n        SELECT category_key\n        FROM fve_dw.dim_cost_category\n        WHERE category_code \u003d \u0027PANELS\u0027\n    )\n    GROUP BY invoice_id, supplier_key\n),\npayments_by_invoice AS (\n    SELECT\n        invoice_id,\n        SUM(amount) AS paid\n    FROM fve_dw.fact_payment\n    GROUP BY invoice_id\n),\nsupplier_totals AS (\n    SELECT\n        i.supplier_key,\n        SUM(i.invoiced) AS invoiced,\n        SUM(COALESCE(p.paid, 0)) AS paid,\n        SUM(i.invoiced - COALESCE(p.paid, 0)) AS open\n    FROM invoice_totals i\n    LEFT JOIN payments_by_invoice p\n        ON i.invoice_id \u003d p.invoice_id\n    GROUP BY i.supplier_key\n)\nSELECT\n    s.name AS supplier,\n    s.ico AS ico,\n    t.invoiced AS invoiced,\n    t.paid AS paid,\n    t.open AS open\nFROM supplier_totals t\nJOIN fve_dw.dim_supplier s\n    ON t.supplier_key \u003d s.supplier_key\nORDER BY t.invoiced DESC, supplier;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:44.555",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "supplier": "string",
+                      "ico": "string",
+                      "invoiced": "string",
+                      "paid": "string",
+                      "open": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "supplier\tico\tinvoiced\tpaid\topen\nPV Trade Dvorak spol. s r.o.\t68317679\t1002119.02\t1002119.02\t0.00\nSunTech Kucera spol. s r.o.\t76103843\t657761.97\t657761.97\t0.00\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011443467_272490244",
+      "id": "paragraph_1795011443467_272490244",
+      "dateCreated": "2026-11-18 14:17:23.467",
+      "dateStarted": "2026-11-18 14:22:49.784",
+      "dateFinished": "2026-11-18 14:22:53.453",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%sparksql\nWITH invoice_totals AS (\n    SELECT\n        invoice_id,\n        SUM(amount_gross) AS gross_amount,\n        MAX(payment_status) AS payment_status,\n        MAX(days_late) AS days_late,\n        MAX(issue_date_key) AS issue_date_key,\n        MAX(due_date_key) AS due_date_key\n    FROM fve_dw.fact_invoice_line\n    WHERE project_key \u003d (\n        SELECT project_key\n        FROM fve_dw.dim_project\n        WHERE project_code \u003d \u0027FVE-2026-02\u0027\n    )\n    AND supplier_key \u003d (\n        SELECT supplier_key\n        FROM fve_dw.dim_supplier\n        WHERE ico \u003d \u002768317679\u0027\n           OR name \u003d \u002768317679\u0027\n    )\n    GROUP BY invoice_id\n)\nSELECT\n    i.invoice_id,\n    REGEXP_EXTRACT(i.invoice_id, \u0027^[^-]+-(.*)$\u0027, 1) AS invoice_number,\n    issue_date.full_date AS issue_date,\n    due_date.full_date AS due_date,\n    i.gross_amount,\n    i.payment_status,\n    i.days_late\nFROM invoice_totals i\nLEFT JOIN fve_dw.dim_date issue_date\n    ON i.issue_date_key \u003d issue_date.date_key\nLEFT JOIN fve_dw.dim_date due_date\n    ON i.due_date_key \u003d due_date.date_key\nORDER BY\n    CASE\n        WHEN i.payment_status IN (\u0027OVERDUE\u0027, \u0027UNPAID\u0027) THEN 1\n        WHEN i.payment_status \u003d \u0027PARTLY_PAID\u0027 THEN 2\n        ELSE 3\n    END,\n    due_date ASC,\n    i.invoice_id;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:44.625",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "invoice_id": "string",
+                      "invoice_number": "string",
+                      "issue_date": "string",
+                      "due_date": "string",
+                      "gross_amount": "string",
+                      "payment_status": "string",
+                      "days_late": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "invoice_id\tinvoice_number\tissue_date\tdue_date\tgross_amount\tpayment_status\tdays_late\n68317679-202600034\t202600034\t2026-09-15\t2026-10-01\t484077.55\tPAID\t0\n68317679-202600038\t202600038\t2026-10-02\t2026-10-31\t518041.47\tPAID\t0\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011769783_1370984354",
+      "id": "paragraph_1795011769783_1370984354",
+      "dateCreated": "2026-11-18 14:22:49.783",
+      "dateStarted": "2026-11-18 14:24:28.242",
+      "dateFinished": "2026-11-18 14:24:29.659",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%sparksql\nWITH monthly_spend AS (\n    SELECT\n        i.project_key,\n        d.year,\n        d.month,\n        SUM(i.amount_net) AS spent\n    FROM fve_dw.fact_invoice_line i\n    JOIN fve_dw.dim_date d\n        ON i.issue_date_key \u003d d.date_key\n    GROUP BY\n        i.project_key,\n        d.year,\n        d.month\n)\nSELECT\n    m.year AS year,\n    m.month AS month,\n    m.spent AS spent,\n    SUM(m.spent) OVER (\n        PARTITION BY m.project_key\n        ORDER BY m.year * 100 + m.month\n        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n    ) AS cumulative_spend\nFROM monthly_spend m\nJOIN fve_dw.dim_project p\n    ON m.project_key \u003d p.project_key\nWHERE p.project_code \u003d \u0027FVE-2026-02\u0027\nORDER BY m.year, m.month;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:15.831",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "lineChart",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "year": "string",
+                      "month": "string",
+                      "spent": "string",
+                      "cumulative_spend": "string"
+                    },
+                    "updated": true
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "lineChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default",
+                  "forceY": false
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "month",
+                  "index": 1.0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [
+                {
+                  "name": "year",
+                  "index": 0.0,
+                  "aggr": "sum"
+                }
+              ],
+              "values": [
+                {
+                  "name": "spent",
+                  "index": 2.0,
+                  "aggr": "sum"
+                },
+                {
+                  "name": "cumulative_spend",
+                  "index": 3.0,
+                  "aggr": "sum"
+                }
+              ]
+            },
+            "helium": {}
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "year\tmonth\tspent\tcumulative_spend\n2026\t7\t1698012.77\t1698012.77\n2026\t8\t1170045.35\t2868058.12\n2026\t9\t1948704.36\t4816762.48\n2026\t10\t1791402.23\t6608164.71\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011868241_453029593",
+      "id": "paragraph_1795011868241_453029593",
+      "dateCreated": "2026-11-18 14:24:28.242",
+      "dateStarted": "2026-11-18 14:29:54.196",
+      "dateFinished": "2026-11-18 14:29:55.544",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%sparksql\nWITH project_spend AS (\n    SELECT\n        project_key,\n        SUM(amount_net) AS total_spent\n    FROM fve_dw.fact_invoice_line\n    GROUP BY project_key\n),\ncompleted AS (\n    SELECT\n        p.project_code,\n        p.signed_year,\n        p.mwp,\n        COALESCE(s.total_spent, CAST(0 AS DECIMAL(14,2))) AS total_spent\n    FROM fve_dw.dim_project p\n    LEFT JOIN project_spend s\n        ON p.project_key \u003d s.project_key\n    WHERE p.status \u003d \u0027COMPLETED\u0027\n)\nSELECT\n    project_code,\n    signed_year,\n    SUM(mwp) AS mwp,\n    SUM(total_spent) AS total_spent,\n    CASE\n        WHEN SUM(mwp) \u003e 0\n        THEN ROUND(SUM(total_spent) / SUM(mwp), 2)\n        ELSE NULL\n    END AS cost_per_mwp\nFROM completed\nGROUP BY signed_year, project_code\nGROUPING SETS ((signed_year, project_code), (signed_year))\nORDER BY signed_year, project_code;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:18.664",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "multiBarChart",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "project_code": "string",
+                      "signed_year": "string",
+                      "mwp": "string",
+                      "total_spent": "string",
+                      "cost_per_mwp": "string"
+                    },
+                    "updated": true
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "project_code",
+                  "index": 0.0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [
+                {
+                  "name": "signed_year",
+                  "index": 1.0,
+                  "aggr": "sum"
+                }
+              ],
+              "values": [
+                {
+                  "name": "cost_per_mwp",
+                  "index": 4.0,
+                  "aggr": "sum"
+                }
+              ]
+            },
+            "helium": {}
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "project_code\tsigned_year\tmwp\ttotal_spent\tcost_per_mwp\nnull\t2016\t11.85\t228576670.56\t19289170.51\nFVE-2016-01\t2016\t1.94\t34047484.95\t17550249.97\nFVE-2016-03\t2016\t1.99\t35203477.73\t17690189.81\nFVE-2016-04\t2016\t1.70\t41789363.93\t24581978.78\nFVE-2016-05\t2016\t1.56\t28931214.77\t18545650.49\nFVE-2016-06\t2016\t1.33\t27606795.12\t20756988.81\nFVE-2016-07\t2016\t1.78\t29688880.75\t16679146.49\nFVE-2016-08\t2016\t1.55\t31309453.31\t20199647.30\nnull\t2017\t12.26\t240076692.47\t19582111.95\nFVE-2017-01\t2017\t1.29\t25719071.21\t19937264.50\nFVE-2017-02\t2017\t1.82\t39163656.21\t21518492.42\nFVE-2017-03\t2017\t1.39\t27007873.06\t19430124.50\nFVE-2017-04\t2017\t1.00\t18005216.46\t18005216.46\nFVE-2017-05\t2017\t1.59\t28929630.69\t18194736.28\nFVE-2017-06\t2017\t1.99\t45317276.14\t22772500.57\nFVE-2017-08\t2017\t1.68\t32131218.48\t19125725.29\nFVE-2017-09\t2017\t1.50\t23802750.22\t15868500.15\nnull\t2018\t11.40\t241608583.31\t21193735.38\nFVE-2018-01\t2018\t1.49\t32325974.44\t21695284.86\nFVE-2018-02\t2018\t1.50\t34130454.40\t22753636.27\nFVE-2018-03\t2018\t1.08\t24811568.54\t22973674.57\nFVE-2018-04\t2018\t1.53\t28392798.91\t18557384.91\nFVE-2018-06\t2018\t1.15\t23469260.76\t20408052.83\nFVE-2018-07\t2018\t1.14\t27273845.00\t23924425.44\nFVE-2018-08\t2018\t1.66\t28735973.96\t17310827.69\nFVE-2018-09\t2018\t1.85\t42468707.30\t22956058.00\nnull\t2019\t13.20\t267682539.08\t20278980.23\nFVE-2019-01\t2019\t1.60\t28316565.47\t17697853.42\nFVE-2019-03\t2019\t1.98\t39127703.44\t19761466.38\nFVE-2019-04\t2019\t1.56\t32379488.12\t20756082.13\nFVE-2019-05\t2019\t1.19\t27105397.87\t22777645.27\nFVE-2019-06\t2019\t1.62\t28957169.54\t17874796.01\nFVE-2019-07\t2019\t1.88\t44758579.02\t23807754.80\nFVE-2019-08\t2019\t1.70\t37809367.49\t22240804.41\nFVE-2019-09\t2019\t1.67\t29228268.13\t17501956.96\nnull\t2020\t9.53\t186678714.44\t19588532.47\nFVE-2020-01\t2020\t1.82\t42107415.12\t23135942.37\nFVE-2020-02\t2020\t1.71\t26554248.16\t15528800.09\nFVE-2020-04\t2020\t1.62\t39373995.07\t24304935.23\nFVE-2020-06\t2020\t1.84\t27332317.99\t14854520.65\nFVE-2020-07\t2020\t1.16\t23681034.96\t20414685.31\nFVE-2020-08\t2020\t1.38\t27629703.14\t20021524.01\nnull\t2021\t11.49\t217915323.58\t18965650.44\nFVE-2021-02\t2021\t1.45\t21819425.53\t15047879.68\nFVE-2021-03\t2021\t1.92\t33114936.76\t17247362.90\nFVE-2021-04\t2021\t1.09\t20188878.04\t18521906.46\nFVE-2021-05\t2021\t1.67\t28622901.13\t17139461.75\nFVE-2021-06\t2021\t1.13\t26313998.55\t23286724.38\nFVE-2021-07\t2021\t1.22\t26088221.97\t21383788.50\nFVE-2021-08\t2021\t1.51\t33342171.83\t22080908.50\nFVE-2021-09\t2021\t1.50\t28424789.77\t18949859.85\nnull\t2022\t13.48\t263228827.53\t19527361.09\nFVE-2022-01\t2022\t1.38\t25835201.50\t18721160.51\nFVE-2022-02\t2022\t1.06\t26602275.63\t25096486.44\nFVE-2022-03\t2022\t1.90\t36450391.84\t19184416.76\nFVE-2022-04\t2022\t1.91\t40012479.31\t20948942.05\nFVE-2022-05\t2022\t1.37\t25245363.95\t18427272.96\nFVE-2022-06\t2022\t1.69\t36363089.93\t21516621.26\nFVE-2022-07\t2022\t1.06\t15103168.56\t14248272.23\nFVE-2022-08\t2022\t1.69\t34230471.54\t20254716.89\nFVE-2022-09\t2022\t1.42\t23386385.27\t16469285.40\nnull\t2023\t8.05\t156777467.16\t19475461.76\nFVE-2023-02\t2023\t1.43\t21602253.05\t15106470.66\nFVE-2023-03\t2023\t1.03\t24799025.59\t24076723.87\nFVE-2023-04\t2023\t1.44\t31229161.33\t21686917.59\nFVE-2023-05\t2023\t1.44\t25116996.05\t17442358.37\nFVE-2023-06\t2023\t1.51\t28090881.52\t18603232.79\nFVE-2023-07\t2023\t1.20\t25939149.62\t21615958.02\nnull\t2024\t14.32\t264899720.36\t18498583.82\nFVE-2024-01\t2024\t1.34\t26880688.56\t20060215.34\nFVE-2024-02\t2024\t1.49\t25805184.22\t17318915.58\nFVE-2024-03\t2024\t1.20\t19013332.03\t15844443.36\nFVE-2024-04\t2024\t1.96\t32318121.99\t16488837.75\nFVE-2024-05\t2024\t1.85\t29590492.19\t15994860.64\nFVE-2024-06\t2024\t1.83\t32847910.75\t17949678.01\nFVE-2024-07\t2024\t1.96\t36333921.58\t18537715.09\nFVE-2024-08\t2024\t1.25\t28772884.91\t23018307.93\nFVE-2024-09\t2024\t1.44\t33337184.13\t23150822.31\nnull\t2025\t8.42\t155360121.28\t18451320.82\nFVE-2025-01\t2025\t1.52\t27565429.23\t18135150.81\nFVE-2025-03\t2025\t1.58\t23105660.34\t14623835.66\nFVE-2025-04\t2025\t1.24\t22917526.82\t18481876.47\nFVE-2025-05\t2025\t1.41\t32992210.34\t23398730.74\nFVE-2025-06\t2025\t1.31\t21780488.81\t16626327.34\nFVE-2025-07\t2025\t1.36\t26998805.74\t19852063.04\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011984601_1097324248",
+      "id": "paragraph_1795011984601_1097324248",
+      "dateCreated": "2026-11-18 14:26:24.601",
+      "dateStarted": "2026-11-18 14:30:51.346",
+      "dateFinished": "2026-11-18 14:30:52.559",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%sparksql\nWITH budget_by_category AS (\n    SELECT\n        project_key,\n        category_key,\n        SUM(budget_amount) AS budget\n    FROM fve_dw.fact_budget_line\n    GROUP BY project_key, category_key\n),\nspent_by_category AS (\n    SELECT\n        project_key,\n        category_key,\n        SUM(amount_net) AS spent\n    FROM fve_dw.fact_invoice_line\n    GROUP BY project_key, category_key\n),\ncategory_results AS (\n    SELECT\n        b.category_key,\n        b.project_key,\n        b.budget,\n        COALESCE(s.spent, CAST(0 AS DECIMAL(14,2))) AS spent\n    FROM budget_by_category b\n    LEFT JOIN spent_by_category s\n        ON b.project_key \u003d s.project_key\n        AND b.category_key \u003d s.category_key\n),\noverruns AS (\n    SELECT\n        category_key,\n        CASE WHEN spent \u003e budget THEN 1 ELSE 0 END AS over_budget,\n        CASE\n            WHEN budget \u003e 0 AND spent \u003e budget\n            THEN (spent - budget) * 100.0 / budget\n            ELSE NULL\n        END AS overrun_pct\n    FROM category_results r\n    JOIN fve_dw.dim_project p\n        ON r.project_key \u003d p.project_key\n    WHERE p.status \u003d \u0027COMPLETED\u0027\n),\ncategory_summary AS (\n    SELECT\n        category_key,\n        SUM(over_budget) AS projects_over,\n        COALESCE(AVG(overrun_pct), 0) AS avg_overrun_pct\n    FROM overruns\n    GROUP BY category_key\n)\nSELECT\n    c.category_code AS category_code,\n    s.projects_over AS projects_over,\n    ROUND(s.avg_overrun_pct, 2) AS avg_overrun_pct,\n    RANK() OVER (\n        ORDER BY s.projects_over DESC, s.avg_overrun_pct DESC\n    ) AS category_rank\nFROM category_summary s\nJOIN fve_dw.dim_cost_category c\n    ON s.category_key \u003d c.category_key\nORDER BY category_rank;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:44.841",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "category_code": "string",
+                      "projects_over": "string",
+                      "avg_overrun_pct": "string",
+                      "category_rank": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "category_code\tprojects_over\tavg_overrun_pct\tcategory_rank\nEARTHWORKS\t5\t18.97\t1\nCABLES\t3\t17.48\t2\nGRID\t2\t15.37\t3\nDESIGN\t2\t11.20\t4\nINVERTERS\t2\t7.51\t5\nPANELS\t1\t9.16\t6\nOTHER\t1\t8.48\t7\nSURVEY\t1\t6.39\t8\nBATTERIES\t0\t0.00\t9\nSTRUCTURES\t0\t0.00\t9\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795012251345_893185602",
+      "id": "paragraph_1795012251345_893185602",
+      "dateCreated": "2026-11-18 14:30:51.345",
+      "dateStarted": "2026-11-18 14:33:58.001",
+      "dateFinished": "2026-11-18 14:33:59.401",
+      "status": "FINISHED"
+    },
+    {
+      "text": "%sparksql\nSELECT\n    c.group_name AS group_name,\n    d.year AS year,\n    SUM(i.amount_net) AS spent\nFROM fve_dw.fact_invoice_line i\nJOIN fve_dw.dim_cost_category c\n    ON i.category_key \u003d c.category_key\nJOIN fve_dw.dim_date d\n    ON i.issue_date_key \u003d d.date_key\nGROUP BY c.group_name, d.year WITH CUBE\nORDER BY year, group_name;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:30.657",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9.0,
+        "editorHide": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "multiBarChart",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "group_name": "string",
+                      "year": "string",
+                      "spent": "string"
+                    },
+                    "updated": true
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "group_name",
+                  "index": 0.0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [
+                {
+                  "name": "year",
+                  "index": 1.0,
+                  "aggr": "sum"
+                }
+              ],
+              "values": [
+                {
+                  "name": "spent",
+                  "index": 2.0,
+                  "aggr": "sum"
+                }
+              ]
+            },
+            "helium": {}
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "results": {
+        "code": "SUCCESS",
+        "msg": [
+          {
+            "type": "TABLE",
+            "data": "group_name\tyear\tspent\nnull\tnull\t2312351039.07\nconstruction\tnull\t905824521.66\nservices\tnull\t259289954.77\ntechnology\tnull\t1147236562.64\nnull\t2016\t102725893.49\nconstruction\t2016\t35904373.82\nservices\t2016\t19052422.26\ntechnology\t2016\t47769097.41\nnull\t2017\t138458163.77\nconstruction\t2017\t56581588.38\nservices\t2017\t13437441.66\ntechnology\t2017\t68439133.73\nnull\t2018\t312294100.01\nconstruction\t2018\t122450309.50\nservices\t2018\t35275567.78\ntechnology\t2018\t154568222.73\nnull\t2019\t219867890.94\nconstruction\t2019\t91529031.83\nservices\t2019\t20097322.42\ntechnology\t2019\t108241536.69\nnull\t2020\t305005733.10\nconstruction\t2020\t116740675.52\nservices\t2020\t37921157.49\ntechnology\t2020\t150343900.09\nnull\t2021\t187586555.40\nconstruction\t2021\t72134855.88\nservices\t2021\t19291178.68\ntechnology\t2021\t96160520.84\nnull\t2022\t257203652.83\nconstruction\t2022\t97177804.50\nservices\t2022\t27448696.40\ntechnology\t2022\t132577151.93\nnull\t2023\t210546685.31\nconstruction\t2023\t86438491.31\nservices\t2023\t20613542.86\ntechnology\t2023\t103494651.14\nnull\t2024\t150190450.08\nconstruction\t2024\t56860425.50\nservices\t2024\t22255345.92\ntechnology\t2024\t71074678.66\nnull\t2025\t261925710.89\nconstruction\t2025\t104593938.24\nservices\t2025\t25325320.96\ntechnology\t2025\t132006451.69\nnull\t2026\t166546203.25\nconstruction\t2026\t65413027.18\nservices\t2026\t18571958.34\ntechnology\t2026\t82561217.73\n"
+          }
+        ]
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795012438001_1172662285",
+      "id": "paragraph_1795012438001_1172662285",
+      "dateCreated": "2026-11-18 14:33:58.001",
+      "dateStarted": "2026-11-18 14:35:19.679",
+      "dateFinished": "2026-11-18 14:35:20.805",
+      "status": "FINISHED"
+    }
+  ],
+  "name": "management_dashboard",
+  "id": "2N8K6MZZH",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.11.2",
+  "noteParams": {},
+  "noteForms": {
+    "project": {
+      "type": "TextBox",
+      "name": "project",
+      "displayName": "project",
+      "defaultValue": "FVE-2026-02",
+      "hidden": false
+    },
+    "category": {
+      "type": "Select",
+      "options": [
+        {
+          "value": "PANELS"
+        },
+        {
+          "value": "INVERTERS"
+        },
+        {
+          "value": "BATTERIES"
+        },
+        {
+          "value": "STRUCTURES"
+        },
+        {
+          "value": "CABLES"
+        },
+        {
+          "value": "EARTHWORKS"
+        },
+        {
+          "value": "GRID"
+        },
+        {
+          "value": "DESIGN"
+        },
+        {
+          "value": "SURVEY"
+        },
+        {
+          "value": "OTHER"
+        }
+      ],
+      "name": "category",
+      "displayName": "category",
+      "defaultValue": "PANELS",
+      "hidden": false
+    },
+    "supplier": {
+      "type": "TextBox",
+      "name": "supplier",
+      "displayName": "supplier",
+      "defaultValue": "",
+      "hidden": false
+    }
+  },
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {}
+}
