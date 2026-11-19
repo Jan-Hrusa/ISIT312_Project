@@ -6,6 +6,16 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-19 - Task 23.1: Review fixes to experiment E1 (Jan)
+- Merged: version A's mapper and version C's HiveQL skip a 075 record whose booking code is not 1, 2, 4 or 5
+  (Task 16 rejects it; the mapper raised KeyError and the HiveQL counted it as a credit); `run_e1` drops the
+  EXTERNAL table `e1_gpc_lines` after the timed runs, outside the timing, so nothing stays in Hive's `default`
+  database. Lines of code unchanged (36 / 44 / 22), so `results.csv` and the README table stay valid. New
+  `test_hive_skips_unknown_booking_code`, one more mapper assertion
+- Checked: ruff clean; tests/benchmarks 21 passed, both new checks fail on the PR #65 files; desktop stack,
+  HiveServer2: the changed HiveQL on the 30 scale-1 test files = the mapper (18 rows), `drop_hive_table` leaves
+  no `e1*` table in `default`; the scratch input under /bench removed
+
 ### 2026-11-19 - Task 27.1: Review fixes to experiment E4 (Jan)
 - Merged: `benchmarks/e4/README.md` rewritten (was cut off mid-sentence): measured table from summary.csv, batch vs
   streaming argued from the call-back answer "during the night is fine", plant-monitoring estimate compared with

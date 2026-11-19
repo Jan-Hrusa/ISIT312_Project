@@ -70,6 +70,7 @@ def test_mrjob_mapper_fields_and_signs():
     assert list(job.mapper(None, f"4096\t{line}\r")) == list(job.mapper(None, line))
     assert list(job.mapper(None, line[:126])) == []  # a shortened record is skipped
     assert list(job.mapper(None, "074" + line[3:])) == []
+    assert list(job.mapper(None, f"{line[:60]}3{line[61:]}")) == []  # unknown booking code: skipped
 
 
 def test_czk():
@@ -86,6 +87,22 @@ def test_spark_matches_parser(spark, tmp_path):
 def test_hive_query_matches_parser(spark_hive, tmp_path):
     # Spark with Hive support runs the same HiveQL (the SET lines are accepted and ignored here).
     statements = render(run_e1.HERE / "gpc_hive.sql", E1_LOCATION=_gpc_only(tmp_path).as_uri())
+    for statement in statements[:-1]:
+        spark_hive.sql(statement)
+    rows = [tuple(r) for r in spark_hive.sql(statements[-1]).collect()]
+    spark_hive.sql("DROP TABLE IF EXISTS e1_gpc_lines")
+    assert compare_outputs.normalize(rows) == _reference()
+
+
+def test_hive_skips_unknown_booking_code(spark_hive, tmp_path):
+    # Task 16 rejects booking codes other than 1, 2, 4, 5; the HiveQL must not count such a record as a
+    # credit (version A skips it too, see test_mrjob_mapper_fields_and_signs).
+    folder = _gpc_only(tmp_path)
+    path = folder / GPC_FILES[0].name
+    text = path.read_text(encoding="ascii")
+    line = next(line for line in text.splitlines() if line.startswith("075"))
+    path.write_text(f"{text}{line[:60]}3{line[61:]}\r\n", encoding="ascii")
+    statements = render(run_e1.HERE / "gpc_hive.sql", E1_LOCATION=folder.as_uri())
     for statement in statements[:-1]:
         spark_hive.sql(statement)
     rows = [tuple(r) for r in spark_hive.sql(statements[-1]).collect()]

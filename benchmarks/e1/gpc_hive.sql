@@ -1,6 +1,8 @@
 -- E1 version C: transactions and amount per account and month from GPC statements, in HiveQL on YARN.
 -- The table reads every file of ${E1_LOCATION} line by line (the folder holds only .gpc files); 075 records are
--- cut at their fixed positions (docs/formats/gpc.md, one-based), amounts signed as in Task 16, haléře / 100.
+-- cut at their fixed positions (docs/formats/gpc.md, one-based), amounts signed as in Task 16, haléře / 100;
+-- records with a booking code other than 1, 2, 4 or 5 (which Task 16 rejects) are skipped, as in version A.
+-- run_e1 drops the table after the timed runs (EXTERNAL: only the definition goes, not the files).
 -- Rendered with warehouse.sql.render(path, E1_LOCATION=...); run_e1 sends the statements through pyhive.
 
 SET hive.execution.engine=mr;
@@ -25,6 +27,6 @@ FROM (
         CASE WHEN substr(line, 61, 1) IN ('1', '5') THEN -1 ELSE 1 END
             * CAST(substr(line, 49, 12) AS BIGINT) AS amount_haler
     FROM e1_gpc_lines
-    WHERE substr(line, 1, 3) = '075'
+    WHERE substr(line, 1, 3) = '075' AND substr(line, 61, 1) IN ('1', '2', '4', '5')
 ) t
 GROUP BY account, month;
