@@ -6,6 +6,17 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-19 - Task 33.1: End-to-end run and demo (Jan)
+- Merged: `docs/demo.md`: how to rebuild the lake from nothing (fresh stack with `down -v`, the three generators,
+  `run_pipeline.py --all` twice), the totals query that proves the second run changes nothing, the eight demo steps
+  with the demo project FVE-2016-01 (red: EARTHWORKS 127.4 %), photos 1 May - 31 Jul 2016, the expected numbers and
+  timings of every screen, and what to know (truncated photo list, wide V1 table, a metastore reconnect warning).
+- Checked: on a fresh desktop stack (core + hbase + zeppelin, volumes deleted, sources regenerated: 52,055 files,
+  byte for byte the same as before) run 1 OK in 3177 s and run 2 OK in 2095 s (collect 0 new / 52,055 skipped,
+  every step's counts equal); warehouse totals and dq_issues counts identical after both runs (beeline);
+  `pytest -m integration` 4 passed; all four notes run through the Zeppelin REST API (every paragraph SUCCESS,
+  timed); restore demo on FVE-2016-01: 7 files, checksums match. Screenshots in Drive Screenshots/platform/T33.1_*.
+
 ### 2026-11-19 - Task 23.1: Review fixes to experiment E1 (Jan)
 - Merged: version A's mapper and version C's HiveQL skip a 075 record whose booking code is not 1, 2, 4 or 5
   (Task 16 rejects it; the mapper raised KeyError and the HiveQL counted it as a credit); `run_e1` drops the
