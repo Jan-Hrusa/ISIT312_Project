@@ -1,0 +1,25 @@
+== Parsed Logical Plan ==
+'Project [unresolvedalias('COUNT(1), None), unresolvedalias('SUM('amount_net), None)]
++- 'Filter ('issue_year = 2025)
+   +- 'UnresolvedRelation [fve_dw_x10, fact_invoice_line], [], false
+
+== Analyzed Logical Plan ==
+count(1): bigint, sum(amount_net): decimal(24,2)
+Aggregate [count(1) AS count(1)#2875L, sum(amount_net#2868) AS sum(amount_net)#2876]
++- Filter (issue_year#2873 = 2025)
+   +- SubqueryAlias spark_catalog.fve_dw_x10.fact_invoice_line
+      +- Relation spark_catalog.fve_dw_x10.fact_invoice_line[invoice_id#2861,line_no#2862,project_key#2863,supplier_key#2864,category_key#2865,issue_date_key#2866,due_date_key#2867,amount_net#2868,vat_amount#2869,amount_gross#2870,payment_status#2871,days_late#2872,issue_year#2873] orc
+
+== Optimized Logical Plan ==
+Aggregate [count(1) AS count(1)#2875L, sum(amount_net#2868) AS sum(amount_net)#2876]
++- Project [amount_net#2868]
+   +- Filter (isnotnull(issue_year#2873) AND (issue_year#2873 = 2025))
+      +- Relation spark_catalog.fve_dw_x10.fact_invoice_line[invoice_id#2861,line_no#2862,project_key#2863,supplier_key#2864,category_key#2865,issue_date_key#2866,due_date_key#2867,amount_net#2868,vat_amount#2869,amount_gross#2870,payment_status#2871,days_late#2872,issue_year#2873] orc
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- HashAggregate(keys=[], functions=[count(1), sum(amount_net#2868)], output=[count(1)#2875L, sum(amount_net)#2876])
+   +- Exchange SinglePartition, ENSURE_REQUIREMENTS, [plan_id=9293]
+      +- HashAggregate(keys=[], functions=[partial_count(1), partial_sum(amount_net#2868)], output=[count#2893L, sum#2894, isEmpty#2895])
+         +- Project [amount_net#2868]
+            +- FileScan orc spark_catalog.fve_dw_x10.fact_invoice_line[amount_net#2868,issue_year#2873] Batched: true, DataFilters: [], Format: ORC, Location: InMemoryFileIndex(1 paths)[hdfs://namenode:8020/bench/x10/lake/dw/fact_invoice_line/issue_year=2025], PartitionFilters: [isnotnull(issue_year#2873), (issue_year#2873 = 2025)], PushedFilters: [], ReadSchema: struct<amount_net:decimal(14,2)>
