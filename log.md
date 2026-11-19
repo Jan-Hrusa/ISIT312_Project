@@ -6,6 +6,23 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-19 - Task 27.1: Review fixes to experiment E4 (Jan)
+- Merged: `benchmarks/e4/README.md` rewritten (was cut off mid-sentence): measured table from summary.csv, batch vs
+  streaming argued from the call-back answer "during the night is fine", plant-monitoring estimate compared with
+  today's arrival (13.2 files and 0.074 MB a day; about 22,000x the items, 780x the bytes), design sketch, limits;
+  `arrival_rates.sql` + `source_totals` query; `run_e4.py` renders the SQL with warehouse.sql, writes results.csv
+  (source, year, month, files, bytes, mb at 6 decimals) and a new summary.csv (per source + all sources) instead of
+  repeating the daily stats on every monthly row, checks its totals against source_totals; tests/ingest/test_e4.py
+- Checked: ruff clean; tests/ingest/test_e4.py 6 passed; pytest -m "not integration" 276 passed, 5 skipped; run_e4 on the desktop
+  ingest_log (59 s): same per-source numbers as Ryan's run, 52,055 files; source_totals on HiveServer2 (beeline,
+  Drive `Screenshots/benchmarks/T27.1_E4_source_totals_beeline.png`)
+
+### 2026-11-19 - Task 27.1: Experiment E4 (Ryan)
+- Merged (PR #66): `benchmarks/e4/` arrival_rates.sql (monthly and daily arrivals from `ingest_log` by business
+  date), run_e4.py, results.csv (12 sources x 130 months), README (arrival table, bank statements vs the company's
+  ~80 a month, batch vs streaming, plant-monitoring estimate, streaming sketch); entry written by Jan in the review
+- Checked: ruff clean; run_e4 on the full dataset; queries checked in Hive (PR #66)
+
 ### 2026-11-19 - Task 24.1: Review fixes to experiment E2 (Jan)
 - Merged: `benchmarks/e2/README.md`: what the two NameNode screenshots show (the whole namespace before the dry
   run and after the x10 run, split into x10 loose, x10 packed and the scale-1 dry run; no per-variant shots) and
