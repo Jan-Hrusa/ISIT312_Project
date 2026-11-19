@@ -29,6 +29,13 @@ FVE_DATASET=x10 python -m benchmarks.e2.run_e2 --pause   # the experiment (291,8
 the table below; `python -m benchmarks.e2.run_e2 --summary` rebuilds the table from `results.csv`.
 `python -m benchmarks.e2.namenode_stats <dir> ...` prints the NameNode numbers and a folder's objects at any time.
 
+The two NameNode screenshots in Drive `Screenshots/benchmarks/` show the whole namespace, not one variant:
+*before* is the fresh stack (17 objects, taken before the scale-1 dry run), *after* is the end of the x10 run
+(327,951 files and directories, 327,637 blocks, 655,588 objects). The *after* total is the x10 loose folder
+(291,842 files and directories, 291,840 blocks) plus the x10 packed lake (2,901 and 2,761) plus the scale-1
+dry run still under `/bench/main` (33,174 and 33,034) plus a few dozen other objects. The `--pause` shots per
+variant were not taken; the per-variant numbers are in `results.csv`.
+
 ## Results (x10 dataset)
 
 <!-- results:begin -->
@@ -55,7 +62,12 @@ its own file and block, so the object count grows with every photo; packed, a da
 one block, so the count grows with the number of days instead. Writing loose photos also pays one NameNode
 round trip to create and close every file, while packing writes one file per day. The price is random access:
 a loose photo is one open and read, while a packed one needs its file and key from `ingest_log` and then a scan of
-that day's SequenceFile, which has no index. Alternatives with the same saving: Hadoop Archives (HAR) pack files
+that day's SequenceFile, which has no index. Most of the measured gap is not that scan, though: the script
+reads each packed photo with its own Spark job (`read_seq` + `filter` + `first`), while a loose photo is a
+plain HDFS read. On the desktop stack with the scale-1 data (20 random photos, medians), one packed read took
+0.15 s, an empty one-task Spark job 0.10 s, and reading the whole day's SequenceFile with a plain HDFS read
+0.07 s, about the same as one loose photo (0.06 s). Reading the day's file directly, or a MapFile, would
+remove most of the packed read penalty. Alternatives with the same saving: Hadoop Archives (HAR) pack files
 behind an index but cannot be changed afterwards, a MapFile is a sorted SequenceFile with an index that allows
 direct lookups by key, and HBase stores small blobs as cells (our catalogue already keeps the photo thumbnails
 there).
