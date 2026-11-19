@@ -1,0 +1,4 @@
+version,run,seconds,input_files,input_mb,output_rows,loc
+mrjob,1,27.70,30,0.01,18,36
+spark,1,14.43,30,0.01,18,44
+hive,1,16.82,30,0.01,18,22
