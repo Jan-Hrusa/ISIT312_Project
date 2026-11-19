@@ -6,9 +6,20 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-19 - Task 24.1: Review fixes to experiment E2 (Jan)
+- Merged: `benchmarks/e2/README.md`: what the two NameNode screenshots show (the whole namespace before the dry
+  run and after the x10 run, split into x10 loose, x10 packed and the scale-1 dry run; no per-variant shots) and
+  where the packed read time goes (one Spark job per photo; desktop scale-1, 20 photos: packed read 0.15 s, empty
+  Spark job 0.10 s, whole day's SequenceFile 0.07 s, one loose photo 0.06 s); blank line after Muhammad's entry
+- Checked: ruff clean; tests/benchmarks 8 passed; the read-time numbers from a read-only probe on the desktop
+  stack (`fve_clean.ingest_log` photos, `/lake/raw/photos`); the screenshot split recomputed from his
+  `results.csv`, `results_main.csv` and the Summary line. Drive: the before screenshot moved from
+  `Screenshots/benchmarks/benchmarks/` to `Screenshots/benchmarks/` as `T24.1_namenode_before.jpeg`
+
 ### 2026-11-19 - Task 24.1: Experiment E2 (Muhammad)
 - Merged: benchmarks/e2/ (run_e2.py: loose `hdfs dfs -put -t 8` vs packed `ingest.collect` with Task 18's packer, 3 runs each, NameNode JMX + `hdfs dfs -count` + `hdfs fsck`, 100 random reads checked against the sources; namenode_stats.py; results.csv (x10), results_main.csv (scale-1 dry run), README with the table and discussion); tests/benchmarks/test_e2.py
 - Checked: tests/benchmarks 8 passed; x10 dataset matches x10-MANIFEST.sha256 (OK); on my laptop stack (core profile), x10 medians: loose 291,840 files / 583,682 objects / write 5,460 s / read 100 in 7.65 s, packed 2,761 files / 5,662 objects / 1,566 s / 20.95 s – packed objects 0.97% of loose; scale-1: 61,754 vs 4,454 objects. NameNode screenshots in Drive Screenshots/benchmarks/
+
 ### 2026-11-19 - Task 31.1: Review fixes to experiment E5 (Jan)
 - Merged: README rewritten to the task (setup with the x10 commands and profiles; table of cold run 1 and median warm
   runs 2-3 instead of 3-run averages; why MapReduce misses interactive use; what partition pruning saved);
