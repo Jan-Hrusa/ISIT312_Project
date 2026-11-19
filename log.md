@@ -6,6 +6,24 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-19 - Task 31.1: Review fixes to experiment E5 (Jan)
+- Merged: README rewritten to the task (setup with the x10 commands and profiles; table of cold run 1 and median warm
+  runs 2-3 instead of 3-run averages; why MapReduce misses interactive use; what partition pruning saved);
+  partition rows `partition_yes`/`partition_no` in results.csv; run_e5 writes results.csv by replacing the rerun
+  engine's rows (was append) with paths from the module, engine-based Hive settings; run_partition times
+  `--runs` runs, writes partition_results_<engine>.csv and drops the flat copy at the end; compare_results is a
+  module that also checks the partition test and prints the README table; tests/warehouse/test_e5.py
+- Checked: ruff clean; tests/warehouse/test_e5.py 9 passed; pytest -m "not integration" 262 passed, 5 skipped; on the
+  desktop's main fve_dw (no x10 there): run_e5 and run_partition on both engines (Hive on YARN), compare_results
+  all PASS (q1-v1 922/872/10/85/83 rows, 2025 lines 1,486), flat copy dropped; x10 numbers are Gokulsanjay's run
+
+### 2026-11-19 - Task 31.1: Experiment E5 (Gokulsanjay)
+- Merged: benchmarks/e5/run_e5.py and run_partition.py; results.csv with 30 benchmark executions across five
+  queries; separate Hive and Spark partition-pruning results; four EXPLAIN execution plans
+- Checked: All five queries produced matching Hive and Spark row counts and SHA-256 fingerprints on the 10x
+  warehouse; partition pruning confirmed in both engines; partitioned and unpartitioned queries returned identical
+  results
+
 ### 2026-11-18 - Task 30.1: Review fixes to the Zeppelin dashboard (Jan)
 - Merged: `notebooks/management_dashboard_2N8K6MZZH.zpln` rebuilt so that every paragraph wraps the merged query
   file and only adds Czech (English) labels, the 🔴 🟡 🟢 light from the Task 11 rule and the project filter: V1
@@ -51,9 +69,6 @@ One entry per merged task (or part with its own checkpoint), newest first:
   (`test_v3_v4_on_sample`)
 - Checked: test_dashboard_queries.py 1 passed; pytest -m "not integration" 247 passed, 2 skipped; ruff clean; the
   note run in Zeppelin on the full data (screenshots in Drive `Screenshots/dashboard/Planted_Overruns_*.png`)
-### 2026-11-19 - Task 31: E5 Hive MapReduce vs Spark SQL benchmarks (Gokulsanjay)
-- Added: benchmarks/e5/run_e5.py and run_partition.py; results.csv with 30 benchmark executions across five queries; separate Hive and Spark partition-pruning results; four EXPLAIN execution plans
-- Checked: All five queries produced matching Hive and Spark row counts and SHA-256 fingerprints; Spark SQL achieved 33.39x to 61.79x speedups based on three-run averages; partition pruning confirmed in both engines; partitioned and unpartitioned queries returned identical results
 
 ### 2026-11-17 - Task 26: Review fixes to the warehouse loads (Jan)
 - Merged: `dim_date.iso_week` as `YYYY-Www` (contracts section 8; was `YYYY-WW`); `dim_cost_category` and
@@ -438,7 +453,3 @@ One entry per merged task (or part with its own checkpoint), newest first:
 - Merged: AGENTS.md sections 2 and 3: agents read the ClickUp guide page, then the task, then Drive 00 and 02, then README and contracts
 - Checked: docs only; no code changed
 
-
-### 2026-11-19 - Task 31: E5 Hive MapReduce vs Spark SQL benchmarks (Gokulsanjay)
-- Added: benchmarks/e5/run_e5.py and run_partition.py; results.csv with 30 benchmark executions across five queries; separate Hive and Spark partition-pruning results; four EXPLAIN execution plans
-- Checked: All five queries produced matching Hive and Spark row counts and SHA-256 fingerprints; Spark SQL achieved 33.39x to 61.79x speedups based on three-run averages; partition pruning confirmed in both engines; partitioned and unpartitioned queries returned identical results
