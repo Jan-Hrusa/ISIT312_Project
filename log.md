@@ -22,6 +22,7 @@ One entry per merged task (or part with its own checkpoint), newest first:
   date), run_e4.py, results.csv (12 sources x 130 months), README (arrival table, bank statements vs the company's
   ~80 a month, batch vs streaming, plant-monitoring estimate, streaming sketch); entry written by Jan in the review
 - Checked: ruff clean; run_e4 on the full dataset; queries checked in Hive (PR #66)
+
 ### 2026-11-19 - Task 23.1: Experiment E1 (Mudabbir, taken over from Obaid)
 - Merged: `benchmarks/e1/`: the GPC job as MRJob, Spark (Task 16's parser, `addPyFile`) and HiveQL on YARN,
   `run_e1`, `compare_outputs`, `results.csv` (x10, 3 runs each), README; `tests/benchmarks/test_e1.py`
