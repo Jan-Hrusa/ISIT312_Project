@@ -26,7 +26,9 @@ class GpcMonthly(MRJob):
         # Streaming passes "<offset>\t<line>" for CombineTextInputFormat (only the line for TextInputFormat);
         # GPC records have no tabs.
         line = line.rsplit("\t", 1)[-1].rstrip("\r")
-        if not line.startswith("075") or len(line) != 128:
+        # Task 16 accepts booking codes 1, 2, 4 and 5 only: any other record is skipped (as in the HiveQL),
+        # not a KeyError that fails the whole job.
+        if not line.startswith("075") or len(line) != 128 or line[60] not in SIGNS:
             return
         account = str(int(line[3:19]))
         month = f"20{line[95:97]}-{line[93:95]}"

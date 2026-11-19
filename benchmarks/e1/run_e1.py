@@ -156,6 +156,18 @@ def run_hive(input_path: str) -> list[tuple]:
         connection.close()
 
 
+def drop_hive_table() -> None:
+    """Drop the E1 table after the timed runs, so no E1 table stays in Hive's `default` database (it is
+    EXTERNAL: the input files under /bench/ stay)."""
+    from pyhive import hive
+
+    connection = hive.Connection(host=config.HIVE_HOST, port=config.HIVE_PORT, username="hive")
+    try:
+        connection.cursor().execute("DROP TABLE IF EXISTS e1_gpc_lines")
+    finally:
+        connection.close()
+
+
 RUNNERS = {"mrjob": run_mrjob, "spark": run_spark, "hive": run_hive}
 
 
@@ -233,6 +245,9 @@ def main(argv: list[str] | None = None) -> int:
                 }
             )
             print(f"run {run} {version}: {seconds:.1f} s, {len(output)} rows")
+
+    if "hive" in args.versions:
+        drop_hive_table()
 
     with results_path(dataset).open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=COLUMNS, lineterminator="\n")
