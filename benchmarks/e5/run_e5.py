@@ -60,18 +60,13 @@ def execute_query(
 
             start = perf_counter()
             cursor.execute(sql)
-            rows = (
-                []
-                if sql.lstrip().upper().startswith(("DROP ", "CREATE "))
-                else cursor.fetchall()
-            )
+            rows = [] if sql.lstrip().upper().startswith(("DROP ", "CREATE ")) else cursor.fetchall()
             seconds = perf_counter() - start
             return seconds, rows
         finally:
             cursor.close()
     finally:
         connection.close()
-
 
 
 def result_fingerprint(rows: list[tuple]) -> str:
@@ -84,9 +79,8 @@ def result_fingerprint(rows: list[tuple]) -> str:
         for row in rows
     ]
     normalized.sort()
-    return hashlib.sha256(
-        "\n".join(normalized).encode("utf-8")
-    ).hexdigest()
+    return hashlib.sha256("\n".join(normalized).encode("utf-8")).hexdigest()
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Experiment E5 benchmark")

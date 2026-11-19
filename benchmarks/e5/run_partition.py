@@ -1,10 +1,11 @@
 """Run the E5 partition-pruning experiment."""
+
 import argparse
 import csv
 from pathlib import Path
 
-from warehouse.sql import render
 from benchmarks.e5.run_e5 import execute_query
+from warehouse.sql import render
 
 SQL_FILE = Path("benchmarks/e5/partition_test.sql")
 
@@ -41,7 +42,7 @@ def main():
         writer = csv.writer(file)
         writer.writerow(["statement", "engine", "seconds", "rows", "result"])
 
-        for label, sql in zip(labels, statements):
+        for label, sql in zip(labels, statements, strict=True):
             seconds, rows = execute_query(host, port, username, sql)
             result = repr(rows) if label in ("partitioned", "unpartitioned") else ""
             writer.writerow([label, args.engine, round(seconds, 3), len(rows), result])

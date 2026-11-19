@@ -1,4 +1,5 @@
 """Compare Hive and Spark benchmark results."""
+
 import csv
 from pathlib import Path
 
@@ -13,9 +14,7 @@ with path.open(newline="", encoding="utf-8") as file:
     reader = csv.DictReader(file)
     for row in reader:
         key = (row["query"], row["engine"])
-        results.setdefault(key, set()).add(
-            (int(row["rows"]), row["fingerprint"])
-        )
+        results.setdefault(key, set()).add((int(row["rows"]), row["fingerprint"]))
 
 failed = False
 
