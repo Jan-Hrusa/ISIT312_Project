@@ -32,7 +32,14 @@ the table below; `python -m benchmarks.e2.run_e2 --summary` rebuilds the table f
 ## Results (x10 dataset)
 
 <!-- results:begin -->
-Not run yet: the table is written here by `FVE_DATASET=x10 python -m benchmarks.e2.run_e2`.
+| Variant | Files | Dirs | Blocks | Objects | ~150 B/object | NameNode heap after | Write | Read 100 random |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| loose | 291,840 | 2 | 291,840 | 583,682 | 87.6 MB | 134 MB | 5460 s | 7.65 s |
+| packed | 2,761 | 140 | 2,761 | 5,662 | 0.8 MB | 164 MB | 1566 s | 20.95 s |
+
+Packed objects are 0.97% of the loose objects (target: below 2%).
+
+Medians of 3 runs per variant; raw values in [results.csv](results.csv).
 <!-- results:end -->
 
 "~150 B/object" is the usual rule of thumb for NameNode memory (every file, directory and block is an object held in
