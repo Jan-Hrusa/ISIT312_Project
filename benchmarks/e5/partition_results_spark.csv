@@ -1,0 +1,7 @@
+statement,engine,seconds,rows,result
+drop_flat,spark,0.044,0,
+create_flat,spark,10.249,0,
+partitioned,spark,1.057,1,"[(11759, Decimal('2087597535.64'))]"
+unpartitioned,spark,0.555,1,"[(11759, Decimal('2087597535.64'))]"
+explain_partitioned,spark,0.397,1,
+explain_unpartitioned,spark,0.263,1,
