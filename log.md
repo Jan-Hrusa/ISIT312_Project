@@ -6,6 +6,11 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-19 - Task 23.1: Experiment E1 (Mudabbir, taken over from Obaid)
+- Merged: `benchmarks/e1/`: the GPC job as MRJob, Spark (Task 16's parser, `addPyFile`) and HiveQL on YARN,
+  `run_e1`, `compare_outputs`, `results.csv` (x10, 3 runs each), README; `tests/benchmarks/test_e1.py`
+- Checked: `pytest -m "not integration"`, ruff; x10 run: outputs identical (381 rows), medians 28/54/155 s
+
 ### 2026-11-19 - Task 24.1: Review fixes to experiment E2 (Jan)
 - Merged: `benchmarks/e2/README.md`: what the two NameNode screenshots show (the whole namespace before the dry
   run and after the x10 run, split into x10 loose, x10 packed and the scale-1 dry run; no per-variant shots) and
