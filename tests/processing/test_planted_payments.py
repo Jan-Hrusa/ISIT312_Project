@@ -166,12 +166,20 @@ def lake(clean_db):
         "media_files",
         [
             {
+                "file_id": "f0",
+                "kind": "PHOTO",
+                "original_name": "IMG_0000.jpg",
+                "taken_at": datetime(2026, 9, 4, 9, 0),
+                "device": "Phone A",
+                "project_code": config.UNASSIGNED,
+            },
+            {
                 "file_id": "f1",
                 "kind": "PHOTO",
                 "original_name": "IMG_0001.jpg",
                 "taken_at": datetime(2026, 9, 5, 10, 0),
                 "project_code": config.UNASSIGNED,
-            }
+            },
         ],
     )
     issues = {
@@ -239,7 +247,8 @@ def test_to_fix_queries_parse(lake):
         "unmatched_payments",
         "no_project",
         "orders_not_cleared",
-        "photos",
+        "photos_outside_sites",
+        "photos_without_gps",
         "wrong_versions",
         "duplicates",
         "parse_errors",
@@ -265,10 +274,16 @@ def test_to_fix_queries_parse(lake):
         "12345678-202600002",
         Decimal("500.00"),
     )
-    assert [(r.issue_type, r.original_name, r.nearest_project) for r in to_fix["photos"]] == [
-        ("UNASSIGNED_PHOTO", "IMG_0001.jpg", "FVE-2026-03"),
-        ("NO_GPS", None, None),
+    # Task 33.1: photos outside every site are listed; photos without GPS are counted per year and phone (the
+    # full list is longer than Zeppelin's 100 KB output limit). IMG_0001 has no device, so its group (0 photos
+    # without GPS) is left out.
+    assert [(r.original_name, r.nearest_project) for r in to_fix["photos_outside_sites"]] == [
+        ("IMG_0001.jpg", "FVE-2026-03"),
     ]
+    assert [
+        (r.photo_year, r.device, r.photos_without_gps, r.photos, float(r.pct_without_gps))
+        for r in to_fix["photos_without_gps"]
+    ] == [(2026, "Phone A", 1, 1, 100.0)]
     assert [r.drawing for r in to_fix["wrong_versions"]] == ["FVE-2026-03/drawing"]
     (duplicate,) = to_fix["duplicates"]
     assert (duplicate.supplier, duplicate.dropped_file) == (

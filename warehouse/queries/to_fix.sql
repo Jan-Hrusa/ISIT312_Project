@@ -77,23 +77,44 @@ LEFT JOIN ${CLEAN_DB}.payment_orders o
 WHERE i.issue_type = 'ORDER_NOT_CLEARED'
 ORDER BY due_date, order_id;
 
--- name: photos
--- 5. Photos without a GPS position (NO_GPS) and photos outside every site (UNASSIGNED_PHOTO; project_code is
--- the project whose site centre is nearest). UNASSIGNED_PHOTO first: Zeppelin truncates long results (100 KB),
--- and NO_GPS (about 3,000 photos) would push the photos with a nearest project out of view.
+-- name: photos_outside_sites
+-- 5a. Photos taken outside every site (UNASSIGNED_PHOTO): nearest_project is the project whose site centre is
+-- nearest, `detail` gives the distance. Listed in full (about 300 photos).
 SELECT
-    i.issue_type AS issue_type,
     m.original_name AS original_name,
     m.taken_at AS taken_at,
     m.lat AS lat,
     m.lon AS lon,
+    m.device AS device,
     i.project_code AS nearest_project,
     i.detail AS detail
 FROM ${CLEAN_DB}.dq_issues i
 LEFT JOIN ${CLEAN_DB}.media_files m
     ON m.file_id = i.record_ref
-WHERE i.issue_type IN ('NO_GPS', 'UNASSIGNED_PHOTO')
-ORDER BY issue_type DESC, taken_at, original_name;
+WHERE i.issue_type = 'UNASSIGNED_PHOTO'
+ORDER BY taken_at, original_name;
+
+-- name: photos_without_gps
+-- 5b. Photos without a GPS position (NO_GPS) per year and phone, next to all photos from that phone: a phone with
+-- a high share needs location turned on in its camera. Counted, not listed: about 3,000 photos are more than
+-- Zeppelin shows (100 KB); dq_issues holds every one.
+SELECT
+    YEAR(m.taken_at) AS photo_year,
+    m.device AS device,
+    SUM(CASE WHEN i.record_ref IS NOT NULL THEN 1 ELSE 0 END) AS photos_without_gps,
+    COUNT(*) AS photos,
+    ROUND(SUM(CASE WHEN i.record_ref IS NOT NULL THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS pct_without_gps
+FROM ${CLEAN_DB}.media_files m
+LEFT JOIN (
+    SELECT record_ref
+    FROM ${CLEAN_DB}.dq_issues
+    WHERE issue_type = 'NO_GPS'
+) i
+    ON i.record_ref = m.file_id
+WHERE m.kind = 'PHOTO'
+GROUP BY YEAR(m.taken_at), m.device
+HAVING SUM(CASE WHEN i.record_ref IS NOT NULL THEN 1 ELSE 0 END) > 0
+ORDER BY photo_year DESC, pct_without_gps DESC, device;
 
 -- name: wrong_versions
 -- 6. Projects whose final drawing is older than a numbered version.
