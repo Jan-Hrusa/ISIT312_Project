@@ -492,18 +492,18 @@
           "0": {
             "graph": {
               "mode": "table",
-              "height": 300.0,
+              "height": 600.0,
               "optionOpen": false,
               "setting": {
                 "table": {
                   "tableGridState": {},
                   "tableColumnTypeState": {
                     "names": {
-                      "issue_type": "string",
                       "original_name": "string",
                       "taken_at": "string",
                       "lat": "string",
                       "lon": "string",
+                      "device": "string",
                       "nearest_project": "string",
                       "detail": "string"
                     },
@@ -573,13 +573,11 @@
                   "tableGridState": {},
                   "tableColumnTypeState": {
                     "names": {
-                      "issue_type": "string",
-                      "original_name": "string",
-                      "taken_at": "string",
-                      "lat": "string",
-                      "lon": "string",
-                      "nearest_project": "string",
-                      "detail": "string"
+                      "photo_year": "string",
+                      "device": "string",
+                      "photos_without_gps": "string",
+                      "photos": "string",
+                      "pct_without_gps": "string"
                     },
                     "updated": false
                   },
