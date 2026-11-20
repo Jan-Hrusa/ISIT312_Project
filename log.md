@@ -6,6 +6,17 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-20 - Task 33.1: Demo fixes to the "to fix" photos and the dashboard list (Jan)
+- Merged: `to_fix.sql` and the `to_fix` note: the old `photos` paragraph (about 3,400 rows, cut by Zeppelin's 100 KB
+  output limit) is split into `photos_outside_sites` (all 309 photos outside every site, now with the phone) and
+  `photos_without_gps` (photos without GPS per year and phone, next to all photos of that phone and the share);
+  the note is rebuilt from the SQL file. Dashboard V1: the light, project, name, budget, spent, % spent and margin
+  come first (fit 1280 px), with shorter headers for % spent and margin. Test `test_to_fix_queries_parse` updated
+  (a media_files row for the fixture's NO_GPS photo). `docs/demo.md` steps 4-5 and section 5 follow.
+- Checked: ruff clean; the changed test red on the old SQL and note, green now; unit suite in the client; the two
+  new queries on HiveServer2 (beeline) and in Zeppelin give the same rows (309 and 44, no truncation banner); V1
+  screenshots at 1280 and 1400 px. Mudabbir's (to_fix) and Maysoon's (dashboard) files, edited with Jan's OK.
+
 ### 2026-11-19 - Task 33.1: End-to-end run and demo (Jan)
 - Merged: `docs/demo.md`: how to rebuild the lake from nothing (fresh stack with `down -v`, the three generators,
   `run_pipeline.py --all` twice), the totals query that proves the second run changes nothing, the eight demo steps

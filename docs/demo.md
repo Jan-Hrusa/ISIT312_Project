@@ -118,8 +118,9 @@ source, files unchanged with a collection timestamp in the name, photos packed i
 
 **Step 4: management dashboard** (`management_dashboard`, http://localhost:8080/#/notebook/2N8K6MZZH).
 1. Run *Obnovit tabulky* (refresh, 10 s), then *V1 Projekty* (24 s): 83 projects, 7 red on top (FVE-2020-04,
-   FVE-2022-03, FVE-2018-09, FVE-2016-01, FVE-2024-09, FVE-2017-03, FVE-2025-08), then 10 amber. The chart below
-   shows budget vs spent per project.
+   FVE-2022-03, FVE-2018-09, FVE-2016-01, FVE-2024-09, FVE-2017-03, FVE-2025-08), then 10 amber. The light,
+   project, name, budget, spent, % spent and margin come first and fit a 1280 px screen; status, region, MWp and
+   contract value follow to the right. The chart below shows budget vs spent per project.
 2. In the note's forms at the top set **project** `FVE-2016-01`. *V2 Detail projektu* (7 s): EARTHWORKS budget
    2,632,171.00, spent 3,353,387.50, 127.40 %, red; the other nine categories green; the total row red (94.57 %,
    red because one category is).
@@ -135,12 +136,13 @@ Screenshots: `T33.1_04a` - `T33.1_04g`.
 
 **Step 5: "to fix" list** (`to_fix`, http://localhost:8080/#/notebook/2NAFGU2WC). Run the paragraphs in order:
 refresh; issues per type and job (11 rows, the table in section 3); unmatched payments with a suggested invoice
-(25); invoices and booked costs without a project (34); payment orders never cleared (10); photos without
-location and outside every site (sorted with the photos outside a site first; the first one, taken on 4 May
-2016, lies 4,420 m from FVE-2016-01); final drawing older than a numbered version (1: FVE-2022-08 site layout);
-duplicates (5), unparsable files (3), invoices without a variable symbol (10). The overdue view is the separate
-`overdue_by_supplier` note (28 suppliers; enter a name or IČO in its form for one supplier's invoices).
-Screenshots: `T33.1_05a` - `T33.1_05f`.
+(25); invoices and booked costs without a project (34); payment orders never cleared (10); photos taken outside
+every site (all 309, with the phone and the nearest project; the first one, taken on 4 May 2016, lies 4,420 m from
+FVE-2016-01); photos without location per year and phone (44 rows: every phone loses the location on about 7-12 %
+of its photos, so location has to be switched on in every site phone); final drawing older than a numbered version
+(1: FVE-2022-08 site layout); duplicates (5), unparsable files (3), invoices without a variable symbol (10). The
+overdue view is the separate `overdue_by_supplier` note (28 suppliers; enter a name or IČO in its form for one
+supplier's invoices). Screenshots: `T33.1_05a` - `T33.1_05g`.
 
 **Step 6: search** (`search`, http://localhost:8080/#/notebook/2N8QX2XVQ). Each paragraph has its own form.
 1. *Fotky stavby za období*: project `FVE-2016-01`, from `2016-05-01`, to `2016-07-31` -> "185 fotek", the table
@@ -174,11 +176,6 @@ again (`run_pipeline.py --steps collect`) to take a new snapshot. Screenshot: `T
 | E5 Hive on MapReduce vs Spark SQL (x10 warehouse) | `benchmarks/e5/README.md` | Spark 32-79x faster warm; same rows on both engines |
 
 ## 5. Things to know
-- The *V1 Projekty* table is wider than a 1400 px screen: the traffic light and project are on the left, budget,
-  spent and margin need a horizontal scroll (or zoom the browser out).
-- The "photos without location" paragraph shows Zeppelin's "Output is truncated" banner: it lists about 3,400
-  photos and Zeppelin cuts results above 100 KB. The rows most worth showing (outside every site) are sorted
-  first; the counts paragraph has the full totals.
 - In run 2 the log printed a `RetryingMetaStoreClient ... lost connection ... reconnect (1 of 1)` warning with a
   stack trace at the start of the bank step, after collect had kept the Spark session idle for about 7 minutes;
   the retry worked and every count was identical. It is noise, not a failure.
