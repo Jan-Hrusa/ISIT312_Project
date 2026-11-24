@@ -6,6 +6,15 @@ One entry per merged task (or part with its own checkpoint), newest first:
     - Merged: what is now in integration
     - Checked: which tests / validation steps ran
 
+### 2026-11-24 - Task 35: Final report and deck (Jan)
+- Merged: this entry only. The code is final as of PR #70 (d7cdb22); the report (03 Report) and the 10-minute deck
+  (04 Presentation, live demo of the dashboard, the "to fix" list and the search) are in the team Drive folder.
+  After this merge `integration` goes into `main`, tagged `v1.0`. Known and kept as in the report: the dashboard's
+  V5 cost-per-MWp paragraph still draws the bar chart (shown as a table in the demo Zeppelin only).
+- Checked on the desktop stack (core + hbase + sparksql) at d7cdb22: `ruff check .` and `ruff format --check .`
+  clean (157 files); `pytest -m "not integration"` 294 passed; `pytest -m integration` 4 passed; no open PRs;
+  relative links in the Markdown docs resolve.
+
 ### 2026-11-20 - Task 33.1: Demo fixes to the "to fix" photos and the dashboard list (Jan)
 - Merged: `to_fix.sql` and the `to_fix` note: the old `photos` paragraph (about 3,400 rows, cut by Zeppelin's 100 KB
   output limit) is split into `photos_outside_sites` (all 309 photos outside every site, now with the phone) and
