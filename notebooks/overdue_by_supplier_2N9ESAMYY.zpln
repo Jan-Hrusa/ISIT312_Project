@@ -1,0 +1,215 @@
+{
+  "paragraphs": [
+    {
+      "title": "Obnovit tabulky (Refresh tables after a pipeline run)",
+      "text": "%sparksql\nREFRESH TABLE fve_clean.invoice_status;\nREFRESH TABLE fve_clean.invoices;\nREFRESH TABLE fve_clean.suppliers;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:46:23.820",
+      "progress": 0,
+      "config": {
+        "tableHide": true,
+        "editorSetting": {
+          "language": "sql"
+        },
+        "colWidth": 12.0,
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "2": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911200457_248030666",
+      "id": "paragraph_1794911200457_248030666",
+      "dateCreated": "2026-11-17 10:26:40.457",
+      "status": "READY"
+    },
+    {
+      "title": "Faktury po splatnosti podle dodavatele (Overdue invoices by supplier, largest open amount first)",
+      "text": "%sparksql\nSELECT\n    s.name AS supplier,\n    s.ico AS ico,\n    COUNT(*) AS overdue_invoices,\n    SUM(v.total_gross - st.paid_amount) AS open_amount,\n    MIN(v.due_date) AS oldest_due_date,\n    ROUND(AVG(st.days_late), 1) AS avg_days_late\nFROM fve_clean.invoice_status st\nJOIN fve_clean.invoices v\n    ON v.invoice_id \u003d st.invoice_id\nLEFT JOIN fve_clean.suppliers s\n    ON s.ico \u003d v.supplier_ico\nWHERE st.status \u003d \u0027OVERDUE\u0027\nGROUP BY s.name, s.ico\nORDER BY open_amount DESC, supplier",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:46:23.756",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql"
+        },
+        "colWidth": 12.0,
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "multiBarChart",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "multiBarChart": {
+                  "stacked": true,
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "rotate"
+                }
+              },
+              "keys": [
+                {
+                  "name": "supplier",
+                  "index": 0.0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [],
+              "values": [
+                {
+                  "name": "open_amount",
+                  "index": 3.0,
+                  "aggr": "sum"
+                }
+              ],
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911200459_303121563",
+      "id": "paragraph_1794911200459_303121563",
+      "dateCreated": "2026-11-17 10:26:40.459",
+      "status": "READY"
+    },
+    {
+      "title": "Faktury jednoho dodavatele – zadejte název nebo IČO (One supplier\u0027s invoices – enter name or IČO)",
+      "text": "%sparksql\nSELECT\n    v.invoice_id AS invoice_id,\n    v.number AS number,\n    v.issue_date AS issue_date,\n    v.due_date AS due_date,\n    v.total_gross AS total_gross,\n    st.status AS status,\n    st.paid_amount AS paid_amount,\n    v.total_gross - st.paid_amount AS open_amount,\n    st.paid_date AS paid_date,\n    st.days_late AS days_late,\n    v.project_code AS project_code\nFROM fve_clean.invoices v\nJOIN fve_clean.suppliers s\n    ON s.ico \u003d v.supplier_ico\nLEFT JOIN fve_clean.invoice_status st\n    ON st.invoice_id \u003d v.invoice_id\nWHERE s.name \u003d \u0027${supplier\u003d}\u0027 OR s.ico \u003d \u0027${supplier\u003d}\u0027\nORDER BY due_date DESC, invoice_id",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:46:23.839",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql"
+        },
+        "colWidth": 12.0,
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "invoice_id": "string",
+                      "number": "string",
+                      "issue_date": "string",
+                      "due_date": "string",
+                      "total_gross": "string",
+                      "status": "string",
+                      "paid_amount": "string",
+                      "open_amount": "string",
+                      "paid_date": "string",
+                      "days_late": "string",
+                      "project_code": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {
+          "supplier": "PV Trade Ruzicka s.r.o."
+        },
+        "forms": {
+          "supplier": {
+            "type": "TextBox",
+            "name": "supplier",
+            "displayName": "supplier",
+            "defaultValue": "",
+            "hidden": false
+          }
+        }
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911200462_859221745",
+      "id": "paragraph_1794911200462_859221745",
+      "dateCreated": "2026-11-17 10:26:40.462",
+      "status": "READY"
+    }
+  ],
+  "name": "overdue_by_supplier",
+  "id": "2N9ESAMYY",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.11.2",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false
+  },
+  "info": {
+    "inIsolatedMode": false,
+    "isRunning": false
+  }
+}

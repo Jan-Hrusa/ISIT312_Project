@@ -2,15 +2,19 @@
 name = "isit312-data-lake"
 version = "0.1.0"
 description = "Data lake for a Czech solar-farm construction company (ISIT312 group project)"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = "--import-mode=importlib"
+markers = [
+    "integration: needs a full pipeline run on the generated data; skips with a message when it is missing",
+]
 
 [tool.ruff]
 line-length = 110
-target-version = "py311"
+target-version = "py310"
 extend-exclude = ["notebooks"]
 
 [tool.ruff.lint]

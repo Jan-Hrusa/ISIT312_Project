@@ -1,0 +1,623 @@
+{
+  "paragraphs": [
+    {
+      "title": "Obnovit tabulky (Refresh tables after a pipeline run)",
+      "text": "%sparksql\nREFRESH TABLE fve_dw.dim_project;\nREFRESH TABLE fve_dw.dim_supplier;\nREFRESH TABLE fve_dw.dim_cost_category;\nREFRESH TABLE fve_dw.dim_date;\nREFRESH TABLE fve_dw.fact_budget_line;\nREFRESH TABLE fve_dw.fact_invoice_line;\nREFRESH TABLE fve_dw.fact_payment;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 15:07:44.004",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {},
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true,
+        "tableHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795012519678_886367104",
+      "id": "paragraph_1795012519678_886367104",
+      "dateCreated": "2026-11-18 14:35:19.679",
+      "status": "READY"
+    },
+    {
+      "title": "V1 Projekty: rozpočet, utraceno a semafor (Projects: budget, spent and traffic light)",
+      "text": "%sparksql\nSELECT\n    CASE v.traffic_light\n        WHEN \u0027RED\u0027 THEN \u0027🔴 červená (red)\u0027\n        WHEN \u0027AMBER\u0027 THEN \u0027🟡 oranžová (amber)\u0027\n        ELSE \u0027🟢 zelená (green)\u0027\n    END AS `Semafor (traffic light)`,\n    v.project_code AS `Projekt (project)`,\n    v.name AS `Název (name)`,\n    v.budget AS `Rozpočet (budget)`,\n    v.spent AS `Utraceno (spent)`,\n    v.pct_spent AS `Čerpání % (% spent)`,\n    v.expected_margin AS `Marže (margin)`,\n    v.status AS `Stav (status)`,\n    v.region AS `Kraj (region)`,\n    v.mwp AS `MWp`,\n    v.contract_value AS `Hodnota smlouvy (contract value)`\nFROM (\n    WITH budget_by_category AS (\n        SELECT\n            project_key,\n            category_key,\n            SUM(budget_amount) AS budget\n        FROM fve_dw.fact_budget_line\n        GROUP BY project_key, category_key\n    ),\n\n    spent_by_category AS (\n        SELECT\n            project_key,\n            category_key,\n            SUM(amount_net) AS spent\n        FROM fve_dw.fact_invoice_line\n        GROUP BY project_key, category_key\n    ),\n\n    combined AS (\n        SELECT\n            project_key,\n            category_key,\n            budget,\n            CAST(0 AS DECIMAL(14,2)) AS spent\n        FROM budget_by_category\n\n        UNION ALL\n\n        SELECT\n            project_key,\n            category_key,\n            CAST(0 AS DECIMAL(14,2)) AS budget,\n            spent\n        FROM spent_by_category\n    ),\n\n    category_totals AS (\n        SELECT\n            project_key,\n            category_key,\n            SUM(budget) AS budget,\n            SUM(spent) AS spent\n        FROM combined\n        GROUP BY project_key, category_key\n    ),\n\n    category_flags AS (\n        SELECT\n            project_key,\n            MAX(\n                CASE\n                    WHEN budget \u003d 0 AND spent \u003e 0 THEN 1\n                    WHEN budget \u003e 0 AND spent \u003e budget * 1.15 THEN 1\n                    ELSE 0\n                END\n            ) AS category_red,\n            MAX(\n                CASE\n                    WHEN budget \u003e 0 AND spent \u003e budget * 1.05 THEN 1\n                    ELSE 0\n                END\n            ) AS category_amber\n        FROM category_totals\n        GROUP BY project_key\n    ),\n\n    project_totals AS (\n        SELECT\n            project_key,\n            SUM(budget) AS budget,\n            SUM(spent) AS spent\n        FROM category_totals\n        GROUP BY project_key\n    ),\n\n    dashboard AS (\n        SELECT\n            p.project_code,\n            p.name,\n            p.region,\n            p.mwp,\n            p.status,\n            p.contract_value,\n            COALESCE(t.budget, CAST(0 AS DECIMAL(14,2))) AS budget,\n            COALESCE(t.spent, CAST(0 AS DECIMAL(14,2))) AS spent,\n            CASE\n                WHEN COALESCE(t.budget, 0) \u003d 0 THEN NULL\n                ELSE ROUND(t.spent * 100.0 / t.budget, 2)\n            END AS pct_spent,\n            p.contract_value -\n                CASE\n                    WHEN COALESCE(t.budget, 0) \u003e COALESCE(t.spent, 0)\n                        THEN COALESCE(t.budget, 0)\n                    ELSE COALESCE(t.spent, 0)\n                END AS expected_margin,\n            CASE\n                WHEN COALESCE(f.category_red, 0) \u003d 1\n                    OR COALESCE(t.spent, 0) \u003e COALESCE(t.budget, 0) * 1.10\n                    THEN \u0027RED\u0027\n                WHEN COALESCE(f.category_amber, 0) \u003d 1\n                    OR COALESCE(t.spent, 0) \u003e COALESCE(t.budget, 0)\n                    THEN \u0027AMBER\u0027\n                ELSE \u0027GREEN\u0027\n            END AS traffic_light\n        FROM fve_dw.dim_project p\n        LEFT JOIN project_totals t\n            ON p.project_key \u003d t.project_key\n        LEFT JOIN category_flags f\n            ON p.project_key \u003d f.project_key\n        WHERE p.status IN (\u0027ACTIVE\u0027, \u0027COMPLETED\u0027)\n    )\n\n    SELECT\n        project_code,\n        name,\n        region,\n        mwp,\n        status,\n        contract_value,\n        budget,\n        spent,\n        pct_spent,\n        expected_margin,\n        traffic_light\n    FROM dashboard\n    ORDER BY\n        CASE traffic_light\n            WHEN \u0027RED\u0027 THEN 1\n            WHEN \u0027AMBER\u0027 THEN 2\n            ELSE 3\n        END,\n        CASE WHEN pct_spent IS NULL THEN 0 ELSE 1 END,\n        pct_spent DESC\n) v\nORDER BY\n    CASE v.traffic_light WHEN \u0027RED\u0027 THEN 1 WHEN \u0027AMBER\u0027 THEN 2 ELSE 3 END,\n    CASE WHEN v.pct_spent IS NULL THEN 0 ELSE 1 END,\n    v.pct_spent DESC",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 15:03:16.768",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 650.0,
+              "optionOpen": false,
+              "setting": {},
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794990469591_1987140355",
+      "id": "paragraph_1794990469591_1987140355",
+      "dateCreated": "2026-11-18 08:27:49.591",
+      "status": "READY"
+    },
+    {
+      "title": "V1 Rozpočet a utraceno podle projektu (Budget vs spent per project)",
+      "text": "%sparksql\nSELECT\n    v.project_code AS `Projekt (project)`,\n    v.budget AS `Rozpočet (budget)`,\n    v.spent AS `Utraceno (spent)`\nFROM (\n    WITH budget_by_category AS (\n        SELECT\n            project_key,\n            category_key,\n            SUM(budget_amount) AS budget\n        FROM fve_dw.fact_budget_line\n        GROUP BY project_key, category_key\n    ),\n\n    spent_by_category AS (\n        SELECT\n            project_key,\n            category_key,\n            SUM(amount_net) AS spent\n        FROM fve_dw.fact_invoice_line\n        GROUP BY project_key, category_key\n    ),\n\n    combined AS (\n        SELECT\n            project_key,\n            category_key,\n            budget,\n            CAST(0 AS DECIMAL(14,2)) AS spent\n        FROM budget_by_category\n\n        UNION ALL\n\n        SELECT\n            project_key,\n            category_key,\n            CAST(0 AS DECIMAL(14,2)) AS budget,\n            spent\n        FROM spent_by_category\n    ),\n\n    category_totals AS (\n        SELECT\n            project_key,\n            category_key,\n            SUM(budget) AS budget,\n            SUM(spent) AS spent\n        FROM combined\n        GROUP BY project_key, category_key\n    ),\n\n    category_flags AS (\n        SELECT\n            project_key,\n            MAX(\n                CASE\n                    WHEN budget \u003d 0 AND spent \u003e 0 THEN 1\n                    WHEN budget \u003e 0 AND spent \u003e budget * 1.15 THEN 1\n                    ELSE 0\n                END\n            ) AS category_red,\n            MAX(\n                CASE\n                    WHEN budget \u003e 0 AND spent \u003e budget * 1.05 THEN 1\n                    ELSE 0\n                END\n            ) AS category_amber\n        FROM category_totals\n        GROUP BY project_key\n    ),\n\n    project_totals AS (\n        SELECT\n            project_key,\n            SUM(budget) AS budget,\n            SUM(spent) AS spent\n        FROM category_totals\n        GROUP BY project_key\n    ),\n\n    dashboard AS (\n        SELECT\n            p.project_code,\n            p.name,\n            p.region,\n            p.mwp,\n            p.status,\n            p.contract_value,\n            COALESCE(t.budget, CAST(0 AS DECIMAL(14,2))) AS budget,\n            COALESCE(t.spent, CAST(0 AS DECIMAL(14,2))) AS spent,\n            CASE\n                WHEN COALESCE(t.budget, 0) \u003d 0 THEN NULL\n                ELSE ROUND(t.spent * 100.0 / t.budget, 2)\n            END AS pct_spent,\n            p.contract_value -\n                CASE\n                    WHEN COALESCE(t.budget, 0) \u003e COALESCE(t.spent, 0)\n                        THEN COALESCE(t.budget, 0)\n                    ELSE COALESCE(t.spent, 0)\n                END AS expected_margin,\n            CASE\n                WHEN COALESCE(f.category_red, 0) \u003d 1\n                    OR COALESCE(t.spent, 0) \u003e COALESCE(t.budget, 0) * 1.10\n                    THEN \u0027RED\u0027\n                WHEN COALESCE(f.category_amber, 0) \u003d 1\n                    OR COALESCE(t.spent, 0) \u003e COALESCE(t.budget, 0)\n                    THEN \u0027AMBER\u0027\n                ELSE \u0027GREEN\u0027\n            END AS traffic_light\n        FROM fve_dw.dim_project p\n        LEFT JOIN project_totals t\n            ON p.project_key \u003d t.project_key\n        LEFT JOIN category_flags f\n            ON p.project_key \u003d f.project_key\n        WHERE p.status IN (\u0027ACTIVE\u0027, \u0027COMPLETED\u0027)\n    )\n\n    SELECT\n        project_code,\n        name,\n        region,\n        mwp,\n        status,\n        contract_value,\n        budget,\n        spent,\n        pct_spent,\n        expected_margin,\n        traffic_light\n    FROM dashboard\n    ORDER BY\n        CASE traffic_light\n            WHEN \u0027RED\u0027 THEN 1\n            WHEN \u0027AMBER\u0027 THEN 2\n            ELSE 3\n        END,\n        CASE WHEN pct_spent IS NULL THEN 0 ELSE 1 END,\n        pct_spent DESC\n) v\nORDER BY\n    CASE v.traffic_light WHEN \u0027RED\u0027 THEN 1 WHEN \u0027AMBER\u0027 THEN 2 ELSE 3 END,\n    CASE WHEN v.pct_spent IS NULL THEN 0 ELSE 1 END,\n    v.pct_spent DESC",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 15:07:39.049",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "multiBarChart",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Rozpočet (budget)": "number",
+                      "Utraceno (spent)": "number"
+                    },
+                    "updated": true
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "rotate"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "Projekt (project)",
+                  "index": 0.0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [],
+              "values": [
+                {
+                  "name": "Rozpočet (budget)",
+                  "index": 1.0,
+                  "aggr": "sum"
+                },
+                {
+                  "name": "Utraceno (spent)",
+                  "index": 2.0,
+                  "aggr": "sum"
+                }
+              ]
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011009712_284770382",
+      "id": "paragraph_1795011009712_284770382",
+      "dateCreated": "2026-11-18 14:10:09.713",
+      "status": "READY"
+    },
+    {
+      "title": "Filtry pro detail projektu (Filters for the project drill-down)",
+      "text": "%md\nVyberte projekt, kategorii a dodavatele (IČO z tabulky V3) a spusťte odstavce níže.\n(Choose a project, a category and a supplier ID from table V3, then run the paragraphs below.)\n\nProjekt (project): $${project\u003dFVE-2026-02}\n\nKategorie (category): $${category\u003dPANELS,PANELS|INVERTERS|BATTERIES|STRUCTURES|CABLES|EARTHWORKS|GRID|DESIGN|SURVEY|OTHER}\n\nDodavatel, IČO (supplier ID): $${supplier\u003d}",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:14:10.198",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/markdown",
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011156142_985571766",
+      "id": "paragraph_1795011156142_985571766",
+      "dateCreated": "2026-11-18 14:12:36.142",
+      "status": "READY"
+    },
+    {
+      "title": "V2 Detail projektu podle kategorií (Project detail by cost category)",
+      "text": "%sparksql\nSELECT\n    COALESCE(q.category_code, \u0027Celkem (total)\u0027) AS `Kategorie (category)`,\n    q.budget AS `Rozpočet (budget)`,\n    q.spent AS `Utraceno (spent)`,\n    q.difference AS `Rozdíl (difference)`,\n    q.pct_spent AS `Čerpání % (% of budget spent)`,\n    CASE\n        WHEN q.category_code IS NULL THEN\n            -- the total row carries the project\u0027s light of V1 (Task 11): a red or amber category counts too\n            CASE\n                WHEN q.spent \u003e q.budget * 1.10 OR MAX(\n                    CASE WHEN q.category_code IS NOT NULL AND ((q.budget \u003d 0 AND q.spent \u003e 0)\n                        OR q.spent \u003e q.budget * 1.15) THEN 1 ELSE 0 END\n                ) OVER () \u003d 1 THEN \u0027🔴 červená (red)\u0027\n                WHEN q.spent \u003e q.budget OR MAX(\n                    CASE WHEN q.category_code IS NOT NULL AND q.spent \u003e q.budget * 1.05 THEN 1 ELSE 0 END\n                ) OVER () \u003d 1 THEN \u0027🟡 oranžová (amber)\u0027\n                ELSE \u0027🟢 zelená (green)\u0027\n            END\n        WHEN q.budget \u003d 0 AND q.spent \u003e 0 THEN \u0027🔴 červená (red)\u0027\n        WHEN q.spent \u003e q.budget * 1.15 THEN \u0027🔴 červená (red)\u0027\n        WHEN q.spent \u003e q.budget * 1.05 THEN \u0027🟡 oranžová (amber)\u0027\n        ELSE \u0027🟢 zelená (green)\u0027\n    END AS `Semafor (traffic light)`\nFROM (\n    WITH budget_by_category AS (\n        SELECT\n            project_key,\n            category_key,\n            SUM(budget_amount) AS budget\n        FROM fve_dw.fact_budget_line\n        GROUP BY project_key, category_key\n    ),\n\n    spent_by_category AS (\n        SELECT\n            project_key,\n            category_key,\n            SUM(amount_net) AS spent\n        FROM fve_dw.fact_invoice_line\n        GROUP BY project_key, category_key\n    ),\n\n    combined AS (\n        SELECT\n            project_key,\n            category_key,\n            budget,\n            CAST(0 AS DECIMAL(14,2)) AS spent\n        FROM budget_by_category\n\n        UNION ALL\n\n        SELECT\n            project_key,\n            category_key,\n            CAST(0 AS DECIMAL(14,2)) AS budget,\n            spent\n        FROM spent_by_category\n    ),\n\n    totals AS (\n        SELECT\n            project_key,\n            category_key,\n            SUM(budget) AS budget,\n            SUM(spent) AS spent\n        FROM combined\n        GROUP BY project_key, category_key\n    )\n\n    SELECT\n        p.project_code AS project_code,\n        c.category_code AS category_code,\n        SUM(t.budget) AS budget,\n        SUM(t.spent) AS spent,\n        SUM(t.budget) - SUM(t.spent) AS difference,\n        CASE\n            WHEN SUM(t.budget) \u003d 0 THEN NULL\n            ELSE ROUND(\n                SUM(t.spent) * 100.0 / SUM(t.budget),\n                2\n            )\n        END AS pct_spent\n    FROM totals t\n    JOIN fve_dw.dim_project p\n        ON t.project_key \u003d p.project_key\n    JOIN fve_dw.dim_cost_category c\n        ON t.category_key \u003d c.category_key\n    GROUP BY p.project_code, c.category_code WITH ROLLUP\n) q\nWHERE q.project_code \u003d \u0027$${project\u003dFVE-2026-02}\u0027\nORDER BY\n    CASE WHEN q.category_code IS NULL THEN 1 ELSE 0 END,\n    CASE WHEN q.budget \u003d 0 AND q.spent \u003e 0 THEN 0 ELSE 1 END,\n    q.pct_spent DESC",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:55:55.977",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 450.0,
+              "optionOpen": false,
+              "setting": {},
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011250195_476579759",
+      "id": "paragraph_1795011250195_476579759",
+      "dateCreated": "2026-11-18 14:14:10.195",
+      "status": "READY"
+    },
+    {
+      "title": "V3 Kategorie → dodavatelé (Category → suppliers)",
+      "text": "%sparksql\nSELECT\n    v.supplier AS `Dodavatel (supplier)`,\n    v.ico AS `IČO (company ID)`,\n    v.invoiced AS `Fakturováno s DPH (invoiced, gross)`,\n    v.paid AS `Zaplaceno (paid)`,\n    v.open AS `Neuhrazeno (open)`\nFROM (\n    WITH invoice_totals AS (\n        SELECT\n            invoice_id,\n            supplier_key,\n            SUM(amount_gross) AS invoiced\n        FROM fve_dw.fact_invoice_line\n        WHERE project_key \u003d (\n            SELECT project_key\n            FROM fve_dw.dim_project\n            WHERE project_code \u003d \u0027$${project\u003dFVE-2026-02}\u0027\n        )\n          AND category_key \u003d (\n            SELECT category_key\n            FROM fve_dw.dim_cost_category\n            WHERE category_code \u003d \u0027$${category\u003dPANELS}\u0027\n        )\n        GROUP BY invoice_id, supplier_key\n    ),\n    payments_by_invoice AS (\n        SELECT invoice_id, SUM(amount) AS paid\n        FROM fve_dw.fact_payment\n        GROUP BY invoice_id\n    ),\n    supplier_totals AS (\n        SELECT\n            i.supplier_key,\n            SUM(i.invoiced) AS invoiced,\n            SUM(COALESCE(p.paid, 0)) AS paid,\n            SUM(i.invoiced - COALESCE(p.paid, 0)) AS open\n        FROM invoice_totals i\n        LEFT JOIN payments_by_invoice p\n            ON i.invoice_id \u003d p.invoice_id\n        GROUP BY i.supplier_key\n    )\n    SELECT\n        s.name AS supplier,\n        s.ico AS ico,\n        t.invoiced AS invoiced,\n        t.paid AS paid,\n        t.open AS open\n    FROM supplier_totals t\n    JOIN fve_dw.dim_supplier s\n        ON t.supplier_key \u003d s.supplier_key\n    ORDER BY t.invoiced DESC, supplier\n) v\nORDER BY v.invoiced DESC, v.supplier",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:44.555",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {},
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011443467_272490244",
+      "id": "paragraph_1795011443467_272490244",
+      "dateCreated": "2026-11-18 14:17:23.467",
+      "status": "READY"
+    },
+    {
+      "title": "V4 Dodavatel → faktury (Supplier → invoices)",
+      "text": "%sparksql\nSELECT\n    v.invoice_number AS `Faktura (invoice)`,\n    v.issue_date AS `Vystaveno (issued)`,\n    v.due_date AS `Splatnost (due)`,\n    v.gross_amount AS `Částka s DPH (gross)`,\n    v.payment_status AS `Stav platby (payment status)`,\n    v.days_late AS `Dní po splatnosti (days late)`\nFROM (\n    WITH invoice_totals AS (\n        SELECT\n            invoice_id,\n            SUM(amount_gross) AS gross_amount,\n            MAX(payment_status) AS payment_status,\n            MAX(days_late) AS days_late,\n            MAX(issue_date_key) AS issue_date_key,\n            MAX(due_date_key) AS due_date_key\n        FROM fve_dw.fact_invoice_line\n        WHERE project_key \u003d (\n            SELECT project_key\n            FROM fve_dw.dim_project\n            WHERE project_code \u003d \u0027$${project\u003dFVE-2026-02}\u0027\n        )\n          AND supplier_key \u003d (\n            SELECT supplier_key\n            FROM fve_dw.dim_supplier\n            WHERE ico \u003d \u0027$${supplier\u003d}\u0027\n               OR name \u003d \u0027$${supplier\u003d}\u0027\n        )\n        GROUP BY invoice_id\n    )\n    SELECT\n        invoice_id,\n        REGEXP_EXTRACT(invoice_id, \u0027^[^-]+-(.*)$\u0027, 1) AS invoice_number,\n        issue_date.full_date AS issue_date,\n        due_date.full_date AS due_date,\n        i.gross_amount AS gross_amount,\n        i.payment_status AS payment_status,\n        i.days_late AS days_late\n    FROM invoice_totals i\n    LEFT JOIN fve_dw.dim_date issue_date\n        ON i.issue_date_key \u003d issue_date.date_key\n    LEFT JOIN fve_dw.dim_date due_date\n        ON i.due_date_key \u003d due_date.date_key\n    ORDER BY\n        CASE\n            WHEN i.payment_status IN (\u0027OVERDUE\u0027, \u0027UNPAID\u0027) THEN 1\n            WHEN i.payment_status \u003d \u0027PARTLY_PAID\u0027 THEN 2\n            ELSE 3\n        END,\n        due_date ASC,\n        invoice_id\n) v\nORDER BY\n    CASE\n        WHEN v.payment_status IN (\u0027OVERDUE\u0027, \u0027UNPAID\u0027) THEN 1\n        WHEN v.payment_status \u003d \u0027PARTLY_PAID\u0027 THEN 2\n        ELSE 3\n    END,\n    v.due_date,\n    v.invoice_id",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:44.625",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {},
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011769783_1370984354",
+      "id": "paragraph_1795011769783_1370984354",
+      "dateCreated": "2026-11-18 14:22:49.783",
+      "status": "READY"
+    },
+    {
+      "title": "Křivka čerpání projektu (Spending curve of the project)",
+      "text": "%sparksql\nSELECT\n    CONCAT(CAST(q.year AS STRING), \u0027-\u0027, LPAD(CAST(q.month AS STRING), 2, \u00270\u0027)) AS `Měsíc (month)`,\n    q.spent AS `Utraceno v měsíci (spent in the month)`,\n    q.cumulative_spend AS `Utraceno celkem (cumulative spend)`\nFROM (\n    WITH monthly_spend AS (\n        SELECT\n            i.project_key,\n            d.year,\n            d.month,\n            SUM(i.amount_net) AS spent\n        FROM fve_dw.fact_invoice_line i\n        JOIN fve_dw.dim_date d\n            ON i.issue_date_key \u003d d.date_key\n        GROUP BY\n            i.project_key,\n            d.year,\n            d.month\n    )\n\n    SELECT\n        p.project_code AS project_code,\n        m.year AS year,\n        m.month AS month,\n        m.spent AS spent,\n        SUM(m.spent) OVER (\n            PARTITION BY m.project_key\n            ORDER BY m.year * 100 + m.month\n            ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW\n        ) AS cumulative_spend\n    FROM monthly_spend m\n    JOIN fve_dw.dim_project p\n        ON m.project_key \u003d p.project_key\n) q\nWHERE q.project_code \u003d \u0027$${project\u003dFVE-2026-02}\u0027\nORDER BY q.year * 100 + q.month",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:15.831",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "lineChart",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Utraceno v měsíci (spent in the month)": "number",
+                      "Utraceno celkem (cumulative spend)": "number"
+                    },
+                    "updated": true
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "lineChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "rotate"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "Měsíc (month)",
+                  "index": 0.0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [],
+              "values": [
+                {
+                  "name": "Utraceno v měsíci (spent in the month)",
+                  "index": 1.0,
+                  "aggr": "sum"
+                },
+                {
+                  "name": "Utraceno celkem (cumulative spend)",
+                  "index": 2.0,
+                  "aggr": "sum"
+                }
+              ]
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011868241_453029593",
+      "id": "paragraph_1795011868241_453029593",
+      "dateCreated": "2026-11-18 14:24:28.242",
+      "status": "READY"
+    },
+    {
+      "title": "V5 Náklady na MWp, dokončené projekty (Cost per MWp, completed projects)",
+      "text": "%sparksql\nSELECT\n    COALESCE(q.project_code, CONCAT(\u0027Rok celkem (year total) \u0027, CAST(q.signed_year AS STRING)))\n        AS `Projekt (project)`,\n    q.signed_year AS `Rok podpisu (signed year)`,\n    q.mwp AS `MWp`,\n    q.total_spent AS `Utraceno (spent)`,\n    q.cost_per_mwp AS `Náklady na MWp (cost per MWp)`\nFROM (\n    WITH project_spend AS (\n        SELECT\n            project_key,\n            SUM(amount_net) AS total_spent\n        FROM fve_dw.fact_invoice_line\n        GROUP BY project_key\n    ),\n\n    completed AS (\n        SELECT\n            p.project_code,\n            p.signed_year,\n            p.mwp,\n            COALESCE(s.total_spent, CAST(0 AS DECIMAL(14,2))) AS total_spent\n        FROM fve_dw.dim_project p\n        LEFT JOIN project_spend s\n            ON p.project_key \u003d s.project_key\n        WHERE p.status \u003d \u0027COMPLETED\u0027\n    )\n\n    SELECT\n        project_code,\n        signed_year,\n        SUM(mwp) AS mwp,\n        SUM(total_spent) AS total_spent,\n        CASE\n            WHEN SUM(mwp) \u003e 0\n            THEN ROUND(SUM(total_spent) / SUM(mwp), 2)\n            ELSE NULL\n        END AS cost_per_mwp\n    FROM completed\n    GROUP BY signed_year, project_code\n    GROUPING SETS ((signed_year, project_code), (signed_year))\n) q\nORDER BY\n    q.signed_year,\n    CASE WHEN q.project_code IS NULL THEN 1 ELSE 0 END,\n    q.project_code",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:18.664",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "multiBarChart",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableColumnTypeState": {
+                    "names": {
+                      "MWp": "number",
+                      "Utraceno (spent)": "number",
+                      "Náklady na MWp (cost per MWp)": "number"
+                    },
+                    "updated": true
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "rotate"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "Projekt (project)",
+                  "index": 0.0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [],
+              "values": [
+                {
+                  "name": "Náklady na MWp (cost per MWp)",
+                  "index": 1.0,
+                  "aggr": "sum"
+                }
+              ]
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795011984601_1097324248",
+      "id": "paragraph_1795011984601_1097324248",
+      "dateCreated": "2026-11-18 14:26:24.601",
+      "status": "READY"
+    },
+    {
+      "title": "V5 Nejčastěji překročené kategorie (Categories most often over budget, completed projects)",
+      "text": "%sparksql\nSELECT\n    q.category_rank AS `Pořadí (rank)`,\n    q.category_code AS `Kategorie (category)`,\n    q.projects_over AS `Projektů nad rozpočtem (projects over budget)`,\n    q.avg_overrun_pct AS `Průměrné překročení % (average overrun %)`\nFROM (\n    WITH budget_by_category AS (\n        SELECT\n            project_key,\n            category_key,\n            SUM(budget_amount) AS budget\n        FROM fve_dw.fact_budget_line\n        GROUP BY project_key, category_key\n    ),\n\n    spent_by_category AS (\n        SELECT\n            project_key,\n            category_key,\n            SUM(amount_net) AS spent\n        FROM fve_dw.fact_invoice_line\n        GROUP BY project_key, category_key\n    ),\n\n    category_results AS (\n        SELECT\n            b.category_key,\n            b.project_key,\n            b.budget,\n            COALESCE(s.spent, CAST(0 AS DECIMAL(14,2))) AS spent\n        FROM budget_by_category b\n        LEFT JOIN spent_by_category s\n            ON b.project_key \u003d s.project_key\n            AND b.category_key \u003d s.category_key\n    ),\n\n    overruns AS (\n        SELECT\n            category_key,\n            CASE\n                WHEN spent \u003e budget THEN 1\n                ELSE 0\n            END AS over_budget,\n            CASE\n                WHEN budget \u003e 0 AND spent \u003e budget\n                THEN (spent - budget) * 100.0 / budget\n                ELSE NULL\n            END AS overrun_pct\n        FROM category_results r\n        JOIN fve_dw.dim_project p\n            ON r.project_key \u003d p.project_key\n        WHERE p.status \u003d \u0027COMPLETED\u0027\n    ),\n\n    category_summary AS (\n        SELECT\n            category_key,\n            SUM(over_budget) AS projects_over,\n            COALESCE(AVG(overrun_pct), 0) AS avg_overrun_pct\n        FROM overruns\n        GROUP BY category_key\n    )\n\n    SELECT\n        c.category_code AS category_code,\n        s.projects_over AS projects_over,\n        ROUND(s.avg_overrun_pct, 2) AS avg_overrun_pct,\n        RANK() OVER (\n            ORDER BY s.projects_over DESC, s.avg_overrun_pct DESC\n        ) AS category_rank\n    FROM category_summary s\n    JOIN fve_dw.dim_cost_category c\n        ON s.category_key \u003d c.category_key\n) q\nORDER BY q.category_rank, q.category_code",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:44.841",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {},
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795012251345_893185602",
+      "id": "paragraph_1795012251345_893185602",
+      "dateCreated": "2026-11-18 14:30:51.345",
+      "status": "READY"
+    },
+    {
+      "title": "V5 Výdaje podle skupiny nákladů a roku (Spend by cost group and year, with totals)",
+      "text": "%sparksql\nSELECT\n    COALESCE(q.group_name, \u0027Celkem (total)\u0027) AS `Skupina nákladů (cost group)`,\n    COALESCE(CAST(q.year AS STRING), \u0027Celkem (total)\u0027) AS `Rok (year)`,\n    q.spent AS `Utraceno (spent)`\nFROM (\n    SELECT\n        c.group_name AS group_name,\n        d.year AS year,\n        SUM(i.amount_net) AS spent\n    FROM fve_dw.fact_invoice_line i\n    JOIN fve_dw.dim_cost_category c\n        ON i.category_key \u003d c.category_key\n    JOIN fve_dw.dim_date d\n        ON i.issue_date_key \u003d d.date_key\n    GROUP BY c.group_name, d.year WITH CUBE\n) q\nORDER BY\n    CASE WHEN q.year IS NULL THEN 1 ELSE 0 END,\n    q.year,\n    CASE WHEN q.group_name IS NULL THEN 1 ELSE 0 END,\n    q.group_name",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-18 14:56:30.657",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/sql",
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {},
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1795012438001_1172662285",
+      "id": "paragraph_1795012438001_1172662285",
+      "dateCreated": "2026-11-18 14:33:58.001",
+      "status": "READY"
+    }
+  ],
+  "name": "management_dashboard",
+  "id": "2N8K6MZZH",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.11.2",
+  "noteParams": {},
+  "noteForms": {
+    "project": {
+      "type": "TextBox",
+      "name": "project",
+      "displayName": "project",
+      "defaultValue": "FVE-2026-02",
+      "hidden": false
+    },
+    "category": {
+      "type": "Select",
+      "options": [
+        {
+          "value": "PANELS"
+        },
+        {
+          "value": "INVERTERS"
+        },
+        {
+          "value": "BATTERIES"
+        },
+        {
+          "value": "STRUCTURES"
+        },
+        {
+          "value": "CABLES"
+        },
+        {
+          "value": "EARTHWORKS"
+        },
+        {
+          "value": "GRID"
+        },
+        {
+          "value": "DESIGN"
+        },
+        {
+          "value": "SURVEY"
+        },
+        {
+          "value": "OTHER"
+        }
+      ],
+      "name": "category",
+      "displayName": "category",
+      "defaultValue": "PANELS",
+      "hidden": false
+    },
+    "supplier": {
+      "type": "TextBox",
+      "name": "supplier",
+      "displayName": "supplier",
+      "defaultValue": "",
+      "hidden": false
+    }
+  },
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {}
+}

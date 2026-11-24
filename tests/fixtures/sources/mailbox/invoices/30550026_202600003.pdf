@@ -1,0 +1,112 @@
+%PDF-1.3
+%“Œ‹ž ReportLab Generated PDF document (opensource)
+1 0 obj
+<<
+/F1 2 0 R /F2 3 0 R
+>>
+endobj
+2 0 obj
+<<
+/BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font
+>>
+endobj
+3 0 obj
+<<
+/BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding /Name /F2 /Subtype /Type1 /Type /Font
+>>
+endobj
+4 0 obj
+<<
+/Contents 8 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 7 0 R /Resources <<
+/Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ]
+>> /Rotate 0 /Trans <<
+
+>> 
+  /Type /Page
+>>
+endobj
+5 0 obj
+<<
+/PageMode /UseNone /Pages 7 0 R /Type /Catalog
+>>
+endobj
+6 0 obj
+<<
+/Author () /CreationDate (D:20000101000000+00'00') /Creator (anonymous) /Keywords () /ModDate (D:20000101000000+00'00') /Producer (ReportLab PDF Library - \(opensource\)) 
+  /Subject (unspecified) /Title (Faktura 202600003) /Trapped /False
+>>
+endobj
+7 0 obj
+<<
+/Count 1 /Kids [ 4 0 R ] /Type /Pages
+>>
+endobj
+8 0 obj
+<<
+/Length 1858
+>>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+BT /F2 16 Tf 19.2 TL ET
+BT 1 0 0 1 50 781.8898 Tm (Faktura - danovy doklad c. 202600003) Tj T* ET
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 50 751.8898 Tm (Dodavatel: Konstrukce Dvorak a.s.) Tj T* ET
+BT 1 0 0 1 50 737.8898 Tm (ICO: 30550026) Tj T* ET
+BT 1 0 0 1 50 723.8898 Tm (Odberatel: Stavitel FVE s.r.o.) Tj T* ET
+BT 1 0 0 1 50 699.8898 Tm (Datum vystaveni: 2026-05-06) Tj T* ET
+BT 1 0 0 1 50 685.8898 Tm (Datum splatnosti: 2026-05-27) Tj T* ET
+BT 1 0 0 1 50 671.8898 Tm (Ucet: 2876543/0100) Tj T* ET
+BT 1 0 0 1 50 657.8898 Tm (Variabilni symbol: 202600003) Tj T* ET
+BT /F2 10 Tf 12 TL ET
+BT 1 0 0 1 50 627.8898 Tm (Polozka) Tj T* ET
+BT 1 0 0 1 297.22 627.8898 Tm (Mnozstvi) Tj T* ET
+BT 1 0 0 1 381.65 627.8898 Tm (Cena/ks) Tj T* ET
+BT 1 0 0 1 458.33 627.8898 Tm (Bez DPH) Tj T* ET
+BT 1 0 0 1 516.1 627.8898 Tm (DPH 21%) Tj T* ET
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 50 611.8898 Tm (Hlinikova konstrukce pro panely) Tj T* ET
+BT 1 0 0 1 334.44 611.8898 Tm (8) Tj T* ET
+BT 1 0 0 1 383.86 611.8898 Tm (3125,00) Tj T* ET
+BT 1 0 0 1 458.3 611.8898 Tm (25000,00) Tj T* ET
+BT 1 0 0 1 523.86 611.8898 Tm (5250,00) Tj T* ET
+BT 1 0 0 1 50 595.8898 Tm (Zemni sroub 1500 mm) Tj T* ET
+BT 1 0 0 1 328.88 595.8898 Tm (40) Tj T* ET
+BT 1 0 0 1 389.42 595.8898 Tm (250,00) Tj T* ET
+BT 1 0 0 1 458.3 595.8898 Tm (10000,00) Tj T* ET
+BT 1 0 0 1 523.86 595.8898 Tm (2100,00) Tj T* ET
+BT 1 0 0 1 50 579.8898 Tm (Montazni sada ocelova) Tj T* ET
+BT 1 0 0 1 334.44 579.8898 Tm (1) Tj T* ET
+BT 1 0 0 1 383.86 579.8898 Tm (5000,00) Tj T* ET
+BT 1 0 0 1 463.86 579.8898 Tm (5000,00) Tj T* ET
+BT 1 0 0 1 523.86 579.8898 Tm (1050,00) Tj T* ET
+BT 1 0 0 1 50 549.8898 Tm (Zaklad dane: 40000,00 CZK) Tj T* ET
+BT 1 0 0 1 50 535.8898 Tm (DPH 21 %: 8400,00 CZK) Tj T* ET
+BT /F2 12 Tf 14.4 TL ET
+BT 1 0 0 1 50 517.8898 Tm (Celkem k uhrade: 48400,00 CZK) Tj T* ET
+ 
+endstream
+endobj
+xref
+0 9
+0000000000 65535 f 
+0000000061 00000 n 
+0000000102 00000 n 
+0000000209 00000 n 
+0000000321 00000 n 
+0000000524 00000 n 
+0000000592 00000 n 
+0000000853 00000 n 
+0000000912 00000 n 
+trailer
+<<
+/ID 
+[<543feb74174034aecb3a0ffcedf4dbb9><543feb74174034aecb3a0ffcedf4dbb9>]
+% ReportLab generated PDF document -- digest (opensource)
+
+/Info 6 0 R
+/Root 5 0 R
+/Size 9
+>>
+startxref
+2821
+%%EOF

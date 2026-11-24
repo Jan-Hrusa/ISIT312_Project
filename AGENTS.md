@@ -8,47 +8,82 @@ A data lake for a Czech solar-farm construction company (ISIT312 Big Data Manage
 members, led by Jan). Sources (bank statements, invoices, budgets, accounting exports, photos, documents) land
 unchanged in an HDFS raw zone; Spark jobs parse them into an ORC clean zone with one project code; a Hive warehouse
 and an HBase catalogue serve Zeppelin dashboards and search. Stack: HDFS, YARN, MapReduce, Hive, Spark (PySpark
-3.5), HBase, Zeppelin - on Docker (`docker/`) or the class BigDataVM.
+3.5), HBase, Zeppelin - all in Docker (`docker/`).
 
 ## 2. Where the information is
 | What | Where | Note |
 |---|---|---|
-| **Your task** (the spec: parts, files, tests, validation, "done when") | The member's ClickUp task | You can't open ClickUp. Ask the member to paste the full task description before you start. It is the source of truth for the work. |
-| Team rules, shared decisions, timeline | The ClickUp guide page "312 project" | Ask the member to paste the parts you need. |
-| Project description, company description | Team Google Drive folder | Not in the repo on purpose. Ask the member to paste the section you need. |
+| Team rules, shared decisions, architecture, timeline | The ClickUp guide page "312 project" (the main task description) | You can't open ClickUp. Ask the member to paste the whole page before you start. |
+| **Your task** (the spec: parts, files, tests, validation, "done when") | The member's ClickUp task | Ask the member to paste the full task description. It is the source of truth for the work. |
+| Project and company description | Team Google Drive folder: *00 Start here*, *02 Project description*, *01 Company description* | Not in the repo on purpose. Ask the member to paste 00 and 02 (01 when the task touches the company's data). |
 | Shared names: paths, tables, columns, codes | `docs/contracts.md` | Binding. Use these names exactly. |
 | File formats (GPC, STA, KPC, ISDOC, MT940) | `docs/data-formats.md` | Links to the official specs. |
 | Folder layout and who owns what | `README.md` | |
+| Docker stack: services, commands, ports | `docker/README.md` | |
 | What has been merged so far | `log.md`, `git log origin/integration` | |
 
 Never invent requirements. If the task description is missing, unclear or contradicts `docs/contracts.md`, stop
 and ask the member; they ask Jan. Don't guess and don't "improve" the scope.
 
-## 3. Before you change anything
-1. Read `README.md`, `docs/contracts.md` and the task description in full.
-2. Check the branch: `git status` and `git branch --show-current`. Work only on the member's own branch (their first
-   name, lower case). If it doesn't exist yet: `git fetch origin` then `git switch -c <name> origin/integration`.
-3. Bring it up to date: `git fetch origin` then `git rebase origin/integration`.
+## 3. Before you start
+Steps 1 and 2 come first in every session, before any other work on the project, also when the member only asks
+you to run, test, check or explain something: an old branch or old images give wrong results.
+
+1. Check the branch: `git status` and `git branch --show-current`. Work only on the member's own branch (their first
+   name, lower case). If it doesn't exist yet: `git fetch origin`, then
+   `git switch -c <name> --no-track origin/integration` (without `--no-track` the branch would track `integration`,
+   so `git status` and a bare `git push` mislead), then `git push -u origin <name>` once. If `git status` compares
+   the branch with `origin/integration` (up to date with, ahead of, behind or diverged from it), it was created
+   without `--no-track`: run `git branch --unset-upstream`, then `git push -u origin <name>`.
+2. Bring it up to date. If `git status` shows uncommitted changes, ask the member whether to commit them first (a
+   rebase refuses to start with them); never stash, reset or discard them. Then `git fetch origin` and
+   `git rebase origin/integration`. If the rebase stops on a conflict, run `git rebase --abort` and tell the member;
+   they ask Jan. If the rebase brought new commits, rebuild the images in `docker/` with the same mirror the images
+   were first built with, then restart:
+   - which mirror: `docker history --no-trunc isit312/stack:1.0 | grep -o 'APACHE_MIRROR=[^ ]*' | head -1` (Drive
+     *06 First-time setup* uses `https://dlcdn.apache.org`);
+   - `docker compose --profile core build --build-arg APACHE_MIRROR=<that mirror>` (add `--profile <x>` for every
+     other profile the member uses). It takes seconds when nothing changed; a different mirror value invalidates
+     Docker's cache and downloads Hadoop and Spark again;
+   - `docker compose --profile core up -d` (same profiles), then `./check.sh`.
+
+Before you change anything:
+
+3. Read, in this order and in full, before you plan anything:
+   1. the ClickUp guide page "312 project" (the main task description);
+   2. then the description of the task you are working on (Task N or N.x);
+   3. then the Drive documents *00 Start here* and *02 Project description* (*01 Company description* when
+      relevant);
+   4. then `README.md` and `docs/contracts.md`.
+
+   If the member hasn't pasted the first three, ask for them; don't start from the task description alone.
 4. Read the existing files you will touch, their callers and their tests.
 5. For anything bigger than a small fix, tell the member your plan in a few lines first.
 
 ## 4. Environment and commands
-- Python 3.11 or 3.12 (PySpark 3.5 needs one of these). Virtual environment in `.venv`:
-  - create: `python -m venv .venv`
-  - activate: `.venv\Scripts\Activate.ps1` (Windows PowerShell) or `source .venv/bin/activate` (Linux, macOS, VM)
-  - install: `pip install -r requirements.txt`
-- Tests: `pytest` (all) or `pytest tests/<area>` (yours). Lint: `ruff check .` Format: `ruff format .`
-- Big data stack: see `docker/README.md` (from Fri 6 Nov) or use the BigDataVM. Unit tests must run without the
-  stack (local Spark session from `common/spark.py`, small fixtures in `tests/fixtures/`); validation steps run on
-  the stack.
-- Generated data goes to `sources/`, `sources_x10/` and `out/`; these are git-ignored and never committed.
+Everything runs in the Docker stack (`docker/README.md`); the member's laptop has only Docker Desktop and Git.
+- Run every `docker compose` command in the `docker/` folder (from elsewhere: add `-f docker/docker-compose.yml`).
+- Start it in `docker/`: `docker compose --profile core up -d` (add `--profile yarn` for MapReduce and Spark or
+  Hive on YARN), then `./check.sh` must print only `OK` lines.
+- Run every project command in the `client` container (Python 3.10, Spark 3.5.9, the repo at `/repo`):
+  `docker compose exec client <command>`, or open a shell there with `docker compose exec client bash`. Don't run
+  project code on the host; a host virtual environment is only for editor completion.
+- Run scripts as modules (`python -m generators.bank`, `python -m benchmarks.e1.run_e1`), never as file paths:
+  with a file path `import common` fails.
+- Tests: `pytest -m "not integration"` (unit tests: the fixtures in `tests/conftest.py` never reach the stack's
+  services), `pytest tests/<area>` (yours), `pytest -m integration` after a full pipeline run. Lint: `ruff check .`
+  Format: `ruff format .` (check only: `ruff format --check .`).
+- Hive: `docker compose exec hiveserver2 beeline -u jdbc:hive2://localhost:10000 -n hive`. HDFS: `hdfs dfs ...` in
+  the client. Validation steps run on the stack.
+- Generated data goes to `sources/`, `sources_x10/`, `out/` and `out_x10/`; these are git-ignored and never
+  committed. Test fixtures in `tests/fixtures/sources/` are committed.
 
 ## 5. Coding rules
 - **Stay in your area.** Change only the folders your task names (see the README table). A change in a shared file
   (`common/`, `docs/contracts.md`, `requirements.txt`, `docker/`) is proposed in the PR description with the reason.
 - **Use the shared helpers in `common/`** (`config.py` for every path and setting, `spark.py` for the Spark session,
-  `projects.py` for project codes, `dq.py` for data-quality results). Never hard-code paths or write your own
-  version of a helper.
+  `tables.py` to create, write and read clean tables, `projects.py` for project codes, `dq.py` for data-quality
+  results). Never hard-code paths or write your own version of a helper.
 - **Use the names from `docs/contracts.md`** for folders, files, tables, columns and codes, exactly.
 - **Lake jobs use PySpark** (DataFrames / Spark SQL); pandas only in generators and small local tools. Warehouse
   DDL, loads and queries are HiveQL files in `warehouse/`.
@@ -63,9 +98,8 @@ and ask the member; they ask Jan. Don't guess and don't "improve" the scope.
   screenshots. All data is synthetic.
 
 ## 6. Verify before you say it works
-- Run the tests, `ruff check .` and `ruff format --check .`; all must pass.
-- Run the task's validation steps (usually on the Docker stack or the BigDataVM) and capture the screenshots the
-  task asks for.
+- Run the tests, `ruff check .` and `ruff format --check .` in the client container; all must pass.
+- Run the task's validation steps on the Docker stack and capture the screenshots the task asks for.
 - Report only what actually ran and what it printed. If something could not be run (no stack, missing data), say
   so plainly; never claim a result you did not see.
 

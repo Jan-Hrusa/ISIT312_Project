@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<Invoice xmlns="http://isdoc.cz/namespace/2013" version="6.0.2">
+  <DocumentType>1</DocumentType>
+  <ID>202600014</ID>
+  <UUID>00000000-0000-4000-8000-000000000001</UUID>
+  <IssuingSystem>Synthetic finance generator</IssuingSystem>
+  <IssueDate>2026-05-04</IssueDate>
+  <TaxPointDate>2026-05-04</TaxPointDate>
+  <VATApplicable>true</VATApplicable>
+  <LocalCurrencyCode>CZK</LocalCurrencyCode>
+  <CurrRate>1</CurrRate>
+  <RefCurrRate>1</RefCurrRate>
+  <AccountingSupplierParty>
+    <Party>
+      <PartyIdentification>
+        <ID>20400013</ID>
+      </PartyIdentification>
+      <PartyName>
+        <Name>Solar Novak s.r.o.</Name>
+      </PartyName>
+    </Party>
+  </AccountingSupplierParty>
+  <AccountingCustomerParty>
+    <Party>
+      <PartyIdentification>
+        <ID>27000009</ID>
+      </PartyIdentification>
+      <PartyName>
+        <Name>Stavitel FVE s.r.o.</Name>
+      </PartyName>
+    </Party>
+  </AccountingCustomerParty>
+  <InvoiceLines>
+    <InvoiceLine>
+      <ID>1</ID>
+      <InvoicedQuantity unitCode="C62">10</InvoicedQuantity>
+      <LineExtensionAmount>120000.00</LineExtensionAmount>
+      <LineExtensionAmountTaxInclusive>145200.00</LineExtensionAmountTaxInclusive>
+      <LineExtensionTaxAmount>25200.00</LineExtensionTaxAmount>
+      <UnitPrice>12000.00</UnitPrice>
+      <UnitPriceTaxInclusive>14520.00</UnitPriceTaxInclusive>
+      <ClassifiedTaxCategory>
+        <Percent>21</Percent>
+        <VATCalculationMethod>0</VATCalculationMethod>
+      </ClassifiedTaxCategory>
+      <Item>
+        <Description>Fotovoltaicky panel 545 Wp mono</Description>
+      </Item>
+    </InvoiceLine>
+  </InvoiceLines>
+  <TaxTotal>
+    <TaxSubTotal>
+      <TaxableAmount>120000.00</TaxableAmount>
+      <TaxAmount>25200.00</TaxAmount>
+      <TaxInclusiveAmount>145200.00</TaxInclusiveAmount>
+      <TaxCategory>
+        <Percent>21</Percent>
+      </TaxCategory>
+    </TaxSubTotal>
+    <TaxAmount>25200.00</TaxAmount>
+  </TaxTotal>
+  <LegalMonetaryTotal>
+    <TaxExclusiveAmount>120000.00</TaxExclusiveAmount>
+    <TaxInclusiveAmount>145200.00</TaxInclusiveAmount>
+    <PayableAmount>145200.00</PayableAmount>
+  </LegalMonetaryTotal>
+  <PaymentMeans>
+    <Payment>
+      <PaidAmount>145200.00</PaidAmount>
+      <PaymentMeansCode>42</PaymentMeansCode>
+      <Details>
+        <PaymentDueDate>2026-05-22</PaymentDueDate>
+        <ID>1234509876</ID>
+        <BankCode>2010</BankCode>
+        <VariableSymbol>202600014</VariableSymbol>
+      </Details>
+    </Payment>
+  </PaymentMeans>
+</Invoice>

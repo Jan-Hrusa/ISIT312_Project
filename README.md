@@ -7,7 +7,7 @@ cost-vs-budget overview per project. Group project for ISIT312 Big Data Manageme
 - **What we build and why, and the company:** the team Google Drive folder (link on the ClickUp guide page):
   *02 Project description* and *01 Company description*. They live only there.
 - **File formats** (GPC, STA, KPC, ISDOC, ...): [docs/data-formats.md](docs/data-formats.md)
-- **Names everyone builds against** (paths, tables, codes): `docs/contracts.md` (Task 2, from Thu 5 Nov)
+- **Names everyone builds against** (paths, tables, codes): [docs/contracts.md](docs/contracts.md)
 - **Tasks:** ClickUp, space "ISIT312 Project", task "312 project" – read its guide page first
 - **Report, slides, lessons log, screenshots:** the same Drive folder
 - **Rules for AI coding agents:** [AGENTS.md](AGENTS.md)
@@ -16,7 +16,7 @@ cost-vs-budget overview per project. Group project for ISIT312 Big Data Manageme
 | Folder | What goes there | Tasks |
 |---|---|---|
 | `docker/` | Docker Compose stack (HDFS, YARN, Hive, Spark, HBase, Zeppelin), `check.sh`, setup guide | 3, 8 |
-| `common/` | Shared helpers: `config.py`, `spark.py`, `projects.py`, `dq.py` – use these, don't write your own | 2 |
+| `common/` | Shared helpers: `config.py`, `schemas.py`, `tables.py`, `spark.py`, `projects.py`, `dq.py` (Task 2), `hdfs.py`, `lake.py` (Task 14.1) – use these, don't write your own | 2, 14.1 |
 | `generators/finance_docs/` | Projects, suppliers, budgets, ISDOC invoices + PDFs, accounting export | 5, 17 |
 | `generators/bank/` | GPC, STA, TXT statements and KPC payment orders | 6 |
 | `generators/media/` | Site photos (EXIF date + GPS), videos, documents, drawings | 7 |
@@ -29,12 +29,25 @@ cost-vs-budget overview per project. Group project for ISIT312 Big Data Manageme
 | `tests/` | Tests per area (`tests/<area>/`) | all |
 | `run_pipeline.py` | Runs every step in order (added in Task 21) | 21 |
 
-`sources/`, `sources_x10/` and `out/` are generated locally and never committed.
+`sources/`, `sources_x10/`, `out/` and `out_x10/` are generated locally and never committed.
 
 ## Setup
-1. Python 3.11 or 3.12: create a virtual environment `.venv` and install `requirements.txt`.
-2. Big data stack: Docker (`docker/`, from Fri 6 Nov – see `docker/README.md`) or the class BigDataVM.
-3. `pytest`, `ruff check .` and `ruff format --check .` must pass before every pull request.
+Everything runs in Docker: install Docker Desktop (at least 6 GB of memory) and Git (on Windows also Git Bash),
+nothing else. All Python, Spark, tests and tools run in the `client` container (Python 3.10, Spark 3.5.9), which
+sees this repo at `/repo`. Full guide: [docker/README.md](docker/README.md).
+
+Run every `docker compose` command in the `docker/` folder. Step by step from zero: the Drive document
+*06 First-time setup*.
+
+1. In `docker/`: build the two images once (about 15 minutes) with
+   `docker compose --profile core build --build-arg APACHE_MIRROR=https://dlcdn.apache.org`, start with
+   `docker compose --profile core up -d`, then `./check.sh` must print `OK hdfs`, `OK hive`, `OK spark`,
+   `OK metastore`.
+2. Shell in the client: `docker compose exec client bash`.
+3. Before every pull request, in the client: `pytest -m "not integration"` (unit tests, no data needed; `pytest -m
+   integration` after a full pipeline run), `ruff check .` and `ruff format --check .` must pass.
+
+A virtual environment on the laptop is optional, only for your editor's code completion; don't run the code there.
 
 ## How we work
 | Branch | Purpose | Who merges into it |
@@ -43,7 +56,16 @@ cost-vs-budget overview per project. Group project for ISIT312 Big Data Manageme
 | `integration` | Default branch; all development is merged here through pull requests | Jan, after approving the PR |
 | `<first name>` (lower case) | Your own branch, created from `integration`; all your work happens here | you push to it |
 
-1. **At the start of every session:** `git fetch origin`, switch to your branch, `git rebase origin/integration`.
+Create your branch once: `git fetch origin`, `git switch -c <name> --no-track origin/integration`, then
+`git push -u origin <name>`. If `git status` compares your branch with `origin/integration`, it was created without
+`--no-track`: run `git branch --unset-upstream`, then `git push -u origin <name>`.
+
+1. **At the start of every session, before any work on the project** (also when you only run, test or check
+   something): commit your open work, `git fetch origin`, switch to your branch, `git rebase origin/integration`.
+   If it stops on a conflict, run `git rebase --abort` and ask Jan. If the rebase brought new commits, rebuild the
+   images with the same command you first built them with (Setup step 1; seconds when nothing changed), then
+   `docker compose --profile core up -d`. After a rebase, push with `git push --force-with-lease` (your own branch
+   only), never `git pull`.
 2. **Commits:** `[T<task number>] short message`, e.g. `[T16] parse GPC 075 records`.
 3. **Before the PR:** tests, `ruff check .` and `ruff format --check .` pass; your task's validation steps are done;
    screenshots taken; a 3-line entry added to [log.md](log.md).

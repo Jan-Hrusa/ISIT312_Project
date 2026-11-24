@@ -1,0 +1,119 @@
+STAGE DEPENDENCIES:
+  Stage-1 is a root stage
+  Stage-0 depends on stages: Stage-1
+
+STAGE PLANS:
+  Stage: Stage-1
+    Map Reduce
+      Map Operator Tree:
+          TableScan
+            alias: fact_invoice_line
+            Statistics: Num rows: 3719 Data size: 2797020 Basic stats: COMPLETE Column stats: NONE
+            GatherStats: false
+            Select Operator
+              expressions: amount_net (type: decimal(14,2))
+              outputColumnNames: amount_net
+              Statistics: Num rows: 3719 Data size: 2797020 Basic stats: COMPLETE Column stats: NONE
+              Group By Operator
+                aggregations: count(), sum(amount_net)
+                mode: hash
+                outputColumnNames: _col0, _col1
+                Statistics: Num rows: 1 Data size: 120 Basic stats: COMPLETE Column stats: NONE
+                Reduce Output Operator
+                  null sort order: 
+                  sort order: 
+                  Statistics: Num rows: 1 Data size: 120 Basic stats: COMPLETE Column stats: NONE
+                  tag: -1
+                  value expressions: _col0 (type: bigint), _col1 (type: decimal(24,2))
+                  auto parallelism: false
+      Execution mode: vectorized
+      Path -> Alias:
+        hdfs://namenode:8020/bench/x10/lake/dw/fact_invoice_line/issue_year=2025 [fact_invoice_line]
+      Path -> Partition:
+        hdfs://namenode:8020/bench/x10/lake/dw/fact_invoice_line/issue_year=2025 
+          Partition
+            base file name: issue_year=2025
+            input format: org.apache.hadoop.hive.ql.io.orc.OrcInputFormat
+            output format: org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat
+            partition values:
+              issue_year 2025
+            properties:
+              bucket_count -1
+              file.inputformat org.apache.hadoop.hive.ql.io.orc.OrcInputFormat
+              file.outputformat org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat
+              location hdfs://namenode:8020/bench/x10/lake/dw/fact_invoice_line/issue_year=2025
+              name fve_dw_x10.fact_invoice_line
+              numFiles 13
+              partition_columns issue_year
+              partition_columns.types int
+              serialization.ddl struct fact_invoice_line { string invoice_id, i32 line_no, i32 project_key, i32 supplier_key, i32 category_key, i32 issue_date_key, i32 due_date_key, decimal(14,2) amount_net, decimal(14,2) vat_amount, decimal(14,2) amount_gross, string payment_status, i32 days_late}
+              serialization.format 1
+              serialization.lib org.apache.hadoop.hive.ql.io.orc.OrcSerde
+              totalSize 279702
+              transient_lastDdlTime 1795037247
+            serde: org.apache.hadoop.hive.ql.io.orc.OrcSerde
+          
+              input format: org.apache.hadoop.hive.ql.io.orc.OrcInputFormat
+              output format: org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat
+              properties:
+                EXTERNAL TRUE
+                bucket_count -1
+                bucketing_version 2
+                column.name.delimiter ,
+                columns invoice_id,line_no,project_key,supplier_key,category_key,issue_date_key,due_date_key,amount_net,vat_amount,amount_gross,payment_status,days_late
+                columns.comments 
+                columns.types string:int:int:int:int:int:int:decimal(14,2):decimal(14,2):decimal(14,2):string:int
+                file.inputformat org.apache.hadoop.hive.ql.io.orc.OrcInputFormat
+                file.outputformat org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat
+                location hdfs://namenode:8020/bench/x10/lake/dw/fact_invoice_line
+                name fve_dw_x10.fact_invoice_line
+                partition_columns issue_year
+                partition_columns.types int
+                serialization.ddl struct fact_invoice_line { string invoice_id, i32 line_no, i32 project_key, i32 supplier_key, i32 category_key, i32 issue_date_key, i32 due_date_key, decimal(14,2) amount_net, decimal(14,2) vat_amount, decimal(14,2) amount_gross, string payment_status, i32 days_late}
+                serialization.format 1
+                serialization.lib org.apache.hadoop.hive.ql.io.orc.OrcSerde
+                spark.sql.create.version 3.5.9
+                spark.sql.sources.schema {"type":"struct","fields":[{"name":"invoice_id","type":"string","nullable":true,"metadata":{}},{"name":"line_no","type":"integer","nullable":true,"metadata":{}},{"name":"project_key","type":"integer","nullable":true,"metadata":{}},{"name":"supplier_key","type":"integer","nullable":true,"metadata":{}},{"name":"category_key","type":"integer","nullable":true,"metadata":{}},{"name":"issue_date_key","type":"integer","nullable":true,"metadata":{}},{"name":"due_date_key","type":"integer","nullable":true,"metadata":{}},{"name":"amount_net","type":"decimal(14,2)","nullable":true,"metadata":{}},{"name":"vat_amount","type":"decimal(14,2)","nullable":true,"metadata":{}},{"name":"amount_gross","type":"decimal(14,2)","nullable":true,"metadata":{}},{"name":"payment_status","type":"string","nullable":true,"metadata":{}},{"name":"days_late","type":"integer","nullable":true,"metadata":{}},{"name":"issue_year","type":"integer","nullable":true,"metadata":{}}]}
+                spark.sql.sources.schema.numPartCols 1
+                spark.sql.sources.schema.partCol.0 issue_year
+                transient_lastDdlTime 1795037213
+              serde: org.apache.hadoop.hive.ql.io.orc.OrcSerde
+              name: fve_dw_x10.fact_invoice_line
+            name: fve_dw_x10.fact_invoice_line
+      Truncated Path -> Alias:
+        hdfs://namenode:8020/bench/x10/lake/dw/fact_invoice_line/issue_year=2025 [fact_invoice_line]
+      Needs Tagging: false
+      Reduce Operator Tree:
+        Group By Operator
+          aggregations: count(VALUE._col0), sum(VALUE._col1)
+          mode: mergepartial
+          outputColumnNames: _col0, _col1
+          Statistics: Num rows: 1 Data size: 120 Basic stats: COMPLETE Column stats: NONE
+          File Output Operator
+            compressed: false
+            GlobalTableId: 0
+            directory: hdfs://namenode:8020/tmp/hive/hadoop/29ea8913-675b-49b1-8cc6-cc8ab543cddf/hive_2026-11-18_23-18-04_985_3036412554412009167-6/-mr-10001/.hive-staging_hive_2026-11-18_23-18-04_985_3036412554412009167-6/-ext-10002
+            NumFilesPerFileSink: 1
+            Statistics: Num rows: 1 Data size: 120 Basic stats: COMPLETE Column stats: NONE
+            Stats Publishing Key Prefix: hdfs://namenode:8020/tmp/hive/hadoop/29ea8913-675b-49b1-8cc6-cc8ab543cddf/hive_2026-11-18_23-18-04_985_3036412554412009167-6/-mr-10001/.hive-staging_hive_2026-11-18_23-18-04_985_3036412554412009167-6/-ext-10002/
+            table:
+                input format: org.apache.hadoop.mapred.SequenceFileInputFormat
+                output format: org.apache.hadoop.hive.ql.io.HiveSequenceFileOutputFormat
+                properties:
+                  columns _col0,_col1
+                  columns.types bigint:decimal(24,2)
+                  escape.delim \
+                  hive.serialization.extend.additional.nesting.levels true
+                  serialization.escape.crlf true
+                  serialization.format 1
+                  serialization.lib org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+                serde: org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+            TotalFiles: 1
+            GatherStats: false
+            MultiFileSpray: false
+
+  Stage: Stage-0
+    Fetch Operator
+      limit: -1
+      Processor Tree:
+        ListSink

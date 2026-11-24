@@ -5,11 +5,12 @@
 -
 
 ## Verify
-- [ ] the named tests from the task pass (`pytest tests/<area>`)
-- [ ] `ruff check .` passes
+- [ ] the named tests from the task pass (`pytest tests/<area>` in the client container)
+- [ ] all unit tests pass (`pytest -m "not integration"`)
+- [ ] `ruff check .` and `ruff format --check .` pass
 
 ## Validate
-- [ ] the task's validation steps done on the Docker stack or the BigDataVM
+- [ ] the task's validation steps done on the Docker stack
 - [ ] screenshots attached here and saved in the Drive folder `Screenshots/<area>/`
 
 ## Checklist

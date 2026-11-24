@@ -1,4 +1,6 @@
 * text=auto
+# Everyone adds entries at the top of the shared log: keep both sides instead of a conflict.
+log.md merge=union
 *.sh text eol=lf
 *.py text eol=lf
 *.sql text eol=lf
@@ -12,3 +14,9 @@ docker/** text eol=lf
 *.dwg binary
 *.mp4 binary
 *.seq binary
+# Test fixtures and bank/e-invoice formats: keep the exact bytes (CRLF records, CP852), never convert.
+tests/fixtures/sources/** -text
+*.gpc -text
+*.sta -text
+*.kpc -text
+*.isdoc -text

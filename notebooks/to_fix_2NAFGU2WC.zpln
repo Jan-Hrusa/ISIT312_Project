@@ -1,0 +1,861 @@
+{
+  "paragraphs": [
+    {
+      "title": "Obnovit tabulky (Refresh tables after a pipeline run)",
+      "text": "%sparksql\nREFRESH TABLE fve_clean.dq_issues;\nREFRESH TABLE fve_clean.bank_transactions;\nREFRESH TABLE fve_clean.payment_orders;\nREFRESH TABLE fve_clean.invoices;\nREFRESH TABLE fve_clean.invoice_status;\nREFRESH TABLE fve_clean.booked_costs;\nREFRESH TABLE fve_clean.suppliers;\nREFRESH TABLE fve_clean.media_files;",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:50:47.916",
+      "progress": 0,
+      "config": {
+        "tableHide": true,
+        "editorSetting": {
+          "language": "sql"
+        },
+        "colWidth": 12.0,
+        "editorHide": true,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "5": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "6": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "Result": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911184718_630479373",
+      "id": "paragraph_1794911184718_630479373",
+      "dateCreated": "2026-11-17 10:26:24.719",
+      "status": "READY"
+    },
+    {
+      "title": "Počet problémů podle typu a úlohy (Issues per type and job)",
+      "text": "%sparksql\nSELECT\n    issue_type,\n    job,\n    COUNT(*) AS issues\nFROM fve_clean.dq_issues\nGROUP BY issue_type, job\nORDER BY issues DESC, issue_type, job",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:50:47.401",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "multiBarChart",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "multiBarChart": {
+                  "stacked": true,
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "rotate"
+                }
+              },
+              "keys": [
+                {
+                  "name": "issue_type",
+                  "index": 0.0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [
+                {
+                  "name": "job",
+                  "index": 1.0,
+                  "aggr": "sum"
+                }
+              ],
+              "values": [
+                {
+                  "name": "issues",
+                  "index": 2.0,
+                  "aggr": "sum"
+                }
+              ],
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911184720_816128733",
+      "id": "paragraph_1794911184720_816128733",
+      "dateCreated": "2026-11-17 10:26:24.722",
+      "status": "READY"
+    },
+    {
+      "title": "Nespárované platby a navržená faktura (Unmatched payments with the suggested invoice)",
+      "text": "%sparksql\nSELECT\n    t.value_date AS value_date,\n    t.bank AS bank,\n    i.record_ref AS tx_id,\n    -t.amount AS amount,\n    t.counterparty_account AS counterparty_account,\n    t.counterparty_bank_code AS counterparty_bank_code,\n    t.vs AS vs,\n    NULLIF(regexp_extract(i.detail, \u0027suggested match: ([^ ]+)\u0027, 1), \u0027\u0027) AS suggested_invoice,\n    i.project_code AS project_code,\n    i.detail AS detail\nFROM fve_clean.dq_issues i\nLEFT JOIN fve_clean.bank_transactions t\n    ON t.tx_id \u003d i.record_ref\nWHERE i.issue_type \u003d \u0027UNMATCHED_PAYMENT\u0027\nORDER BY value_date, tx_id",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:40:39.654",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {
+                    "columns": [
+                      {
+                        "name": "value_date0",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "bank1",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "tx_id2",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "amount3",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "counterparty_account4",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "counterparty_bank_code5",
+                        "visible": true,
+                        "width": 220.0,
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "vs6",
+                        "visible": true,
+                        "width": 150.0,
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "suggested_invoice7",
+                        "visible": true,
+                        "width": 170.0,
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "project_code8",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "detail9",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      }
+                    ],
+                    "scrollFocus": {},
+                    "selection": [],
+                    "grouping": {
+                      "grouping": [],
+                      "aggregations": [],
+                      "rowExpandedStates": {}
+                    },
+                    "treeView": {},
+                    "pagination": {
+                      "paginationCurrentPage": 1.0,
+                      "paginationPageSize": 250.0
+                    }
+                  },
+                  "tableColumnTypeState": {
+                    "names": {
+                      "value_date": "string",
+                      "bank": "string",
+                      "tx_id": "string",
+                      "amount": "string",
+                      "counterparty_account": "string",
+                      "counterparty_bank_code": "string",
+                      "vs": "string",
+                      "suggested_invoice": "string",
+                      "project_code": "string",
+                      "detail": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911184725_1852465850",
+      "id": "paragraph_1794911184725_1852465850",
+      "dateCreated": "2026-11-17 10:26:24.726",
+      "status": "READY"
+    },
+    {
+      "title": "Faktury a náklady bez projektu (Invoices and booked costs without a project)",
+      "text": "%sparksql\nSELECT\n    i.source AS source,\n    i.record_ref AS record_ref,\n    s.name AS supplier,\n    COALESCE(v.issue_date, b.issue_date) AS issue_date,\n    COALESCE(v.total_gross, b.amount_gross) AS amount_gross,\n    i.detail AS detail\nFROM fve_clean.dq_issues i\nLEFT JOIN fve_clean.invoices v\n    ON i.source \u003d \u0027isdoc\u0027 AND v.invoice_id \u003d i.record_ref\nLEFT JOIN (\n    SELECT\n        doc_ref,\n        MIN(supplier_ico) AS supplier_ico,\n        MIN(issue_date) AS issue_date,\n        SUM(amount_gross) AS amount_gross\n    FROM fve_clean.booked_costs\n    GROUP BY doc_ref\n) b\n    ON i.source \u003d \u0027accounting\u0027 AND b.doc_ref \u003d i.record_ref\nLEFT JOIN fve_clean.suppliers s\n    ON s.ico \u003d COALESCE(v.supplier_ico, b.supplier_ico)\nWHERE i.issue_type \u003d \u0027NO_PROJECT\u0027\nORDER BY source, issue_date, record_ref",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:39:58.265",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql"
+        },
+        "colWidth": 12.0,
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "source": "string",
+                      "record_ref": "string",
+                      "supplier": "string",
+                      "issue_date": "string",
+                      "amount_gross": "string",
+                      "detail": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911184726_1141054082",
+      "id": "paragraph_1794911184726_1141054082",
+      "dateCreated": "2026-11-17 10:26:24.726",
+      "status": "READY"
+    },
+    {
+      "title": "Platební příkazy bez odepsání z účtu (Payment orders never cleared)",
+      "text": "%sparksql\nSELECT\n    o.order_date AS order_date,\n    o.due_date AS due_date,\n    o.bank AS bank,\n    i.record_ref AS order_id,\n    o.amount AS amount,\n    o.counterparty_account AS counterparty_account,\n    o.counterparty_bank_code AS counterparty_bank_code,\n    o.vs AS vs,\n    NULLIF(regexp_extract(i.detail, \u0027for invoice ([^ ]+)\u0027, 1), \u0027\u0027) AS invoice_id,\n    i.project_code AS project_code\nFROM fve_clean.dq_issues i\nLEFT JOIN fve_clean.payment_orders o\n    ON o.order_id \u003d i.record_ref\nWHERE i.issue_type \u003d \u0027ORDER_NOT_CLEARED\u0027\nORDER BY due_date, order_id",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:39:58.328",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql"
+        },
+        "colWidth": 12.0,
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "order_date": "string",
+                      "due_date": "string",
+                      "bank": "string",
+                      "order_id": "string",
+                      "amount": "string",
+                      "counterparty_account": "string",
+                      "counterparty_bank_code": "string",
+                      "vs": "string",
+                      "invoice_id": "string",
+                      "project_code": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911184726_149986065",
+      "id": "paragraph_1794911184726_149986065",
+      "dateCreated": "2026-11-17 10:26:24.727",
+      "status": "READY"
+    },
+    {
+      "title": "Fotky mimo všechny stavby (Photos taken outside every site)",
+      "text": "%sparksql\nSELECT\n    m.original_name AS original_name,\n    m.taken_at AS taken_at,\n    m.lat AS lat,\n    m.lon AS lon,\n    m.device AS device,\n    i.project_code AS nearest_project,\n    i.detail AS detail\nFROM fve_clean.dq_issues i\nLEFT JOIN fve_clean.media_files m\n    ON m.file_id \u003d i.record_ref\nWHERE i.issue_type \u003d \u0027UNASSIGNED_PHOTO\u0027\nORDER BY taken_at, original_name",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:50:48.114",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 600.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "original_name": "string",
+                      "taken_at": "string",
+                      "lat": "string",
+                      "lon": "string",
+                      "device": "string",
+                      "nearest_project": "string",
+                      "detail": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "1": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911184727_26524059",
+      "id": "paragraph_1794911184727_26524059",
+      "dateCreated": "2026-11-17 10:26:24.727",
+      "status": "READY"
+    },
+    {
+      "title": "Fotky bez polohy podle roku a telefonu (Photos without location per year and phone)",
+      "text": "%sparksql\nSELECT\n    YEAR(m.taken_at) AS photo_year,\n    m.device AS device,\n    SUM(CASE WHEN i.record_ref IS NOT NULL THEN 1 ELSE 0 END) AS photos_without_gps,\n    COUNT(*) AS photos,\n    ROUND(SUM(CASE WHEN i.record_ref IS NOT NULL THEN 1 ELSE 0 END) * 100.0 / COUNT(*), 1) AS pct_without_gps\nFROM fve_clean.media_files m\nLEFT JOIN (\n    SELECT record_ref\n    FROM fve_clean.dq_issues\n    WHERE issue_type \u003d \u0027NO_GPS\u0027\n) i\n    ON i.record_ref \u003d m.file_id\nWHERE m.kind \u003d \u0027PHOTO\u0027\nGROUP BY YEAR(m.taken_at), m.device\nHAVING SUM(CASE WHEN i.record_ref IS NOT NULL THEN 1 ELSE 0 END) \u003e 0\nORDER BY photo_year DESC, pct_without_gps DESC, device",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:50:48.114",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "photo_year": "string",
+                      "device": "string",
+                      "photos_without_gps": "string",
+                      "photos": "string",
+                      "pct_without_gps": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          },
+          "1": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911184727_26524059",
+      "id": "paragraph_1794911184727_26524991",
+      "dateCreated": "2026-11-17 10:26:24.727",
+      "status": "READY"
+    },
+    {
+      "title": "Finální výkres starší než číslovaná verze (Final drawing older than a numbered version)",
+      "text": "%sparksql\nSELECT\n    project_code,\n    record_ref AS drawing,\n    detail\nFROM fve_clean.dq_issues\nWHERE issue_type \u003d \u0027WRONG_VERSION\u0027\nORDER BY project_code",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:39:58.544",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "project_code": "string",
+                      "drawing": "string",
+                      "detail": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911184728_356801559",
+      "id": "paragraph_1794911184728_356801559",
+      "dateCreated": "2026-11-17 10:26:24.728",
+      "status": "READY"
+    },
+    {
+      "title": "Duplicitní faktury (Duplicate invoices)",
+      "text": "%sparksql\nSELECT\n    i.record_ref AS invoice_id,\n    s.name AS supplier,\n    v.number AS number,\n    v.total_gross AS total_gross,\n    v.source_file AS kept_file,\n    i.detail AS dropped_file,\n    i.project_code AS project_code\nFROM fve_clean.dq_issues i\nLEFT JOIN fve_clean.invoices v\n    ON v.invoice_id \u003d i.record_ref\nLEFT JOIN fve_clean.suppliers s\n    ON s.ico \u003d v.supplier_ico\nWHERE i.issue_type \u003d \u0027DUPLICATE\u0027\nORDER BY supplier, invoice_id",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:39:58.592",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "invoice_id": "string",
+                      "supplier": "string",
+                      "number": "string",
+                      "total_gross": "string",
+                      "kept_file": "string",
+                      "dropped_file": "string",
+                      "project_code": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911184728_247602261",
+      "id": "paragraph_1794911184728_247602261",
+      "dateCreated": "2026-11-17 10:26:24.728",
+      "status": "READY"
+    },
+    {
+      "title": "Soubory, které nešlo načíst (Files that failed to parse)",
+      "text": "%sparksql\nSELECT\n    job,\n    source,\n    record_ref AS raw_path,\n    detail\nFROM fve_clean.dq_issues\nWHERE issue_type \u003d \u0027PARSE_ERROR\u0027\nORDER BY job, raw_path",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 10:39:58.642",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300.0,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "job": "string",
+                      "source": "string",
+                      "raw_path": "string",
+                      "detail": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794911184728_265438844",
+      "id": "paragraph_1794911184728_265438844",
+      "dateCreated": "2026-11-17 10:26:24.728",
+      "status": "READY"
+    },
+    {
+      "title": "Faktury bez variabilního symbolu (Invoices without a variable symbol, with the payment that probably paid them)",
+      "text": "%sparksql\nSELECT\n    i.record_ref AS invoice_id,\n    s.name AS supplier,\n    v.number AS number,\n    v.issue_date AS issue_date,\n    v.due_date AS due_date,\n    v.total_gross AS total_gross,\n    st.status AS status,\n    p.tx_id AS suggested_payment,\n    i.project_code AS project_code,\n    i.detail AS detail\nFROM fve_clean.dq_issues i\nLEFT JOIN fve_clean.invoices v\n    ON v.invoice_id \u003d i.record_ref\nLEFT JOIN fve_clean.suppliers s\n    ON s.ico \u003d v.supplier_ico\nLEFT JOIN fve_clean.invoice_status st\n    ON st.invoice_id \u003d i.record_ref\nLEFT JOIN (\n    SELECT\n        record_ref AS tx_id,\n        regexp_extract(detail, \u0027suggested match: ([^ ]+)\u0027, 1) AS invoice_id\n    FROM fve_clean.dq_issues\n    WHERE issue_type \u003d \u0027UNMATCHED_PAYMENT\u0027\n) p\n    ON p.invoice_id \u003d i.record_ref\nWHERE i.issue_type \u003d \u0027MISSING_VS\u0027\nORDER BY due_date, invoice_id",
+      "user": "anonymous",
+      "dateUpdated": "2026-11-17 13:20:00.000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12.0,
+        "editorMode": "ace/mode/scala",
+        "editorHide": false,
+        "fontSize": 9.0,
+        "title": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1794921600000_9000000001",
+      "id": "paragraph_1794921600000_9000000001",
+      "dateCreated": "2026-11-17 13:20:00.000",
+      "status": "READY"
+    }
+  ],
+  "name": "to_fix",
+  "id": "2NAFGU2WC",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.11.2",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false
+  },
+  "info": {
+    "inIsolatedMode": false,
+    "isRunning": false
+  }
+}

@@ -1,0 +1,26 @@
+== Parsed Logical Plan ==
+'Project [unresolvedalias('COUNT(1), None), unresolvedalias('SUM('amount_net), None)]
++- 'Filter ('issue_year = 2025)
+   +- 'UnresolvedRelation [fve_dw_x10, fact_invoice_line_flat], [], false
+
+== Analyzed Logical Plan ==
+count(1): bigint, sum(amount_net): decimal(24,2)
+Aggregate [count(1) AS count(1)#2919L, sum(amount_net#2912) AS sum(amount_net)#2920]
++- Filter (issue_year#2917 = 2025)
+   +- SubqueryAlias spark_catalog.fve_dw_x10.fact_invoice_line_flat
+      +- Relation spark_catalog.fve_dw_x10.fact_invoice_line_flat[invoice_id#2905,line_no#2906,project_key#2907,supplier_key#2908,category_key#2909,issue_date_key#2910,due_date_key#2911,amount_net#2912,vat_amount#2913,amount_gross#2914,payment_status#2915,days_late#2916,issue_year#2917] orc
+
+== Optimized Logical Plan ==
+Aggregate [count(1) AS count(1)#2919L, sum(amount_net#2912) AS sum(amount_net)#2920]
++- Project [amount_net#2912]
+   +- Filter (isnotnull(issue_year#2917) AND (issue_year#2917 = 2025))
+      +- Relation spark_catalog.fve_dw_x10.fact_invoice_line_flat[invoice_id#2905,line_no#2906,project_key#2907,supplier_key#2908,category_key#2909,issue_date_key#2910,due_date_key#2911,amount_net#2912,vat_amount#2913,amount_gross#2914,payment_status#2915,days_late#2916,issue_year#2917] orc
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=false
++- HashAggregate(keys=[], functions=[count(1), sum(amount_net#2912)], output=[count(1)#2919L, sum(amount_net)#2920])
+   +- Exchange SinglePartition, ENSURE_REQUIREMENTS, [plan_id=9322]
+      +- HashAggregate(keys=[], functions=[partial_count(1), partial_sum(amount_net#2912)], output=[count#2937L, sum#2938, isEmpty#2939])
+         +- Project [amount_net#2912]
+            +- Filter (isnotnull(issue_year#2917) AND (issue_year#2917 = 2025))
+               +- FileScan orc spark_catalog.fve_dw_x10.fact_invoice_line_flat[amount_net#2912,issue_year#2917] Batched: true, DataFilters: [isnotnull(issue_year#2917), (issue_year#2917 = 2025)], Format: ORC, Location: InMemoryFileIndex(1 paths)[hdfs://namenode:8020/bench/x10/lake/dw/fact_invoice_line_flat], PartitionFilters: [], PushedFilters: [IsNotNull(issue_year), EqualTo(issue_year,2025)], ReadSchema: struct<amount_net:decimal(14,2),issue_year:int>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Shared by every Hadoop, Spark and Hive container (HADOOP_CONF_DIR / HIVE_CUSTOM_CONF_DIR). -->
+<configuration>
+  <property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://namenode:8020</value>
+  </property>
+  <!-- HiveServer2 (HDFS user hadoop) submits its MapReduce jobs as a proxy user; the NameNode and the
+       ResourceManager only accept that when user hadoop may impersonate. -->
+  <property>
+    <name>hadoop.proxyuser.hadoop.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.hadoop.groups</name>
+    <value>*</value>
+  </property>
+</configuration>

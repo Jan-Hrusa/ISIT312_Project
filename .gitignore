@@ -1,8 +1,10 @@
-# generated data
-sources/
-sources_x10/
-out/
+# generated data (anchored to the repo root: tests/fixtures/sources/ is committed)
+/sources/
+/sources_x10/
+/out/
+/out_x10/
 *.seq
+!tests/fixtures/**/*.seq
 
 # Python
 .venv/
@@ -32,3 +34,6 @@ desktop.ini
 
 # secrets
 .env
+
+# screenshots go to the Drive folder Screenshots/<area>/, never into the repo
+/Screenshots/
